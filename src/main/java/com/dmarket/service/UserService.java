@@ -1,5 +1,6 @@
 package com.dmarket.service;
 
+import com.dmarket.dto.response.UserInfoResDto;
 import com.dmarket.dto.response.WishlistItemDto;
 import com.dmarket.dto.response.WishlistResDto;
 import com.dmarket.repository.user.UserRepository;
@@ -24,8 +25,12 @@ public class UserService {
     public WishlistResDto getWishlistByUserId(Long userId) {
         List<WishlistItemDto> wishlistItems = wishlistRepository.findWishlistItemsByUserId(userId);
         return WishlistResDto.builder()
-                .wishCount(wishlistItems.size()) // Set wishCount here
                 .wishListItem(wishlistItems)
                 .build();
     }
+    @Transactional(readOnly = true)
+    public List<UserInfoResDto> getUserInfoByUserId(Long userId) {
+        return userRepository.findUserInfoByUserId(userId);
+    }
+
 }
