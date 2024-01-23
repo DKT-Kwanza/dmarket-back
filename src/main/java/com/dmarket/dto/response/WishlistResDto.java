@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Collections;
 import java.util.List;
 
 @Getter
@@ -12,8 +13,10 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class WishlistResDto {
-    private Long wishCount;
-
+    private int wishCount;
     private List<WishlistItemDto> wishListItem;
-
+    public int getWishCount() {
+        return wishListItem.size();
+    }
 }
+

@@ -19,21 +19,28 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
 public class UserController {
-    UserService userService;
+    private final UserService userService;
     // 위시리스트 조회
-    @GetMapping("{userId}/wish")
+    @GetMapping("/{userId}/wish")
     public ResponseEntity<?> getWishlistByUserId(@PathVariable(name = "userId") Long userId) {
         try {
-            List<WishlistResDto> wishlist = userService.getWishlistByUserId(userId);
+            WishlistResDto wishlist = userService.getWishlistByUserId(userId);
             log.info("데이터 조회 완료");
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("위시리스트 조회 완료").data(wishlist).build(), HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
+        }
+        catch (IllegalArgumentException e) {
             // 잘못된 요청에 대한 예외 처리
             log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
         }
+        //     catch (AuthenticationException e) {
+        //     // 인증 오류에 대한 예외 처리
+        //     log.warn("유효하지 않은 인증" + e.getMessage());
+        //     return new ResponseEntity<>(CMResDto.builder()
+        //             .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
+        //    }
         catch (Exception e) {
             // 기타 예외에 대한 예외 처리
             log.error("서버 내부 오류: " + e.getMessage());
