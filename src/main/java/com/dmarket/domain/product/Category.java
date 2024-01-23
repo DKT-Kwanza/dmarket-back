@@ -24,10 +24,10 @@ public class Category {
     @Column(nullable = false)
     private Integer categoryDepth;
 
-    //@ManyToOne(fetch = FetchType.LAZY)
-    //@JoinColumn(name = "categoryParent", referencedColumnName = "categoryId", insertable=false, updatable=false)
-    //private Category parent;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categoryParentId", referencedColumnName = "categoryId", insertable=false, updatable=false)
+    private Category parent;
 
-    //@OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
-    //private List<Category> child = new ArrayList<>();
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
+    private List<Category> child = new ArrayList<>();
 }
