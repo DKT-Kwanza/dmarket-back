@@ -16,9 +16,6 @@ public class RefreshToken {
     private Long refreshTokenId;
 
     @Column(nullable = false)
-    private Long userId;
-
-    @Column(nullable = false)
     private String userEmail;
 
     @Column(nullable = false)

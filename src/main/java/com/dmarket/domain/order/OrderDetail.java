@@ -6,6 +6,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -28,4 +30,5 @@ public class OrderDetail {
 
     private Integer orderDetailPrice;
     private Integer orderDetailSalePrice;
+    private LocalDateTime orderDetailUpdatedDate;
 }

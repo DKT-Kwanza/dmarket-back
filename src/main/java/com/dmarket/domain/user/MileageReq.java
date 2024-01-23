@@ -32,5 +32,4 @@ public class MileageReq {
     private String mileageReqState;
 
     private LocalDateTime mileageReqUpdatedDate;  //상태 변경 일자
-    private Long mileageReqAdminId;
 }

@@ -2,6 +2,7 @@ package com.dmarket.domain.board;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -25,12 +26,23 @@ public class Qna {
     private String qnaContents;
 
     @Column(nullable = false)
-    private LocalDateTime qnaCreatedDate;
-    private LocalDateTime qnaUpdatedDate;
-
-    @Column(nullable = false)
     private Boolean qnaSecret;
 
     @Column(nullable = false)
     private Boolean qnaState;
+
+    @Column(nullable = false)
+    private LocalDateTime qnaCreatedDate;
+
+
+    @Builder
+    public Qna(Long userId, Long productId, String qnaTitle, String qnaContents, Boolean qnaSecret, Boolean qnaState) {
+        this.userId = userId;
+        this.productId = productId;
+        this.qnaTitle = qnaTitle;
+        this.qnaContents = qnaContents;
+        this.qnaSecret = qnaSecret;
+        this.qnaState = qnaState;
+        this.qnaCreatedDate = LocalDateTime.now().withNano(0);
+    }
 }

@@ -25,8 +25,6 @@ public class Return {
     @Column(columnDefinition = "TEXT")
     private String returnReason;
 
-    private Long returnManagerId;
-
     private LocalDateTime returnRequestDate;
     private LocalDateTime returnUpdatedDate;
 }

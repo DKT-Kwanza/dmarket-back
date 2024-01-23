@@ -16,5 +16,5 @@ public class Cart {
     private Long userId;
     private Long productId;
     private Long optionId;
-    private Long cartCount;
+    private Integer cartCount;
 }

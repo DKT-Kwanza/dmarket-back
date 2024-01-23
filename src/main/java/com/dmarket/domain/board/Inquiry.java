@@ -3,6 +3,7 @@ package com.dmarket.domain.board;
 import com.dmarket.constant.InquiryType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -29,7 +30,19 @@ public class Inquiry {
     @Column(columnDefinition="TEXT")
     private String inquiryImg;
 
-    private LocalDateTime inquiryCreatedDate;
-    private LocalDateTime inquiryUpdatedDate;
     private Boolean inquiryState;
+
+    private LocalDateTime inquiryCreatedDate;
+
+
+    @Builder
+    public Inquiry(Long userId, InquiryType inquiryType, String inquiryTitle, String inquiryContents, String inquiryImg, Boolean inquiryState) {
+        this.userId = userId;
+        this.inquiryType = inquiryType;
+        this.inquiryTitle = inquiryTitle;
+        this.inquiryContents = inquiryContents;
+        this.inquiryImg = inquiryImg;
+        this.inquiryState = inquiryState;
+        this.inquiryCreatedDate = LocalDateTime.now().withNano(0);
+    }
 }
