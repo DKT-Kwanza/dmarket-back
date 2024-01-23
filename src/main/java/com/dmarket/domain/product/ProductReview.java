@@ -13,15 +13,29 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProductReview {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long reviewId;
 
+    @Column(nullable = false)
     private Long optionId;
+
+    @Column(nullable = false)
     private Long productId;
+
+    @Column(nullable = false)
     private Long userId;
+
+    @Column(nullable = false)
     private Float reviewRating;
+
+    @Column(nullable = false)
     private String reviewContents;
+
+    @Column(nullable = true)
     private String reviewImg;
+
+    @Column(nullable = true)
     private LocalDateTime reviewCreatedDate;
 
 

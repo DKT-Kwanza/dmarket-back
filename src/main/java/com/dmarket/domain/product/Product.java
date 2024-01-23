@@ -13,7 +13,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Product {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long productId;
 
     private Long categoryId;
@@ -27,13 +28,16 @@ public class Product {
     @Column(nullable = false)
     private Integer productPrice;
 
+    @Column(nullable = false)
     private Integer productSalePrice;
 
     @Column(nullable = false, columnDefinition="TEXT")
     private String productDescription;
 
+    @Column(nullable = true)
     private Float productRating;
 
+    @Column(nullable = true)
     private LocalDateTime productCreatedDate;
 
 
