@@ -56,7 +56,33 @@ public class UserController {
             CartCountResDto cartCount = userService.getCartCount(userId);
             log.info("데이터 조회 완료");
             return new ResponseEntity<>(CMResDto.builder()
-                    .code(200).msg("카테고리 목록 조회 완료").data(cartCount).build(), HttpStatus.OK);
+                    .code(200).msg("장바구니 상품 개수 조회 완료").data(cartCount).build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+//        } catch (AuthenticationException e) {
+//            // 인증 오류에 대한 예외 처리
+//            log.warn("유효하지 않은 인증" + e.getMessage());
+//            return new ResponseEntity<>(CMResDto.builder()
+//                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 마이페이지 서브헤더 사용자 정보 및 마일리지 조회
+    @GetMapping("/{userId}/mypage/mileage")
+    public ResponseEntity<?> getSubHeader(@PathVariable(name = "userId") Long userId){
+        try{
+            UserHeaderInfoResDto subHeader = userService.getSubHeader(userId);
+            log.info("데이터 조회 완료");
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("장바구니 상품 개수 조회 완료").data(subHeader).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             // 잘못된 요청에 대한 예외 처리
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());

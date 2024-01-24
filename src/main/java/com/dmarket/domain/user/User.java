@@ -40,6 +40,8 @@ public class User {
     private String userPhoneNum;
 
     private LocalDateTime userRegisterDate;  //가입일
+
+    @Column(nullable = false)
     private LocalDate userJoinDate;  //입사일
 
     @Column(nullable = false)

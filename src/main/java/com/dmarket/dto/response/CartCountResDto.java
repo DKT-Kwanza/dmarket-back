@@ -6,7 +6,10 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class CartCountResDto {
-    private Long cartCount;
+    private Integer cartCount;
+
+    public CartCountResDto(Long cartCount){
+        this.cartCount = cartCount.intValue();
+    }
 }
