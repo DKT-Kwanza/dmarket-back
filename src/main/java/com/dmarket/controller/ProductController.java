@@ -163,9 +163,11 @@ public class ProductController {
 
     // 상품별 사용자 리뷰 조회 api
     @GetMapping("/{productId}/reviews")
-    public ResponseEntity<?> getProductReviews(@PathVariable Long productId){
+    public ResponseEntity<?> getProductReviews(@PathVariable Long productId,
+                                               @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo){
         try {
-            ProductReviewListResDto res = productService.getReviewList(productId);
+            pageNo = pageNo > 0 ? pageNo-1 : pageNo;
+            ProductReviewListResDto res = productService.getReviewList(productId, pageNo);
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("상품 리뷰 목록 조회 성공").data(res).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
