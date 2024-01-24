@@ -13,7 +13,7 @@ public class ProductListResDto {
     private String productName;
     private String productImg;
     private Integer productSalePrice;
-    private Float ratingAvg;
-    private Long reviewCnt;
+    private Float productRating;
+    private Long productReviewCount;
 }
 

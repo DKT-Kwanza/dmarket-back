@@ -1,8 +1,10 @@
 package com.dmarket.service;
 
+import com.dmarket.dto.response.CartCountResDto;
 import com.dmarket.dto.response.UserInfoResDto;
 import com.dmarket.dto.common.WishlistItemDto;
 import com.dmarket.dto.response.WishlistResDto;
+import com.dmarket.repository.user.CartRepository;
 import com.dmarket.repository.user.UserRepository;
 import com.dmarket.repository.user.WishlistRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import java.util.List;
 public class UserService {
     //조회가 아닌 메서드들은 꼭 @Transactional 넣어주세요 (CUD, 입력/수정/삭제)
     private final WishlistRepository wishlistRepository;
+    private final CartRepository cartRepository;
     private final UserRepository userRepository;
     // 위시리스트 조회
     public WishlistResDto getWishlistByUserId(Long userId) {
@@ -27,6 +30,12 @@ public class UserService {
                 .wishListItem(wishlistItems)
                 .build();
     }
+
+    //장바구니 상품 개수 조회
+    public CartCountResDto getCartCount(Long userId){
+        return cartRepository.findCountByUserId(userId);
+    }
+
     // 사용자 정보 조회
     public UserInfoResDto getUserInfoByUserId(Long userId) {
         return userRepository.findUserInfoByUserId(userId);
