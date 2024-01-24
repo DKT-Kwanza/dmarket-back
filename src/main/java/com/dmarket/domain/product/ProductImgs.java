@@ -13,6 +13,7 @@ public class ProductImgs {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long imgId;
 
+    @Column(nullable = false)
     private Long productId;
 
     @Column(nullable = false, columnDefinition="TEXT")
