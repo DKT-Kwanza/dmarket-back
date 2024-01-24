@@ -15,30 +15,30 @@ public class JoinReqDto {
 
     @NotBlank
     @Email
-    private String email;
+    private String userEmail;
 
     @NotBlank
     @Size(min = 8)  //최소 8자리
-    private String password;
+    private String userPassword;
 
     @NotNull
-    private Integer dktNum;  //사원번호
+    private Integer userDktNum;  //사원번호
 
     @NotBlank
-    private String name;  //이름
+    private String userName;  //이름
 
     @NotBlank
-    private String phoneNum;  //전화번호
+    private String userPhoneNum;  //전화번호
 
     @NotNull
-    private LocalDate joinDate;  //입사일
+    private LocalDate userJoinDate;  //입사일
 
     @NotNull
-    private Integer postalCode;  //우편번호
+    private Integer userPostalCode;  //우편번호
 
     @NotBlank
     private String userAddress;  //주소
 
     @NotBlank
-    private String userAddressDetail;  //상세주소
+    private String userDetailedAddress;  //상세주소
 }

@@ -27,15 +27,15 @@ public class UserService {
     public Long join(JoinReqDto dto) {
 
         User user = User.builder()
-                .userEmail(dto.getEmail())
-                .password(passwordEncoder.encode(dto.getPassword()))
-                .userDktNum(dto.getDktNum())
-                .userName(dto.getName())
-                .userPhoneNum(dto.getPhoneNum())
-                .userJoinDate(dto.getJoinDate())
-                .userPostalCode(dto.getPostalCode())
+                .userEmail(dto.getUserEmail())
+                .password(passwordEncoder.encode(dto.getUserPassword()))
+                .userDktNum(dto.getUserDktNum())
+                .userName(dto.getUserName())
+                .userPhoneNum(dto.getUserPhoneNum())
+                .userJoinDate(dto.getUserJoinDate())
+                .userPostalCode(dto.getUserPostalCode())
                 .userAddress(dto.getUserAddress())
-                .userAddressDetail(dto.getUserAddressDetail())
+                .userAddressDetail(dto.getUserDetailedAddress())
                 .build();
 
         userRepository.save(user);
@@ -46,9 +46,9 @@ public class UserService {
     public void verifyJoin(JoinReqDto dto) {
 
         String regExp = "^[a-zA-Z0-9!@#$%^]*$";
-        String userEmail = dto.getEmail();
-        String password = dto.getPassword();
-        Integer userDktNum = dto.getDktNum();
+        String userEmail = dto.getUserEmail();
+        String password = dto.getUserPassword();
+        Integer userDktNum = dto.getUserDktNum();
 
         //이메일이 gachon.ac.kr로 끝나야 함
         if (!userEmail.endsWith("gachon.ac.kr")) {

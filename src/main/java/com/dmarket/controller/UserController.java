@@ -36,7 +36,7 @@ public class UserController {
 
             Long userId = userService.join(dto);
             return new ResponseEntity<>(CMResDto.builder()
-                    .code(200).msg("회원가입 성공").data("userId=" + userId).build(), HttpStatus.OK);
+                    .code(201).msg("회원가입 성공").data("userId=" + userId).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             log.warn(e.getMessage(), e.getCause());
             return new ResponseEntity<>(CMResDto.builder()
@@ -44,7 +44,7 @@ public class UserController {
         } catch (RuntimeException e) {
             log.warn(e.getMessage(), e.getCause());
             return new ResponseEntity<>(CMResDto.builder()
-                    .code(400).msg("회원가입 실패").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+                    .code(500).msg("회원가입 실패").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -57,7 +57,7 @@ public class UserController {
             for (FieldError fe : bindingResult.getFieldErrors()) {
                 errorMap.put(fe.getField(), fe.getDefaultMessage());
             }
-            throw new RuntimeException(errorMap.toString());
+            throw new IllegalArgumentException(errorMap.toString());
         }
     }
 }
