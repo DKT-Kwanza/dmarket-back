@@ -2,17 +2,23 @@ package com.dmarket.controller;
 
 import com.dmarket.dto.response.CMResDto;
 import com.dmarket.dto.response.CategoryListResDto;
+import com.dmarket.dto.response.NewProductDto;
 import com.dmarket.dto.response.ProductListResDto;
 import com.dmarket.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -114,4 +120,59 @@ public class ProductController {
                     .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    // 최신 상품 조회
+    @GetMapping("/new-products")
+    public ResponseEntity<?> getLatestProducts() {
+        try {
+            List<NewProductDto> latestProducts = productService.findNewProducts();
+
+            // response format mapping
+            List<Object> responseData = latestProducts.stream()
+                    .limit(8) // 8개만 조회
+                    .map(product -> new Object() {
+                        public final Long productId = product.getProductId();
+                        public final String productBrand = product.getProductBrand();
+                        public final String productName = product.getProductName();
+                        public final String productImg = product.getProductImg();
+                        public final String productSalePrice = String.valueOf(product.getProductSalePrice());
+                    })
+                    .collect(Collectors.toList());
+
+            // response build
+            CMResDto response = CMResDto.builder()
+                    .code(200)
+                    .msg("신상품 8개 조회")
+                    .data(responseData)
+                    .build();
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            // Handle invalid requests
+            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+//        } catch (AuthenticationException e) {
+//            // Handle authentication errors
+//            log.warn("유효하지 않은 인증" + e.getMessage());
+//            return new ResponseEntity<>(CMResDto.builder()
+//                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            // Handle other exceptions
+            log.error("Error retrieving latest products: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500)
+                    .msg("서버 내부 오류")
+                    .build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+
+
+
+
+
+
 }
