@@ -16,8 +16,9 @@ import java.util.List;
 public interface CartRepository extends JpaRepository<Cart, Long> {
     // 장바구니 상품 개수 조회
     @Query(value = "select new com.dmarket.dto.response.CartCountResDto" +
-                    "(COUNT(c.cartId) as cartCount) from Cart c where userId = :userId")
+            "(COUNT(c.cartId) as cartCount) from Cart c where userId = :userId")
     CartCountResDto findCountByUserId(Long userId);
+
     @Query("SELECT new com.dmarket.dto.common.CartListDto(c, p, o, pi) " +
             "FROM Cart c " +
             "JOIN Product p ON p.productId = c.productId " +
@@ -27,7 +28,6 @@ public interface CartRepository extends JpaRepository<Cart, Long> {
             "SELECT MIN(pi2.imgId) FROM ProductImgs pi2 WHERE pi2.productId = c.productId" +
             ")")
     List<CartListDto> getCartsfindByUserId(@Param("userId") Long userId);
-
 
     void deleteByCartId(@Param("cartId") Long cartId);
 

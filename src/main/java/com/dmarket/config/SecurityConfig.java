@@ -87,7 +87,6 @@ public class SecurityConfig {
                         // .anyRequest().authenticated()
                         .anyRequest().permitAll());
 
-                );
 
         // 커스텀 필터 적용
         http
