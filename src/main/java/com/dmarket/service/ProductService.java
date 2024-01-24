@@ -27,13 +27,11 @@ public class ProductService {
     private static final int PRODUCT_PAGE_POST_COUNT = 16;
 
     // 카테고리 전체 목록 depth별로 조회
-    @Transactional(readOnly = true)
     public List<CategoryListResDto> getCategories(Integer categoryDepthLevel){
         return categoryRepository.findByCategoryDepth(categoryDepthLevel);
     }
 
     // 카테고리별 상품 목록 필터링 조회
-    @Transactional(readOnly = true)
     public Page<ProductListResDto> getCategoryProducts(Pageable pageable, int pageNo, Long cateId,
                                                        String sorter, Integer minPrice, Integer maxPrice, Float star) {
         pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
@@ -43,7 +41,6 @@ public class ProductService {
     }
 
     // 상품 목록 조건 검색
-    @Transactional(readOnly = true)
     public Page<ProductListResDto> getSearchProducts(Pageable pageable, int pageNo, String query,
                                                      String sorter, Integer minPrice, Integer maxPrice, Float star) {
         pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
