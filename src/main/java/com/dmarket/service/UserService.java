@@ -28,7 +28,7 @@ public class UserService {
                 .build();
     }
     // 사용자 정보 조회
-    public List<UserInfoResDto> getUserInfoByUserId(Long userId) {
+    public UserInfoResDto getUserInfoByUserId(Long userId) {
         return userRepository.findUserInfoByUserId(userId);
     }
     // 위시리스트 삭제

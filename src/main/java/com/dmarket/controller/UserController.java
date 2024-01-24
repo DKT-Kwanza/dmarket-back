@@ -85,7 +85,7 @@ public class UserController {
     @GetMapping("/{userId}/mypage/myinfo")
     public ResponseEntity<?> getUserInfoByUserId(@PathVariable(name = "userId") Long userId) {
         try {
-            List<UserInfoResDto> userInfo = userService.getUserInfoByUserId(userId);
+            UserInfoResDto userInfo = userService.getUserInfoByUserId(userId);
             log.info("데이터 조회 완료");
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("사용자 정보 조회 완료").data(userInfo).build(), HttpStatus.OK);

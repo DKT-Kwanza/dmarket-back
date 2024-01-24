@@ -14,5 +14,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query(value = "select new com.dmarket.dto.response.UserInfoResDto(u.userName, u.userEmail, u.userDktNum, u.userPhoneNum, u.userAddress, u.userAddressDetail, u.userPostalCode, u.userJoinDate)" +
             " from User u " +
             " where u.userId = :userId")
-    List<UserInfoResDto> findUserInfoByUserId(@Param("userId")Long userId);
+    UserInfoResDto findUserInfoByUserId(@Param("userId")Long userId);
 }
