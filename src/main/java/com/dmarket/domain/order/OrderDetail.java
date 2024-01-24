@@ -19,7 +19,6 @@ public class OrderDetail {
     private Long orderId;
     private Long optionId;
     private Long productId;
-    private Long reviewId;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
