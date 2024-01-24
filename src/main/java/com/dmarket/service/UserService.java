@@ -28,9 +28,14 @@ public class UserService {
                 .wishListItem(wishlistItems)
                 .build();
     }
+    // 사용자 정보 조회
     @Transactional(readOnly = true)
     public List<UserInfoResDto> getUserInfoByUserId(Long userId) {
         return userRepository.findUserInfoByUserId(userId);
     }
-
+    // 위시리스트 삭제
+    @Transactional
+    public void deleteWishlistById(Long wishlistId) {
+        wishlistRepository.deleteById(wishlistId);
+    }
 }
