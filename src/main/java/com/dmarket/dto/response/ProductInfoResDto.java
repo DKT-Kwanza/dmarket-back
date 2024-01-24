@@ -21,7 +21,7 @@ public class ProductInfoResDto {
     private Float productRatingAvg;
     private Long productReviewCount;
     private Boolean productIsWish;
-    private List<ProductOptionDto> optList;
+    private List<ProductOptionDto> optionList;
     private List<String> imgList;
 
     public ProductInfoResDto(Product product, String productCategory, Long reviewCount, Boolean isWish, List<ProductOptionDto> options, List<String> imgs){
@@ -35,7 +35,7 @@ public class ProductInfoResDto {
         this.productRatingAvg = product.getProductRating();
         this.productReviewCount = reviewCount;
         this.productIsWish = isWish;
-        this.optList = options;
+        this.optionList = options;
         this.imgList = imgs;
     }
 }

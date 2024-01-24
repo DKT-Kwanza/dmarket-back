@@ -29,7 +29,7 @@ public class ProductController {
                     .code(200).msg("상품 상세 조회 성공").data(res).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(CMResDto.builder().
-                    code(400).msg(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+                    code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>(CMResDto.builder().
                     code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
