@@ -1,7 +1,7 @@
 package com.dmarket.service;
 
 import com.dmarket.dto.response.CategoryListResDto;
-import com.dmarket.dto.response.NewProductDto;
+import com.dmarket.dto.response.NewProductResDto;
 import com.dmarket.dto.response.ProductListResDto;
 import com.dmarket.repository.product.CategoryRepository;
 import com.dmarket.repository.product.ProductRepository;
@@ -51,7 +51,7 @@ public class ProductService {
     }
 
     // 최신 상품 조회
-    public List<NewProductDto> findNewProducts() {
+    public List<NewProductResDto> findNewProducts() {
         return productRepository.findNewProducts();
     }
 

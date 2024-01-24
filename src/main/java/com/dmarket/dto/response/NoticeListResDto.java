@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class NoticeListDto {
+public class NoticeListResDto {
     private Long noticeId;
     private String noticeTitle;
     private String noticeContents;

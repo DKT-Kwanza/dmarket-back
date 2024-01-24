@@ -2,7 +2,7 @@ package com.dmarket.controller;
 
 import com.dmarket.domain.board.Notice;
 import com.dmarket.dto.response.CMResDto;
-import com.dmarket.dto.response.NoticeListDto;
+import com.dmarket.dto.response.NoticeListResDto;
 import com.dmarket.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,10 +14,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -41,10 +37,10 @@ public class BoardController {
 
             Page<Notice> noticesPage = boardService.getAllNotices(PageRequest.of(pageNo, pageSize));
 
-            CMResDto<Page<NoticeListDto>> response = CMResDto.<Page<NoticeListDto>>builder()
+            CMResDto<Page<NoticeListResDto>> response = CMResDto.<Page<NoticeListResDto>>builder()
                     .code(200)
                     .msg("공지사항 목록 불러오기 완료")
-                    .data(noticesPage.map(notice -> new NoticeListDto(
+                    .data(noticesPage.map(notice -> new NoticeListResDto(
                             notice.getNoticeId(),
                             notice.getNoticeTitle(),
                             notice.getNoticeContents(),

@@ -2,22 +2,18 @@ package com.dmarket.controller;
 
 import com.dmarket.dto.response.CMResDto;
 import com.dmarket.dto.response.CategoryListResDto;
-import com.dmarket.dto.response.NewProductDto;
+import com.dmarket.dto.response.NewProductResDto;
 import com.dmarket.dto.response.ProductListResDto;
 import com.dmarket.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -125,7 +121,7 @@ public class ProductController {
     @GetMapping("/new-products")
     public ResponseEntity<?> getLatestProducts() {
         try {
-            List<NewProductDto> latestProducts = productService.findNewProducts();
+            List<NewProductResDto> latestProducts = productService.findNewProducts();
 
             // response format mapping
             List<Object> responseData = latestProducts.stream()
