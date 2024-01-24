@@ -1,4 +1,4 @@
-성package com.dmarket.dto.response;
+package com.dmarket.dto.response;
 
 import com.dmarket.constant.FaqType;
 import lombok.AllArgsConstructor;
