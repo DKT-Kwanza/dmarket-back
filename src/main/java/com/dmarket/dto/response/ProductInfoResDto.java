@@ -1,7 +1,7 @@
 package com.dmarket.dto.response;
 
 import com.dmarket.domain.product.Product;
-import com.dmarket.dto.ProductOptionDto;
+import com.dmarket.dto.common.ProductOptionDto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

@@ -19,14 +19,14 @@ public class ProductReview {
     private Long optionId;
     private Long productId;
     private Long userId;
-    private Float reviewRating;
+    private Integer reviewRating;
     private String reviewContents;
     private String reviewImg;
     private LocalDateTime reviewCreatedDate;
 
 
     @Builder
-    public ProductReview(Long optionId, Long productId, Long userId, Float reviewRating, String reviewContents, String reviewImg) {
+    public ProductReview(Long optionId, Long productId, Long userId, Integer reviewRating, String reviewContents, String reviewImg) {
         this.optionId = optionId;
         this.productId = productId;
         this.userId = userId;
