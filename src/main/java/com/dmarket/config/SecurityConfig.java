@@ -6,6 +6,7 @@ import com.dmarket.jwt.LoginFilter;
 import com.dmarket.repository.user.RefreshTokenRepository;
 import com.dmarket.repository.user.UserRepository;
 import com.dmarket.service.LogoutService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -23,24 +24,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JWTUtil jwtUtil;
-
     private final RefreshTokenRepository refreshTokenRepository;
-
     private final UserRepository userRepository;
     private final LogoutService logoutService;
-
-    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil, UserRepository userRepository, RefreshTokenRepository refreshTokenRepository, LogoutService logoutService) {
-
-        this.authenticationConfiguration = authenticationConfiguration;
-        this.jwtUtil = jwtUtil;
-        this.userRepository = userRepository;
-        this.refreshTokenRepository = refreshTokenRepository;
-        this.logoutService = logoutService;
-    }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -63,6 +54,7 @@ public class SecurityConfig {
         return hierarchy;
     }
 
+    //패스워드 인코딩
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
@@ -83,7 +75,8 @@ public class SecurityConfig {
         http
                 .httpBasic((auth) -> auth.disable());
 
-
+        // 접근 권한 설정
+        // 계층 권한으로 페이지 접근 제한
         http
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/login", "/", "/join").permitAll()
@@ -94,16 +87,21 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 );
 
-
+        // 커스텀 필터 적용
         http
                 .addFilterBefore(new JWTFilter(jwtUtil, userRepository, refreshTokenRepository), LoginFilter.class);
+
+        // 커스텀 필터 적용
         http
                 .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil,refreshTokenRepository), UsernamePasswordAuthenticationFilter.class);
+
+        // 로그아웃 접근 경로 설정, 접근 시 동작할 서비스(logoutService) 지정
         http
                 .logout((logout) -> logout.logoutUrl("/api/users/logout")
                         .addLogoutHandler(logoutService)
                         .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext())
                 );
+
         //세션 설정
         http
                 .sessionManagement((session) -> session

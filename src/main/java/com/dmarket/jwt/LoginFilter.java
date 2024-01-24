@@ -20,23 +20,24 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Iterator;
 
+
+// SpringSecurity 로그인 경로 설정 문제로 @RequiredArgsConstructor 설정 X
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
-
     private final RefreshTokenRepository refreshTokenRepository;
 
 
     public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, RefreshTokenRepository refreshTokenRepository) {
-
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.refreshTokenRepository=refreshTokenRepository;
+
+        // login 경로 변경
         setFilterProcessesUrl("/api/users/login");
     }
 
@@ -51,14 +52,13 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         // 로그인 요청 API 에서 useremaul 값을 추출
         String useremail = request.getParameter("email");
 
-        System.out.println("login-1. password = " + password);
-        System.out.println("login-1. useremail = " + useremail);
-
+        // 유저 정보 검증을 위해 이메일, 패스워드 값 전달
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(useremail, password, null);
 
         return authenticationManager.authenticate(authToken);
     }
 
+    // 객체로 변환 필요
     private ObjectMapper objectMapper = new ObjectMapper();
 
     // 요청받은 정보가 DB에 있는 사용자인 경우
@@ -75,12 +75,13 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         String role = auth.getAuthority();
 
-        // AccessToken 만료 시간 6분
-        String accesstoken = jwtUtil.createAccessJwt( email, role, 6*60*1000L);
+        // AccessToken 만료 시간 6분 -> AccessToken 만료 시간 30분
+        String accesstoken = jwtUtil.createAccessJwt( email, role, 30*60*1000L);
 
         // RefreshToken 만료 시간 24시간
         String refreshtoken = jwtUtil.createRefreshJwt(email, role, 24 * 60 * 60 * 1000L);
 
+        // RefreshToken 저장
         saveRefreshTokenToDatabase(email,refreshtoken);
 
         TokenResponseDto tokenResponseDto = new TokenResponseDto();
@@ -95,8 +96,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         // HttpServletRequest 에 body에 정보를 담기.
         writeResponse(response, cmRespDto);
-
-        response.addHeader("Authorization", "Bearer " + accesstoken);
     }
 
     // 요청받은 정보가 DB에 없는 사용자인 경우
@@ -107,15 +106,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
                 .msg("아이디 또는 비밀번호가 틀렸습니다.")
                 .build();
 
-        // Write error response to the response body
         writeResponse(response, cmRespDto);
         response.setStatus(401);
     }
 
     private void saveRefreshTokenToDatabase(String userEmail, String refreshToken) {
         RefreshToken refreshTokendata = new RefreshToken(userEmail,refreshToken);
-//        refreshTokendata.setUserEmail(userEmail);
-//        refreshTokendata.setRefreshToken(refreshToken);
 
         refreshTokenRepository.save(refreshTokendata);
     }

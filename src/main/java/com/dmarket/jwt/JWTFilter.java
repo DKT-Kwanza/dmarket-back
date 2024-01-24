@@ -1,6 +1,5 @@
 package com.dmarket.jwt;
 
-import com.dmarket.constant.Role;
 import com.dmarket.domain.user.RefreshToken;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.response.CMResDto;
@@ -25,8 +24,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Objects;
+
 
 public class JWTFilter extends OncePerRequestFilter {
 
@@ -66,6 +65,7 @@ public class JWTFilter extends OncePerRequestFilter {
             //조건이 해당되면 메소드 종료 (필수)
             return;
         }
+
         // 헤더가 있기 때문에 헤더를 추출
         String token = authorization.split(" ")[1];
         System.out.println("token = " + token);
@@ -85,25 +85,21 @@ public class JWTFilter extends OncePerRequestFilter {
 
             writeResponse(response, cmRespDto);
 
-            //filterChain.doFilter(request, response);
             return;
         }
 
-
+        //토큰에서 정보 추출
         String type = jwtUtil.getType(token);
-        System.out.println("1.type = " + type);
-
         String email = jwtUtil.getEmail(token);
-        System.out.println("1.email = " + email);
         String role = jwtUtil.getRole(token);
 
+        // 타입이 refresh 인 경우 검증해서 재발급
         if(Objects.equals(type, "RTK")){
             if(refreshTokenRepository.existsByRefreshToken(token)){
                 refreshTokenRepository.deleteByUserEmail(email);
                 String newAccessToken = jwtUtil.createAccessJwt(email,role,jwtExpiration);
                 String newRefreshtoken = jwtUtil.createRefreshJwt(email, role, RefreshjwtExpiration);
                 saveRefreshTokenToDatabase(email,newRefreshtoken);
-                System.out.println("Hello");
 
                 TokenResponseDto tokenResponseDto = new TokenResponseDto();
                 tokenResponseDto.setAccesstoken(newAccessToken);
@@ -119,38 +115,24 @@ public class JWTFilter extends OncePerRequestFilter {
 
                 return;
 
-            }else{
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                CMResDto<Void> cmRespDto = CMResDto.<Void>builder()
-                        .code(HttpServletResponse.SC_UNAUTHORIZED) // 401 Unauthorized
-                        .msg("Refresh토큰이 없습니다. 다시 로그인 해주세요")
-                        .build();
-
-                writeResponse(response, cmRespDto);
-
-                //filterChain.doFilter(request, response);
-                return;
             }
+            // refresh 토큰이 없다면 다시 로그인 유도
+            else
+                {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    CMResDto<Void> cmRespDto = CMResDto.<Void>builder()
+                            .code(HttpServletResponse.SC_UNAUTHORIZED) // 401 Unauthorized
+                            .msg("Refresh토큰이 없습니다. 다시 로그인 해주세요")
+                            .build();
+
+                    writeResponse(response, cmRespDto);
+                    return;
+                }
         }
-        System.out.println("HelloAA");
 
         User userEntity = new User(email,777,"temppassword","username", LocalDate.now(),"77-89",11," ","");
-//        userEntity.setUserName("username");
-//        userEntity.setUserPassword("temppassword");
-//        userEntity.setUserEmail(email);
-//        userEntity.setUserRole(Role.valueOf(role));
-//        userEntity.setUserMileage(1000);
-//        userEntity.setUserAddressDetail("AddressDetail");
-//        userEntity.setUserAddress("UserAddress");
-//        userEntity.setUserPostalCode(7);
-//        userEntity.setUserDktNum(777);
-//        userEntity.setUserPhoneNum("77-89");
-
-
         CustomUserDetails customUserDetails = new CustomUserDetails(userEntity);
-
         Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
-
         SecurityContextHolder.getContext().setAuthentication(authToken);
         filterChain.doFilter(request, response);
     }
@@ -181,10 +163,10 @@ public class JWTFilter extends OncePerRequestFilter {
             e.printStackTrace();
         }
     }
+
+    // refresh 토큰 저장 메서드
     private void saveRefreshTokenToDatabase(String userEmail, String refreshToken) {
         RefreshToken refreshTokendata = new RefreshToken(userEmail,refreshToken);
-//        refreshTokendata.setUserEmail(userEmail);
-//        refreshTokendata.setRefreshToken(refreshToken);
 
         refreshTokenRepository.save(refreshTokendata);
     }
