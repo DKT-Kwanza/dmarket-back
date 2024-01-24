@@ -21,7 +21,6 @@ public class UserService {
     private final WishlistRepository wishlistRepository;
     private final UserRepository userRepository;
     // 위시리스트 조회
-    @Transactional(readOnly = true)
     public WishlistResDto getWishlistByUserId(Long userId) {
         List<WishlistItemDto> wishlistItems = wishlistRepository.findWishlistItemsByUserId(userId);
         return WishlistResDto.builder()
@@ -29,7 +28,6 @@ public class UserService {
                 .build();
     }
     // 사용자 정보 조회
-    @Transactional(readOnly = true)
     public List<UserInfoResDto> getUserInfoByUserId(Long userId) {
         return userRepository.findUserInfoByUserId(userId);
     }
