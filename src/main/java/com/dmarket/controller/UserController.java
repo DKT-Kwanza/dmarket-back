@@ -133,7 +133,7 @@ public class UserController {
             UserHeaderInfoResDto subHeader = userService.getSubHeader(userId);
             log.info("데이터 조회 완료");
             return new ResponseEntity<>(CMResDto.builder()
-                    .code(200).msg("장바구니 상품 개수 조회 완료").data(subHeader).build(), HttpStatus.OK);
+                    .code(200).msg("마이페이지 서브 헤더 조회 완료").data(subHeader).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             // 잘못된 요청에 대한 예외 처리
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());

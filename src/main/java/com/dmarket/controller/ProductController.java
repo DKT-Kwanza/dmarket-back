@@ -1,5 +1,6 @@
 package com.dmarket.controller;
 
+import com.dmarket.dto.request.ReviewReqDto;
 import com.dmarket.dto.response.CMResDto;
 import com.dmarket.dto.response.ProductInfoResDto;
 import com.dmarket.dto.response.ProductReviewListResDto;
@@ -7,15 +8,20 @@ import com.dmarket.dto.response.CategoryListResDto;
 import com.dmarket.dto.response.NewProductDto;
 import com.dmarket.dto.response.ProductListResDto;
 import com.dmarket.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -179,6 +185,41 @@ public class ProductController {
         } catch (Exception e) {
             return new ResponseEntity<>(CMResDto.builder().
                     code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 마이페이지 리뷰 작성
+    @PostMapping("{productId}/review")
+    public ResponseEntity<?> saveReview(@PathVariable Long productId,
+                                       @Valid @RequestBody ReviewReqDto reviewReqDto,
+                                       BindingResult bindingResult){
+        try {
+            bindingResultErrorsCheck(bindingResult);
+            productService.saveReview(reviewReqDto, productId);
+
+            log.info("데이터 저장 완료");
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("리뷰 작성 완료").build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private void bindingResultErrorsCheck(BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            Map<String, String> errorMap = new HashMap<>();
+            for (FieldError fe : bindingResult.getFieldErrors()) {
+                errorMap.put(fe.getField(), fe.getDefaultMessage());
+            }
+            throw new RuntimeException(errorMap.toString());
         }
     }
 }
