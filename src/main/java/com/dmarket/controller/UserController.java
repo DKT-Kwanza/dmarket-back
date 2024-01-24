@@ -18,17 +18,4 @@ public class UserController {
     public String userP() {
         return "User Page";
     }
-
-    @GetMapping("/admin/GM")
-    public String adminGMP() {
-        return "Admin GM Page";
-    }
-    @GetMapping("/admin/PM")
-    public String adminPMP() {
-        return "Admin PM Page";
-    }
-    @GetMapping("/admin/SM")
-    public String adminSMP() {
-        return "Admin SM Page";
-    }
 }
