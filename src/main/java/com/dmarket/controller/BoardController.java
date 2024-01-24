@@ -1,7 +1,9 @@
 package com.dmarket.controller;
 
+import com.dmarket.domain.board.Faq;
 import com.dmarket.domain.board.Notice;
 import com.dmarket.dto.response.CMResDto;
+import com.dmarket.dto.response.FaqListResDto;
 import com.dmarket.dto.response.NoticeListResDto;
 import com.dmarket.service.BoardService;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -66,4 +71,63 @@ public class BoardController {
                     .build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+    // FAQ 목록 조회
+    @GetMapping(value = "/faq")
+    public ResponseEntity<?> getFaqs(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
+                                     @RequestParam(required = false, value = "size", defaultValue = "10") int pageSize) {
+        try {
+            if (pageNo < 0 || pageSize <= 0) {
+                // Invalid input for page number or size, return 400 Bad Request
+                return new ResponseEntity<>(CMResDto.builder()
+                        .code(400)
+                        .msg("유효하지 않은 페이지 또는 크기")
+                        .build(), HttpStatus.BAD_REQUEST);
+            }
+
+            Page<Faq> faqsPage = boardService.getAllFaqs(PageRequest.of(pageNo, pageSize));
+
+            CMResDto<Page<FaqListResDto>> response = CMResDto.<Page<FaqListResDto>>builder()
+                    .code(200)
+                    .msg("FAQ 조회 성공")
+                    .data(faqsPage.map(faq -> new FaqListResDto(
+                            faq.getFaqId(),
+                            faq.getFaqType(),
+                            faq.getFaqQuestion(),
+                            faq.getFaqAnswer())))
+                    .build();
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            // Handle invalid requests
+            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Error retrieving FAQs: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500)
+                    .msg("서버 내부 오류")
+                    .build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
