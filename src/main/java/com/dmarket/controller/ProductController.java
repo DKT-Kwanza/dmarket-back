@@ -117,44 +117,23 @@ public class ProductController {
         }
     }
 
-    // 최신 상품 조회
+    //최신 상품 조회
     @GetMapping("/new-products")
     public ResponseEntity<?> getLatestProducts() {
         try {
             List<NewProductResDto> latestProducts = productService.findNewProducts();
-
             // response format mapping
-            List<Object> responseData = latestProducts.stream()
-                    .limit(8) // 8개만 조회
-                    .map(product -> new Object() {
-                        public final Long productId = product.getProductId();
-                        public final String productBrand = product.getProductBrand();
-                        public final String productName = product.getProductName();
-                        public final String productImg = product.getProductImg();
-                        public final String productSalePrice = String.valueOf(product.getProductSalePrice());
-                    })
-                    .collect(Collectors.toList());
-
+            List<Object> responseData = productService.mapToResponseFormat(latestProducts);
             // response build
-            CMResDto response = CMResDto.builder()
-                    .code(200)
-                    .msg("신상품 8개 조회")
-                    .data(responseData)
-                    .build();
-
+            CMResDto response = CMResDto.builder().code(200).msg("신상품 8개 조회").data(responseData).build();
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
-            // Handle invalid requests
+            // 잘못된 요청에 대한 예외 처리
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
-//        } catch (AuthenticationException e) {
-//            // Handle authentication errors
-//            log.warn("유효하지 않은 인증" + e.getMessage());
-//            return new ResponseEntity<>(CMResDto.builder()
-//                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
-            // Handle other exceptions
+            // 기타 예외에 대한 예외 처리
             log.error("Error retrieving latest products: " + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(500)
@@ -162,13 +141,4 @@ public class ProductController {
                     .build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
-
-
-
-
-
-
-
 }

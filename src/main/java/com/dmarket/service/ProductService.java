@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -54,7 +55,18 @@ public class ProductService {
     public List<NewProductResDto> findNewProducts() {
         return productRepository.findNewProducts();
     }
-
+    // 최신 상품 조회 - 매핑
+    public List<Object> mapToResponseFormat(List<NewProductResDto> latestProducts) {
+        return latestProducts.stream()
+                .limit(8).map(product -> new Object() {
+                    public final Long productId = product.getProductId();
+                    public final String productBrand = product.getProductBrand();
+                    public final String productName = product.getProductName();
+                    public final String productImg = product.getProductImg();
+                    public final String productSalePrice = String.valueOf(product.getProductSalePrice());
+                })
+                .collect(Collectors.toList());
+    }
 
 
 }

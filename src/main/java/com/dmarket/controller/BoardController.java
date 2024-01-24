@@ -27,96 +27,52 @@ import java.util.stream.Collectors;
 public class BoardController {
     private final BoardService boardService;
 
-    // 공지사항 목록 조회
-    @GetMapping(value = "/notice")
+    @GetMapping("/notice")
     public ResponseEntity<?> getNotices(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
                                         @RequestParam(required = false, value = "size", defaultValue = "10") int pageSize) {
         try {
             if (pageNo < 0 || pageSize <= 0) {
-                // Invalid input for page number or size, return 400 Bad Request
-                return new ResponseEntity<>(CMResDto.builder()
-                        .code(400)
-                        .msg("유효하지 않은 페이지 또는 크기")
-                        .build(), HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 페이지 또는 크기").build(), HttpStatus.BAD_REQUEST);
             }
 
             Page<Notice> noticesPage = boardService.getAllNotices(PageRequest.of(pageNo, pageSize));
+            Page<NoticeListResDto> mappedNotices = boardService.mapToNoticeListResDto(noticesPage);
 
-            CMResDto<Page<NoticeListResDto>> response = CMResDto.<Page<NoticeListResDto>>builder()
-                    .code(200)
-                    .msg("공지사항 목록 불러오기 완료")
-                    .data(noticesPage.map(notice -> new NoticeListResDto(
-                            notice.getNoticeId(),
-                            notice.getNoticeTitle(),
-                            notice.getNoticeContents(),
-                            notice.getNoticeCreatedDate())))
-                    .build();
+            CMResDto<Page<NoticeListResDto>> response = CMResDto.<Page<NoticeListResDto>>builder().code(200).msg("공지사항 목록 불러오기 완료").data(mappedNotices).build();
 
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
-            // Handle invalid requests
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
-            return new ResponseEntity<>(CMResDto.builder()
-                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
-//        } catch (AuthenticationException e) {
-//            // Handle authentication errors
-//            log.warn("유효하지 않은 인증" + e.getMessage());
-//            return new ResponseEntity<>(CMResDto.builder()
-//                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error("Error retrieving notices: " + e.getMessage());
-            return new ResponseEntity<>(CMResDto.builder()
-                    .code(500)
-                    .msg("서버 내부 오류")
-                    .build(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-
-    // FAQ 목록 조회
-    @GetMapping(value = "/faq")
+    @GetMapping("/faq")
     public ResponseEntity<?> getFaqs(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
                                      @RequestParam(required = false, value = "size", defaultValue = "10") int pageSize) {
         try {
             if (pageNo < 0 || pageSize <= 0) {
-                // Invalid input for page number or size, return 400 Bad Request
                 return new ResponseEntity<>(CMResDto.builder()
-                        .code(400)
-                        .msg("유효하지 않은 페이지 또는 크기")
-                        .build(), HttpStatus.BAD_REQUEST);
+                        .code(400).msg("유효하지 않은 페이지 또는 크기").build(), HttpStatus.BAD_REQUEST);
             }
 
             Page<Faq> faqsPage = boardService.getAllFaqs(PageRequest.of(pageNo, pageSize));
+            Page<FaqListResDto> mappedFaqs = boardService.mapToFaqListResDto(faqsPage);
 
-            CMResDto<Page<FaqListResDto>> response = CMResDto.<Page<FaqListResDto>>builder()
-                    .code(200)
-                    .msg("FAQ 조회 성공")
-                    .data(faqsPage.map(faq -> new FaqListResDto(
-                            faq.getFaqId(),
-                            faq.getFaqType(),
-                            faq.getFaqQuestion(),
-                            faq.getFaqAnswer())))
-                    .build();
+            CMResDto<Page<FaqListResDto>> response = CMResDto.<Page<FaqListResDto>>builder().code(200).msg("FAQ 조회 성공").data(mappedFaqs).build();
 
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
-            // Handle invalid requests
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
-            return new ResponseEntity<>(CMResDto.builder()
-                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error("Error retrieving FAQs: " + e.getMessage());
-            return new ResponseEntity<>(CMResDto.builder()
-                    .code(500)
-                    .msg("서버 내부 오류")
-                    .build(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
-
-
-
 
 
 
