@@ -48,6 +48,23 @@ public class UserController {
         }
     }
 
+    @PostMapping("/email")
+    public ResponseEntity<?> email(@RequestBody String userEmail) {
+        try {
+            userService.sendCodeToEmail(userEmail);
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("이메일 인증 코드 전송 완료").build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("이메일 인증 코드 전송 실패").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("이메일 인증 코드 전송 실패").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
 
 
     //validation 체크
