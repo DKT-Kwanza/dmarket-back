@@ -34,7 +34,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests((auth) -> auth
                 .requestMatchers("/api/users/login", "/", "/api/users/join").permitAll()
 //                        .requestMatchers("/api/admin").hasRole("ADMIN")
-                .anyRequest().authenticated());
+                .anyRequest().permitAll());
 
         //세션 설정
         http.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
