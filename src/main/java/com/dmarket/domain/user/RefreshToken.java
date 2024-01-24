@@ -1,14 +1,12 @@
 package com.dmarket.domain.user;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RefreshToken {
 
@@ -22,5 +20,11 @@ public class RefreshToken {
     private String refreshToken;
 
     @Column(nullable = false)
-    private LocalDateTime refreshTokenExpiredDate;
+    private LocalDateTime refreshTokenExpiredDate=LocalDateTime.now();
+
+    @Builder
+    public RefreshToken(String userEmail, String refreshToken) {
+        this.userEmail = userEmail;
+        this.refreshToken = refreshToken;
+    }
 }

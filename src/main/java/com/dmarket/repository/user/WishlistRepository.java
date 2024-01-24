@@ -12,6 +12,9 @@ import java.util.List;
 
 @Repository
 public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
+    // 위시리스트 존재 여부 확인
+    Boolean existsByUserIdAndProductId(Long userId, Long productId);
+
     @Query(value = "select new com.dmarket.dto.common.WishlistItemDto(" +
             "   p.productId, w.wishlistId, p.productName, p.productBrand, MIN(pi.imgAddress), p.productSalePrice)" +
             " from Wishlist w" +

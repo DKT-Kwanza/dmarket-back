@@ -20,4 +20,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
                     "from User u " +
                     "where u.userId = :userId")
     UserHeaderInfoResDto findUserHeaderInfoByUserId(Long userId);
+    User findByUserEmail(String userEmail);
 }
+
