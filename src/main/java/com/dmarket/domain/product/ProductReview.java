@@ -27,7 +27,7 @@ public class ProductReview {
     private Long userId;
 
     @Column(nullable = false)
-    private Float reviewRating;
+    private Integer reviewRating;
 
     @Column(nullable = false)
     private String reviewContents;
@@ -40,7 +40,7 @@ public class ProductReview {
 
 
     @Builder
-    public ProductReview(Long optionId, Long productId, Long userId, Float reviewRating, String reviewContents, String reviewImg) {
+    public ProductReview(Long optionId, Long productId, Long userId, Integer reviewRating, String reviewContents, String reviewImg) {
         this.optionId = optionId;
         this.productId = productId;
         this.userId = userId;
