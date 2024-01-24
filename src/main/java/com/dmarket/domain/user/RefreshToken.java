@@ -1,10 +1,7 @@
 package com.dmarket.domain.user;
 
-import com.dmarket.constant.Role;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -23,12 +20,11 @@ public class RefreshToken {
     private String refreshToken;
 
     @Column(nullable = false)
-    private LocalDateTime refreshTokenExpiredDate;
+    private LocalDateTime refreshTokenExpiredDate=LocalDateTime.now();
 
     @Builder
-    public RefreshToken(String userEmail, String refreshToken, LocalDateTime refreshTokenExpiredDate) {
+    public RefreshToken(String userEmail, String refreshToken) {
         this.userEmail = userEmail;
         this.refreshToken = refreshToken;
-        this.refreshTokenExpiredDate = refreshTokenExpiredDate;
     }
 }

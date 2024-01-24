@@ -182,7 +182,7 @@ public class JWTFilter extends OncePerRequestFilter {
         }
     }
     private void saveRefreshTokenToDatabase(String userEmail, String refreshToken) {
-        RefreshToken refreshTokendata = new RefreshToken(userEmail,refreshToken, LocalDateTime.now());
+        RefreshToken refreshTokendata = new RefreshToken(userEmail,refreshToken);
 //        refreshTokendata.setUserEmail(userEmail);
 //        refreshTokendata.setRefreshToken(refreshToken);
 

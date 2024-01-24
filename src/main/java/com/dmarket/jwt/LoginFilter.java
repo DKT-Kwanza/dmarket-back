@@ -67,7 +67,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
 
-        String username = customUserDetails.getUsername();
         String email = customUserDetails.getEmail();
 
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
@@ -114,7 +113,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     }
 
     private void saveRefreshTokenToDatabase(String userEmail, String refreshToken) {
-        RefreshToken refreshTokendata = new RefreshToken(userEmail,refreshToken, LocalDateTime.now());
+        RefreshToken refreshTokendata = new RefreshToken(userEmail,refreshToken);
 //        refreshTokendata.setUserEmail(userEmail);
 //        refreshTokendata.setRefreshToken(refreshToken);
 
