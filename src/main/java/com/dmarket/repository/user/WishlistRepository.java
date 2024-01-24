@@ -13,11 +13,12 @@ import java.util.List;
 @Repository
 public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
     @Query(value = "select new com.dmarket.dto.common.WishlistItemDto(" +
-            "   p.productId, w.wishlistId, p.productName, p.productBrand, pi.imgAddress, p.productSalePrice)" +
+            "   p.productId, w.wishlistId, p.productName, p.productBrand, MIN(pi.imgAddress), p.productSalePrice)" +
             " from Wishlist w" +
             " join Product p on w.productId = p.productId " +
             " join ProductImgs pi on p.productId = pi.productId " +
-            " where w.userId = :userId")
+            " where w.userId = :userId" +
+            " group by p.productId, w.wishlistId, p.productName, p.productBrand, p.productSalePrice")
     List<WishlistItemDto> findWishlistItemsByUserId(@Param("userId") Long userId);
 
     void deleteById(@Param("wishlistId") Long wishlistId);
