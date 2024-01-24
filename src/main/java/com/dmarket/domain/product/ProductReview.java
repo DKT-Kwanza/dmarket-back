@@ -25,6 +25,8 @@ public class ProductReview {
 
     @Column(nullable = false)
     private Long userId;
+    @Column(nullable = false)
+    private Long orderDetailId;
 
     @Column(nullable = false)
     private Integer reviewRating;

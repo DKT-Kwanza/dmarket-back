@@ -98,4 +98,9 @@ public class ProductService {
 
         return new ProductReviewListResDto(product, reviewList);
     }
+
+    @Transactional
+    public void deleteReviewByReviewId(Long productId, Long reviewId) {
+        productReviewRepository.deleteByReviewId(reviewId);
+    }
 }

@@ -1,4 +1,4 @@
-package com.dmarket.domain.board;
+package com.dmarket.domain.product;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

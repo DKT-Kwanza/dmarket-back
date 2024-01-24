@@ -4,6 +4,7 @@ import com.dmarket.domain.product.ProductReview;
 import com.dmarket.dto.common.ProductReviewDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,4 +22,6 @@ public interface ProductReviewRepository extends JpaRepository<ProductReview, Lo
             "join ProductOption o on r.optionId = o.optionId " +
             "where r.productId = :productId")
     List<ProductReviewDto> findReviewByProductId(Long productId);
+
+    void deleteByReviewId(@Param("reviewId") Long reviewId);
 }
