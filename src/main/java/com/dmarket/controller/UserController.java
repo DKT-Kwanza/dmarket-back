@@ -1,5 +1,6 @@
 package com.dmarket.controller;
 
+import com.dmarket.dto.request.AddCartReqDto;
 import com.dmarket.dto.request.AddWishReqDto;
 import com.dmarket.dto.response.CMResDto;
 import com.dmarket.service.UserService;
@@ -29,7 +30,7 @@ public class UserController {
             //request body 유효성 확인
             bindingResultErrorsCheck(bindingResult);
 
-            // 위시리스트 등록
+            // 위시리스트 추가
             Long productId = addWishReqDto.getProductId();
             userService.addWish(userId, productId);
 
@@ -40,6 +41,30 @@ public class UserController {
                     .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>(CMResDto.builder().code(400).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 장바구니 추가
+    @PostMapping("/{userId}/cart")
+    public ResponseEntity<?> addCart(@PathVariable Long userId, @Valid @RequestBody AddCartReqDto addCartReqDto, BindingResult bindingResult){
+        try {
+            //request body 유효성 확인
+            bindingResultErrorsCheck(bindingResult);
+
+            // 장바구니 추가
+            Long productId = addCartReqDto.getProductId();
+            Long optionId = addCartReqDto.getOptionId();
+            Integer productCount = addCartReqDto.getProductCount();
+            userService.addCart(userId, productId, optionId, productCount);
+
+            return new ResponseEntity<>(CMResDto.builder().code(200).msg("장바구니 등록 성공").build(), HttpStatus.OK);
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
         }
     }
 
