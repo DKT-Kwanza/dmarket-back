@@ -1,9 +1,7 @@
 package com.dmarket.controller;
 
-import com.dmarket.dto.response.CMResDto;
-import com.dmarket.dto.response.CategoryListResDto;
-import com.dmarket.dto.response.NewProductDto;
-import com.dmarket.dto.response.ProductListResDto;
+import com.dmarket.domain.product.Qna;
+import com.dmarket.dto.response.*;
 import com.dmarket.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -167,12 +165,69 @@ public class ProductController {
         }
     }
 
+    // 상품 별 Q&A 리스트 조회
+    @GetMapping("/{productId}/qna")
+    public ResponseEntity<?> getQnalistByProdcut(@PathVariable Long productId) {
+        try {
 
+//            WishlistResDto wishlist = userService.getWishlistByUserId(userId);
+//            log.info("데이터 조회 완료");
+//            return new ResponseEntity<>(CMResDto.builder()
+//                    .code(200).msg("위시리스트 조회 완료").data(wishlist).build(), HttpStatus.OK);
 
+            return ResponseEntity.ok(productId);
+        }
+        catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        }
+        // catch (AuthenticationException e) {
+        // // 인증 오류에 대한 예외 처리
+        // log.warn("유효하지 않은 인증" + e.getMessage());
+        // return new ResponseEntity<>(CMResDto.builder()
+        //         .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
+        // }
+        catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
-
-
-
-
-
+    //Q&A 작성 API
+    @PostMapping("/{productId}/qna")
+    public ResponseEntity<?> saveQnaAboutProduct(@PathVariable Long productId,
+                                                 @RequestParam Long userId,
+                                                 @RequestParam String qnaTitle,
+                                                 @RequestParam String qnaContents,
+                                                 @RequestParam(defaultValue = "false") Boolean qnaIsSecret) {
+        try {
+            QnaWriteResponseDto qnaWriteRespone = productService.qnaWrite(productId,userId,qnaTitle,qnaContents,qnaIsSecret );
+            log.info("QnA 저장 완료");
+            System.out.println("qnaWriteRespone.getQnaTitle() : " + qnaWriteRespone.getQnaTitle());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("QnA 저장 완료").data(qnaWriteRespone).build(), HttpStatus.OK);
+        }
+        catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        }
+        // catch (AuthenticationException e) {
+        // // 인증 오류에 대한 예외 처리
+        // log.warn("유효하지 않은 인증" + e.getMessage());
+        // return new ResponseEntity<>(CMResDto.builder()
+        //         .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
+        // }
+        catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

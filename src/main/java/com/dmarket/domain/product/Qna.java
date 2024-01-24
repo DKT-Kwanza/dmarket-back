@@ -1,4 +1,4 @@
-package com.dmarket.domain.board;
+package com.dmarket.domain.product;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -17,6 +17,7 @@ public class Qna {
     private Long qnaId;
 
     private Long userId;
+
     private Long productId;
 
     @Column(nullable = false)

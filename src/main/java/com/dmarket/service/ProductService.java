@@ -1,19 +1,27 @@
 package com.dmarket.service;
 
+import com.dmarket.domain.product.Qna;
+import com.dmarket.domain.user.User;
 import com.dmarket.dto.response.CategoryListResDto;
 import com.dmarket.dto.response.NewProductDto;
 import com.dmarket.dto.response.ProductListResDto;
+import com.dmarket.dto.response.QnaWriteResponseDto;
 import com.dmarket.repository.product.CategoryRepository;
 import com.dmarket.repository.product.ProductRepository;
+import com.dmarket.repository.product.QnaRepository;
+import com.dmarket.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PostMapping;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -24,6 +32,8 @@ public class ProductService {
     //조회가 아닌 메서드들은 꼭 @Transactional 넣어주세요 (CUD, 입력/수정/삭제)
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
+    private final QnaRepository qnaRepository;
 
     private static final int PRODUCT_PAGE_POST_COUNT = 16;
 
@@ -56,5 +66,33 @@ public class ProductService {
     }
 
 
+    // 상품 별 Q&A 리스트 조회
+
+
+    //Q&A 작성
+    @Transactional
+    public QnaWriteResponseDto qnaWrite(Long productId, Long userId, String qnaTitle, String qnaContents, Boolean qnaIsSecret){
+        // userId로 회원 이름 가져오기
+        User userdata = userRepository.findUserNameByUserId(userId);
+        String qnaWriter = userdata.getUserName();
+
+        // qna 정보 저장
+        Qna qna = Qna.builder()
+                .userId(userId)
+                .productId(productId)
+                .qnaTitle(qnaTitle)
+                .qnaContents(qnaContents)
+                .qnaSecret(qnaIsSecret)
+                .qnaState(false)
+                .build();
+
+        Qna savedQna = qnaRepository.save(qna);
+
+        // 반환값 생성
+        return new QnaWriteResponseDto(savedQna.getQnaSecret(), qnaWriter, savedQna.getQnaTitle(), savedQna.getQnaCreatedDate(), savedQna.getQnaState());
+    }
+
+
 
 }
+
