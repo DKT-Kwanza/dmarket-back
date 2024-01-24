@@ -1,8 +1,6 @@
 package com.dmarket.service;
 
-import com.dmarket.dto.response.CategoryListResDto;
-import com.dmarket.dto.response.NewProductDto;
-import com.dmarket.dto.response.ProductListResDto;
+import com.dmarket.dto.response.*;
 import com.dmarket.repository.product.CategoryRepository;
 import com.dmarket.repository.product.ProductRepository;
 import com.dmarket.domain.product.Category;
@@ -10,8 +8,6 @@ import com.dmarket.domain.product.Product;
 import com.dmarket.dto.common.ProductDto;
 import com.dmarket.dto.common.ProductOptionDto;
 import com.dmarket.dto.common.ProductReviewDto;
-import com.dmarket.dto.response.ProductInfoResDto;
-import com.dmarket.dto.response.ProductReviewListResDto;
 import com.dmarket.repository.product.*;
 import com.dmarket.repository.user.WishlistRepository;
 import lombok.RequiredArgsConstructor;
@@ -97,5 +93,10 @@ public class ProductService {
         List<ProductReviewDto> reviewList = productReviewRepository.findReviewByProductId(productId);
 
         return new ProductReviewListResDto(product, reviewList);
+    }
+
+    // 추천 상품 조회
+    public List<RecommendProductResDto> recommendProduct(Long productId) {
+        return productRepository.findProduct(productId, PageRequest.of(0, 4, Sort.by(Sort.Direction.DESC, "productCreatedDate")));
     }
 }

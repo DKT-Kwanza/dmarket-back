@@ -1,11 +1,6 @@
 package com.dmarket.controller;
 
-import com.dmarket.dto.response.CMResDto;
-import com.dmarket.dto.response.ProductInfoResDto;
-import com.dmarket.dto.response.ProductReviewListResDto;
-import com.dmarket.dto.response.CategoryListResDto;
-import com.dmarket.dto.response.NewProductDto;
-import com.dmarket.dto.response.ProductListResDto;
+import com.dmarket.dto.response.*;
 import com.dmarket.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -167,12 +162,28 @@ public class ProductController {
     }
 
     // 상품별 사용자 리뷰 조회 api
-    @GetMapping("{productId}/reviews")
+    @GetMapping("/{productId}/reviews")
     public ResponseEntity<?> getProductReviews(@PathVariable Long productId){
         try {
             ProductReviewListResDto res = productService.getReviewList(productId);
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("상품 리뷰 목록 조회 성공").data(res).build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(CMResDto.builder().
+                    code(400).msg(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(CMResDto.builder().
+                    code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 추천 상품 조회 api
+    @GetMapping("/{productId}/recommend")
+    public ResponseEntity<?> recommendProduct(@PathVariable Long productId){
+        try {
+            List<RecommendProductResDto> res = productService.recommendProduct(productId);
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("추천 상품 조회").data(res).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(CMResDto.builder().
                     code(400).msg(e.getMessage()).build(), HttpStatus.BAD_REQUEST);

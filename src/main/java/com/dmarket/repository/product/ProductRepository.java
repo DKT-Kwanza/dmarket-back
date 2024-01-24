@@ -3,6 +3,7 @@ package com.dmarket.repository.product;
 import com.dmarket.domain.product.Product;
 import com.dmarket.dto.response.NewProductDto;
 import com.dmarket.dto.response.ProductListResDto;
+import com.dmarket.dto.response.RecommendProductResDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.dmarket.dto.common.ProductDto;
@@ -19,7 +20,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("select new com.dmarket.dto.common.ProductDto" +
             "(p.productId, p.productRating, count(r.reviewId)) " +
             "from Product p " +
-            "join ProductReview r on p.productId = r.productId " +
+            "left join ProductReview r on p.productId = r.productId " +
             "where p.productId = :productId " +
             "group by p.productId")
     Optional<ProductDto> findProductByProductId(Long productId);
@@ -35,6 +36,15 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "where p.categoryId = :cateId and p.productSalePrice between :minPrice and :maxPrice and p.productRating >= :star " +
             "group by p.productId")
     Page<ProductListResDto> findByCateId(Pageable pageable, Long cateId, Integer minPrice, Integer maxPrice, Float star);
+
+    // 같은 카테고리의 추천 상품(최신순 4개) 검색
+    @Query("select new com.dmarket.dto.response.RecommendProductResDto" +
+            "(p.categoryId, p.productId, p.productBrand, p.productName, p.productSalePrice, p.productRating, count(r.reviewId)) " +
+            "from Product p " +
+            "left join ProductReview r on p.productId = r.productId " +
+            "where p.productId != :productId and p.categoryId = (select sp.categoryId from Product sp where sp.productId = :productId) " +
+            "group by p.productId")
+    List<RecommendProductResDto> findProduct(Long productId, Pageable pageable);
 
     // 상품 이름으로 목록 검색
     @Query(value = "select new com.dmarket.dto.response.ProductListResDto" +
