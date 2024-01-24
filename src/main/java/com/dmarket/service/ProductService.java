@@ -67,7 +67,7 @@ public class ProductService {
 
 
     // 상품 별 Q&A 리스트 조회
-
+    // check
 
     //Q&A 작성
     @Transactional
