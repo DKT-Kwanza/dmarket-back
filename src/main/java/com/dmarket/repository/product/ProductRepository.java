@@ -1,12 +1,15 @@
 package com.dmarket.repository.product;
 
 import com.dmarket.domain.product.Product;
+import com.dmarket.dto.response.NewProductDto;
 import com.dmarket.dto.response.ProductListResDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
@@ -36,4 +39,21 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "and p.productSalePrice between :minPrice and :maxPrice and p.productRating >= :star " +
             "group by p.productId")
     Page<ProductListResDto> findByQuery(Pageable pageable, String query, Integer minPrice, Integer maxPrice, Float star);
+
+
+
+    // 최신 상품 조회
+    @Query("SELECT NEW com.dmarket.dto.response.NewProductDto(" +
+            "p.productId, p.productBrand, p.productName, MIN(pi.imgAddress), p.productSalePrice) " +
+            "FROM Product p " +
+            "LEFT JOIN ProductImgs pi ON p.productId = pi.productId " +
+            "GROUP BY p.productId " +
+            "ORDER BY p.productCreatedDate DESC")
+    List<NewProductDto> findNewProducts();
+
+
+
+
+
+
 }
