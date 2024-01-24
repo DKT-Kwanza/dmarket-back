@@ -1,16 +1,21 @@
 package com.dmarket.controller;
 
+import com.dmarket.domain.board.Notice;
 import com.dmarket.dto.response.CMResDto;
 import com.dmarket.dto.response.NoticeListDto;
 import com.dmarket.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,22 +26,29 @@ import java.util.stream.Collectors;
 public class BoardController {
     private final BoardService boardService;
 
+    // 공지사항 목록 조회
     @GetMapping(value = "/notice")
-    public ResponseEntity<?> getNotices() {
+    public ResponseEntity<?> getNotices(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
+                                        @RequestParam(required = false, value = "size", defaultValue = "10") int pageSize) {
         try {
-            List<NoticeListDto> notices = boardService.getAllNotices().stream()
-                    .map(notice -> new NoticeListDto(
+            if (pageNo < 0 || pageSize <= 0) {
+                // Invalid input for page number or size, return 400 Bad Request
+                return new ResponseEntity<>(CMResDto.builder()
+                        .code(400)
+                        .msg("유효하지 않은 페이지 또는 크기")
+                        .build(), HttpStatus.BAD_REQUEST);
+            }
+
+            Page<Notice> noticesPage = boardService.getAllNotices(PageRequest.of(pageNo, pageSize));
+
+            CMResDto<Page<NoticeListDto>> response = CMResDto.<Page<NoticeListDto>>builder()
+                    .code(200)
+                    .msg("공지사항 목록 불러오기 완료")
+                    .data(noticesPage.map(notice -> new NoticeListDto(
                             notice.getNoticeId(),
                             notice.getNoticeTitle(),
                             notice.getNoticeContents(),
-                            notice.getNoticeCreatedDate()))
-                    .collect(Collectors.toList());
-
-            // response build
-            CMResDto<List<NoticeListDto>> response = CMResDto.<List<NoticeListDto>>builder()
-                    .code(200)
-                    .msg("공지사항 목록 불러오기 완료")
-                    .data(notices)
+                            notice.getNoticeCreatedDate())))
                     .build();
 
             return new ResponseEntity<>(response, HttpStatus.OK);
