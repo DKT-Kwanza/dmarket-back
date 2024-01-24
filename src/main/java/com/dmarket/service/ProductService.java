@@ -2,10 +2,7 @@ package com.dmarket.service;
 
 import com.dmarket.domain.product.Qna;
 import com.dmarket.domain.user.User;
-import com.dmarket.dto.response.CategoryListResDto;
-import com.dmarket.dto.response.NewProductDto;
-import com.dmarket.dto.response.ProductListResDto;
-import com.dmarket.dto.response.QnaWriteResponseDto;
+import com.dmarket.dto.response.*;
 import com.dmarket.repository.product.CategoryRepository;
 import com.dmarket.repository.product.ProductRepository;
 import com.dmarket.repository.product.QnaRepository;
@@ -16,12 +13,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -34,6 +28,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final QnaRepository qnaRepository;
+
 
     private static final int PRODUCT_PAGE_POST_COUNT = 16;
 
@@ -67,7 +62,11 @@ public class ProductService {
 
 
     // 상품 별 Q&A 리스트 조회
-    // check
+    public Page<QnaProductIdListResDto> findQnasByProductId(Long productId, Pageable pageable) {
+        System.out.println("2");
+        return qnaRepository.findQnasByProductId(productId, pageable);
+    }
+
 
     //Q&A 작성
     @Transactional

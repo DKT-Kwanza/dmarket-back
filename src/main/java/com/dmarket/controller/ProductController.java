@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -167,15 +168,23 @@ public class ProductController {
 
     // 상품 별 Q&A 리스트 조회
     @GetMapping("/{productId}/qna")
-    public ResponseEntity<?> getQnalistByProdcut(@PathVariable Long productId) {
+    public ResponseEntity<CMResDto> getQnasByProdcutId(@PathVariable Long productId,
+                                                       @RequestParam(required = false, defaultValue = "0") int page,
+                                                       @RequestParam(required = false, defaultValue = "10") int size) {
         try {
+            Page<QnaProductIdListResDto> qnaList = productService.findQnasByProductId(productId, PageRequest.of(page, size));
 
-//            WishlistResDto wishlist = userService.getWishlistByUserId(userId);
-//            log.info("데이터 조회 완료");
-//            return new ResponseEntity<>(CMResDto.builder()
-//                    .code(200).msg("위시리스트 조회 완료").data(wishlist).build(), HttpStatus.OK);
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("count", qnaList.getTotalElements());
+            responseData.put("content", qnaList.getContent());
 
-            return ResponseEntity.ok(productId);
+            CMResDto cmResDto = CMResDto.builder()
+                    .code(200)
+                    .msg("상품 별 Q&A 리스트 조회 완료")
+                    .data(responseData)
+                    .build();
+
+            return new ResponseEntity<>(cmResDto, HttpStatus.OK);
         }
         catch (IllegalArgumentException e) {
             // 잘못된 요청에 대한 예외 처리
