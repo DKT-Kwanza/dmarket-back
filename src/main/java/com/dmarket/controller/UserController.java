@@ -6,6 +6,7 @@ import com.dmarket.dto.response.WishlistResDto;
 import com.dmarket.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,7 +22,14 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
 public class UserController {
+
     private final UserService userService;
+
+    @GetMapping("/user")
+    public String userP() {
+        return "User Page";
+    }
+
     // 위시리스트 조회
     @GetMapping("/{userId}/wish")
     public ResponseEntity<?> getWishlistByUserId(@PathVariable(name = "userId") Long userId) {
