@@ -5,14 +5,24 @@ import com.dmarket.dto.response.NewProductResDto;
 import com.dmarket.dto.response.ProductListResDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import com.dmarket.dto.common.ProductDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.List;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
+    // 상품의 상품 번호, 평균 평점, 리뷰 개수 조회
+    @Query("select new com.dmarket.dto.common.ProductDto" +
+            "(p.productId, p.productRating, count(r.reviewId)) " +
+            "from Product p " +
+            "join ProductReview r on p.productId = r.productId " +
+            "where p.productId = :productId " +
+            "group by p.productId")
+    Optional<ProductDto> findProductByProductId(Long productId);
 
     //카테고리별 상품 번호, 브랜드, 이름, 대표이미지, 판매가, 평점, 리뷰개수 조회
     @Query(value = "select new com.dmarket.dto.response.ProductListResDto" +
@@ -40,8 +50,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "group by p.productId")
     Page<ProductListResDto> findByQuery(Pageable pageable, String query, Integer minPrice, Integer maxPrice, Float star);
 
-
-
     // 최신 상품 조회
     @Query("SELECT NEW com.dmarket.dto.response.NewProductResDto(" +
             "p.productId, p.productBrand, p.productName, MIN(pi.imgAddress), p.productSalePrice) " +
@@ -50,8 +58,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "GROUP BY p.productId " +
             "ORDER BY p.productCreatedDate DESC")
     List<NewProductResDto> findNewProducts();
-
-
 
 
 
