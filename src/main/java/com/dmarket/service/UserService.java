@@ -1,7 +1,7 @@
 package com.dmarket.service;
 
 import com.dmarket.dto.response.UserInfoResDto;
-import com.dmarket.dto.response.WishlistItemDto;
+import com.dmarket.dto.common.WishlistItemDto;
 import com.dmarket.dto.response.WishlistResDto;
 import com.dmarket.repository.user.UserRepository;
 import com.dmarket.repository.user.WishlistRepository;

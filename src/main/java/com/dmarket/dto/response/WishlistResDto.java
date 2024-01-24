@@ -5,8 +5,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.Collections;
 import java.util.List;
+
+import com.dmarket.dto.common.WishlistItemDto;
 
 @Getter
 @NoArgsConstructor
