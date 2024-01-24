@@ -16,16 +16,6 @@ public class ProductListResDto {
     private String productImg;
     private Integer productSalePrice;
     private Float ratingAvg;
-    private Integer reviewCnt;
-
-    public ProductListResDto(ProductDto produts){
-        this.productId = produts.getProductId();
-        this.productBrand = produts.getProductBrand();
-        this.productName = produts.getProductName();
-        this.productImg = produts.getProductImg();
-        this.productSalePrice = produts.getProductSalePrice();
-        this.ratingAvg = produts.getProductRating();
-        this.reviewCnt = produts.getReviewCnt().intValue();
-    }
+    private Long reviewCnt;
 }
 

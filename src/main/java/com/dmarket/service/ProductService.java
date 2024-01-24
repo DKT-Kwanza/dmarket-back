@@ -1,7 +1,6 @@
 package com.dmarket.service;
 
 import com.dmarket.dto.response.CategoryListResDto;
-import com.dmarket.dto.response.ProductDto;
 import com.dmarket.dto.response.ProductListResDto;
 import com.dmarket.repository.product.CategoryRepository;
 import com.dmarket.repository.product.ProductRepository;
@@ -38,9 +37,9 @@ public class ProductService {
     public Page<ProductListResDto> getCategoryProducts(Pageable pageable, int pageNo, Long cateId,
                                                        String sorter, Integer minPrice, Integer maxPrice, Float star) {
         pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
-        Page<ProductDto> productList = productRepository.findByCateId(pageable, cateId, minPrice, maxPrice, star);
+        Page<ProductListResDto> productList = productRepository.findByCateId(pageable, cateId, minPrice, maxPrice, star);
 
-        return productList.map(ProductListResDto::new);
+        return productList;
     }
 
     // 상품 목록 조건 검색
@@ -48,8 +47,8 @@ public class ProductService {
     public Page<ProductListResDto> getSearchProducts(Pageable pageable, int pageNo, String query,
                                                      String sorter, Integer minPrice, Integer maxPrice, Float star) {
         pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
-        Page<ProductDto> productList = productRepository.findByQuery(pageable, query, minPrice, maxPrice, star);
+        Page<ProductListResDto> productList = productRepository.findByQuery(pageable, query, minPrice, maxPrice, star);
 
-        return productList.map(ProductListResDto::new);
+        return productList;
     }
 }
