@@ -1,7 +1,7 @@
 package com.dmarket.service;
 
 import com.dmarket.dto.response.CategoryListResDto;
-import com.dmarket.dto.response.NewProductDto;
+import com.dmarket.dto.response.NewProductResDto;
 import com.dmarket.dto.response.ProductListResDto;
 import com.dmarket.repository.product.CategoryRepository;
 import com.dmarket.repository.product.ProductRepository;
@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -64,8 +65,20 @@ public class ProductService {
     }
 
     // 최신 상품 조회
-    public List<NewProductDto> findNewProducts() {
+    public List<NewProductResDto> findNewProducts() {
         return productRepository.findNewProducts();
+    }
+    // 최신 상품 조회 - 매핑
+    public List<Object> mapToResponseFormat(List<NewProductResDto> latestProducts) {
+        return latestProducts.stream()
+                .limit(8).map(product -> new Object() {
+                    public final Long productId = product.getProductId();
+                    public final String productBrand = product.getProductBrand();
+                    public final String productName = product.getProductName();
+                    public final String productImg = product.getProductImg();
+                    public final String productSalePrice = String.valueOf(product.getProductSalePrice());
+                })
+                .collect(Collectors.toList());
     }
 
     // 상품 상세 정보 조회

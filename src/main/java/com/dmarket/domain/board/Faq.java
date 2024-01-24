@@ -3,8 +3,13 @@ package com.dmarket.domain.board;
 import com.dmarket.constant.FaqType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+import static com.dmarket.constant.FaqType.USER;
 
 @Entity
 @Getter
@@ -24,4 +29,13 @@ public class Faq {
 
     @Column(columnDefinition="TEXT")
     private String faqAnswer;
+
+
+
+    @Builder
+    public Faq(FaqType faqType, String faqQuestion, String faqAnswer) {
+        this.faqType = faqType;
+        this.faqQuestion = faqQuestion;
+        this.faqAnswer = faqAnswer;
+    }
 }
