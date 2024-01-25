@@ -1,7 +1,6 @@
 package com.dmarket.dto.response;
 
 import java.time.LocalDate;
-import java.text.NumberFormat;
 
 import com.dmarket.domain.user.User;
 
