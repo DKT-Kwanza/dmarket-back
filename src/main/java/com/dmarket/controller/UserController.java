@@ -1,14 +1,11 @@
 package com.dmarket.controller;
 
 import com.dmarket.dto.common.InquiryRequestDto;
-import com.dmarket.dto.request.ChangePwdReqDto;
-import com.dmarket.dto.request.UserAddressReqDto;
+import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
 import com.dmarket.dto.response.CMResDto;
 import com.dmarket.dto.response.UserInfoResDto;
 import com.dmarket.dto.response.WishlistResDto;
-import com.dmarket.dto.request.AddCartReqDto;
-import com.dmarket.dto.request.AddWishReqDto;
 import com.dmarket.constant.InquiryType;
 import com.dmarket.domain.board.Inquiry;
 import com.dmarket.dto.common.InquiryRequestDto;
@@ -37,15 +34,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.AuthenticationException;
 
-import com.dmarket.dto.request.EmailReqDto;
-import com.dmarket.dto.request.JoinReqDto;
 import com.dmarket.dto.common.CartListDto;
 import com.dmarket.domain.board.Inquiry;
+import org.springframework.web.bind.annotation.PostMapping;
 
 @Slf4j
 @RestController
@@ -132,7 +128,7 @@ public class UserController {
                     .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>(CMResDto.builder()
-                    .code(400).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -154,7 +150,7 @@ public class UserController {
             return new ResponseEntity<>(CMResDto.builder()
                     .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            return new ResponseEntity<>(CMResDto.builder().code(400).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -529,6 +525,54 @@ public class UserController {
             return new ResponseEntity<>(createdInquiry, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 마일리지 사용(충전) 내역 api
+    @GetMapping("/{userId}/mypage/mileage-usage")
+    public ResponseEntity<?> getMileageUsage(@PathVariable Long userId,
+                                             @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
+        try {
+            pageNo = pageNo > 0 ? pageNo-1 : pageNo;
+            // 충전 요청
+            MileageListResDto res = userService.getMileageUsage(userId, pageNo);
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("마일리지 사용 내역 조회 성공").data(res).build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 마일리지 충전 요청 api
+    @PostMapping("/{userId}/mypage/mileage-charge")
+    public ResponseEntity<?> mileageChargeReq(@PathVariable Long userId,
+                                              @Valid @RequestBody MileageChargeReqDto mileageChargeReqDto,
+                                              BindingResult bindingResult) {
+        try {
+            bindingResultErrorsCheck(bindingResult);
+
+            // 충전 요청
+            userService.mileageChargeReq(userId, mileageChargeReqDto.getMileageCharge());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("마일리지 충전 요청 성공").build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
         }
     }
 
