@@ -51,6 +51,9 @@ public class User {
     @Column(nullable = false)
     private String userAddressDetail;
 
+    public void updatePassword(String password) {
+        this.userPassword = password;
+    }
 
     @Builder
     public User(String userEmail, Integer userDktNum, String password, String userName, LocalDate userJoinDate, String userPhoneNum, Integer userPostalCode, String userAddress, String userAddressDetail) {

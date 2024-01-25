@@ -213,6 +213,7 @@ public class ProductController {
         }
     }
 
+    // 데이터 유효성 검사 메서
     private void bindingResultErrorsCheck(BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             Map<String, String> errorMap = new HashMap<>();

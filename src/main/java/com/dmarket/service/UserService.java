@@ -1,17 +1,22 @@
 package com.dmarket.service;
 
+import com.dmarket.domain.user.User;
+import com.dmarket.dto.request.ChangePwdReqDto;
 import com.dmarket.dto.response.CartCountResDto;
 import com.dmarket.dto.response.UserHeaderInfoResDto;
 import com.dmarket.dto.response.UserInfoResDto;
 import com.dmarket.dto.common.WishlistItemDto;
 import com.dmarket.dto.response.WishlistResDto;
+import com.dmarket.jwt.JWTUtil;
 import com.dmarket.repository.user.CartRepository;
 import com.dmarket.repository.user.UserRepository;
 import com.dmarket.repository.user.WishlistRepository;
 import com.dmarket.domain.user.Cart;
 import com.dmarket.domain.user.Wishlist;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +31,8 @@ public class UserService {
     private final CartRepository cartRepository;
     private final WishlistRepository wishlistRepository;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JWTUtil jwtUtil;
 
     // 사용자 정보 조회
     public UserInfoResDto getUserInfoByUserId(Long userId) {
@@ -79,5 +86,41 @@ public class UserService {
                 .build();
         cartRepository.save(cart);
     }
+
+    //사용자 비밀번호 확인
+    @Transactional
+    public void validatePassword(HttpServletRequest request, String currentPassword){
+        String header = jwtUtil.getAuthHeader(request);
+        String token = jwtUtil.getToken(header);
+
+        if (token == null || !jwtUtil.isTokenValid(token)) {
+            throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
+        }
+        String email = jwtUtil.getEmail(token);
+        User findUser = userRepository.findByUserEmail(email);
+        if (!isPasswordSame(currentPassword, findUser.getUserPassword())) {
+            throw new IllegalArgumentException("비밀번호가 다릅니다.");
+        }
+    }
+
+    //사용자 비밀번호 변경
+    @Transactional
+    public void updatePassword(String newPassword, Long userId){
+        User user = findById(userId);
+        if (isPasswordSame(newPassword, user.getUserPassword())) {
+            throw new IllegalArgumentException("동일한 비밀번호입니다.");
+        } else{
+            user.updatePassword(passwordEncoder.encode(newPassword));
+        }
+    }
+
+    public User findById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않은 id 입니다."));
+    }
+    public boolean isPasswordSame(String pwd, String originPwd) {
+        return passwordEncoder.matches(pwd, originPwd);
+    }
+
 
 }

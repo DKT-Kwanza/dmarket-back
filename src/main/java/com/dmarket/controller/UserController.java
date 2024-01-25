@@ -1,5 +1,6 @@
 package com.dmarket.controller;
 
+import com.dmarket.dto.request.ChangePwdReqDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.dto.response.CMResDto;
 import com.dmarket.dto.response.UserInfoResDto;
@@ -7,6 +8,7 @@ import com.dmarket.dto.response.WishlistResDto;
 import com.dmarket.dto.request.AddCartReqDto;
 import com.dmarket.dto.request.AddWishReqDto;
 import com.dmarket.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -113,11 +115,6 @@ public class UserController {
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
-//        } catch (AuthenticationException e) {
-//            // 인증 오류에 대한 예외 처리
-//            log.warn("유효하지 않은 인증" + e.getMessage());
-//            return new ResponseEntity<>(CMResDto.builder()
-//                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
             // 기타 예외에 대한 예외 처리
             log.error("서버 내부 오류: " + e.getMessage());
@@ -139,11 +136,6 @@ public class UserController {
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
-//        } catch (AuthenticationException e) {
-//            // 인증 오류에 대한 예외 처리
-//            log.warn("유효하지 않은 인증" + e.getMessage());
-//            return new ResponseEntity<>(CMResDto.builder()
-//                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
             // 기타 예외에 대한 예외 처리
             log.error("서버 내부 오류: " + e.getMessage());
@@ -191,6 +183,38 @@ public class UserController {
             log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        }
+        catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 사용자 비밀번호 변경
+    @PutMapping("{userId}/mypage/change-pwd")
+    public ResponseEntity<?> updatePassword(HttpServletRequest request,
+                                            @PathVariable(name = "userId") Long userId,
+                                            @Valid @RequestBody ChangePwdReqDto changePwdReqDto,
+                                            BindingResult bindingResult){
+        try {
+            bindingResultErrorsCheck(bindingResult);
+            String currentPassword = changePwdReqDto.getCurrentPassword();
+            String newPassword = changePwdReqDto.getNewPassword();
+
+            userService.validatePassword(request, currentPassword);
+            userService.updatePassword(newPassword, userId);
+
+            log.info("데이터 변경 완료");
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("비밀번호 변경 완료").build(), HttpStatus.OK);
+        }
+        catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
         }
         catch (Exception e) {
             // 기타 예외에 대한 예외 처리

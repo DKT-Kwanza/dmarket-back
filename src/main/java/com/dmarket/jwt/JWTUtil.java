@@ -2,6 +2,7 @@ package com.dmarket.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +37,28 @@ public class JWTUtil {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("type", String.class);
     }
 
+    public String getAuthHeader(HttpServletRequest request) {
+        return request.getHeader("Authorization");
+    }
+
+    public String getToken(String header) {
+        if (header == null) throw new IllegalArgumentException("헤더에 Authorization이 없습니다.");
+        if (!header.startsWith("Bearer")) throw new IllegalArgumentException("토큰이 Bearer로 시작하지 않습니다.");
+
+        return header.substring("Bearer ".length());
+    }
+
+    // 토큰 유효성, 만료일자 확인 반환
+    public boolean isTokenValid(String token) {
+        try {
+            Date now = new Date();
+            Date exp = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration();
+            return now.before(exp);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public void isExpired(String token) {
         Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration();
     }
@@ -63,6 +86,5 @@ public class JWTUtil {
                 .signWith(secretKey)
                 .compact();
     }
-
 
 }
