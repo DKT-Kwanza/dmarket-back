@@ -242,5 +242,32 @@ public class AdminController {
                     .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    // FAQ 등록
+    @PostMapping("/board/faq")
+    public ResponseEntity<?> postFaq(@Valid @RequestBody FaqReqDto faqReqDto,
+                                     BindingResult bindingResult) {
+        try {
+            // request body 유효성 확인
+            bindingResultErrorsCheck(bindingResult);
+
+            // FAQ 등록
+            FaqType faqType = faqReqDto.getFaqType();
+            String faqQuestion = faqReqDto.getFaqTitle();
+            String faqAnswer = faqReqDto.getFaqContents();
+            Long faqId = adminService.postFaq(faqType, faqQuestion, faqAnswer);
+
+            FaqListResDto faqListResDto = new FaqListResDto(faqId, faqType, faqQuestion, faqAnswer);
+
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("FAQ 등록 완료").data(faqListResDto).build(), HttpStatus.OK);
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
+        }
+    }
 
 }

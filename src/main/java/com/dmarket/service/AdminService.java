@@ -69,5 +69,18 @@ public class AdminService {
         faqRepository.deleteByFaqId(faqId);
     }
 
+    // FAQ 등록
+    @Transactional
+    public Long postFaq(FaqType faqType, String faqQuestion, String faqAnswer) {
+        Faq faq = Faq.builder()
+                .faqType(faqType)
+                .faqQuestion(faqQuestion)
+                .faqAnswer(faqAnswer)
+                .build();
+        Faq savedFaq = faqRepository.save(faq);
+        Long faqId = savedFaq.getFaqId();
+
+        return faqId;
+    }
 
 }
