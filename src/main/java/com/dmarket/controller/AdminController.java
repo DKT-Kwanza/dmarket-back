@@ -118,6 +118,7 @@ public class AdminController {
             @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "10") Integer size) {
         try {
+            page = page > 0 ? page-1 : page;
             if (page < 0 || size <= 0) {
                 return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 페이지 또는 크기").build(),
                         HttpStatus.BAD_REQUEST);
@@ -146,9 +147,11 @@ public class AdminController {
     @PostMapping("/board/notice")
     public ResponseEntity<?> postNotice(@Valid @RequestBody NoticeReqDto noticeReqDto,
             BindingResult bindingResult,
-            @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
-            @RequestParam(required = false, value = "size", defaultValue = "10") int pageSize) {
+            @RequestParam(required = false, value = "page", defaultValue = "0") int page,
+            @RequestParam(required = false, value = "size", defaultValue = "10") int size) {
         try {
+            page = page > 0 ? page-1 : page;
+
             // request body 유효성 확인
             bindingResultErrorsCheck(bindingResult);
 
@@ -156,7 +159,7 @@ public class AdminController {
             Long userId = noticeReqDto.getUserId();
             String noticeTitle = noticeReqDto.getNoticeTitle();
             String noticeContents = noticeReqDto.getNoticeContents();
-            Pageable pageable = PageRequest.of(pageNo, pageSize);
+            Pageable pageable = PageRequest.of(page, size);
             adminService.postNotice(userId, noticeTitle, noticeContents, pageable);
 
             return new ResponseEntity<>(CMResDto.builder()
@@ -243,6 +246,7 @@ public class AdminController {
     public ResponseEntity<?> getReviews(@RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "10") Integer size) {
         try {
+            page = page > 0 ? page-1 : page;
             if (page < 0 || size <= 0) {
                 return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 페이지 또는 크기").build(),
                         HttpStatus.BAD_REQUEST);

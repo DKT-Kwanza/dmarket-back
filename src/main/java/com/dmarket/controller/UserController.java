@@ -3,9 +3,6 @@ package com.dmarket.controller;
 import com.dmarket.constant.InquiryType;
 import com.dmarket.domain.board.Inquiry;
 import com.dmarket.dto.common.InquiryRequestDto;
-import com.dmarket.dto.response.CMResDto;
-import com.dmarket.dto.response.UserInfoResDto;
-import com.dmarket.dto.response.WishlistResDto;
 import com.dmarket.constant.InquiryType;
 import com.dmarket.domain.board.Inquiry;
 import com.dmarket.dto.common.InquiryRequestDto;
@@ -27,10 +24,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-
-import java.util.List;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -296,6 +289,7 @@ public class UserController {
             @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "10") Integer size) {
         try {
+            page = page > 0 ? page - 1 : page;
             if (page < 0 || size <= 0) {
                 return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 페이지 또는 크기").build(),
                         HttpStatus.BAD_REQUEST);
@@ -331,6 +325,7 @@ public class UserController {
             @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "5") Integer size) {
         try {
+            page = page > 0 ? page - 1 : page;
             if (page < 0 || size <= 0) {
                 return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 페이지 또는 크기").build(),
                         HttpStatus.BAD_REQUEST);
@@ -366,6 +361,7 @@ public class UserController {
             @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "5") Integer size) {
         try {
+            page = page > 0 ? page - 1 : page;
             if (page < 0 || size <= 0) {
                 return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 페이지 또는 크기").build(),
                         HttpStatus.BAD_REQUEST);
@@ -394,7 +390,6 @@ public class UserController {
                     .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 
     // 문의 작성
     @PostMapping("/{userId}/board/inquiry")
