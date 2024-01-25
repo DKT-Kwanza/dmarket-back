@@ -1,30 +1,38 @@
 package com.dmarket.service;
 
+import com.dmarket.constant.MileageReqState;
+import com.dmarket.constant.MileageContents;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.request.UserAddressReqDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.dto.common.WishlistItemDto;
 import com.dmarket.jwt.JWTUtil;
 import com.dmarket.domain.board.Inquiry;
+import com.dmarket.domain.user.Mileage;
+import com.dmarket.domain.user.MileageReq;
+import com.dmarket.dto.common.MileageDto;
 import com.dmarket.domain.user.Cart;
 import com.dmarket.domain.user.Wishlist;
 import com.dmarket.dto.request.JoinReqDto;
-import com.dmarket.repository.user.UserRepository;
+import com.dmarket.repository.user.*;
 import com.dmarket.dto.response.CartCountResDto;
 import com.dmarket.dto.response.UserHeaderInfoResDto;
 import com.dmarket.dto.response.UserInfoResDto;
 import com.dmarket.dto.response.WishlistResDto;
 import com.dmarket.repository.board.InquiryRepository;
-import com.dmarket.repository.user.CartRepository;
-import com.dmarket.repository.user.WishlistRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.dmarket.domain.order.Order;
 import com.dmarket.dto.common.CartListDto;
@@ -49,6 +57,8 @@ public class UserService {
     private final CartRepository cartRepository;
     private final WishlistRepository wishlistRepository;
     private final UserRepository userRepository;
+    private final MileageRepository mileageRepository;
+    private final MileageReqRepository mileageReqRepository;
     private final InquiryRepository inquiryRepository;
     private final PasswordEncoder passwordEncoder;
     private final JWTUtil jwtUtil;
@@ -154,6 +164,8 @@ public class UserService {
         }
     }
 
+    // 페이지 사이즈
+    private static final int PAGE_SIZE = 10;
 
     public List<CartListDto> getCartsfindByUserId(Long userId) {
         List<CartListDto> originalList = cartRepository.getCartsfindByUserId(userId);
@@ -170,7 +182,6 @@ public class UserService {
         return qnaRepository.getQnasfindByUserId(userId);
     }
 
-
     public List<OrderResDto> getOrderDetailsWithoutReviewByUserId(Long userId) {
         List<OrderResDto> orderResDtos = new ArrayList<>();
 
@@ -184,7 +195,6 @@ public class UserService {
 
         return orderResDtos;
     }
-
 
     public List<OrderResDto> getOrderDetailsWithReviewByUserId(Long userId) {
         List<OrderResDto> orderResDtos = new ArrayList<>();
@@ -327,4 +337,33 @@ public class UserService {
         return userRepository.existsByUserDktNum(userDktNum);
     }
 
+    // 마일리지 사용(충전) 내역 조회
+    public MileageListResDto getMileageUsage(Long userId, int pageNo) {
+        Pageable pageable = PageRequest.of(pageNo, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "mileageDate"));
+        Page<Mileage> mileages = mileageRepository.findByUserId(pageable, userId);
+
+        List<MileageDto> mileageChageList = mileages.getContent().stream().map(
+                (o) -> MileageDto.builder()
+                        .mileageChangeDate(o.getMileageDate())
+                        .mileageContents(o.getMileageInfo())
+                        .changeMileage(o.getChangeMileage())
+                        .remainMileage(o.getRemainMileage())
+                        .build()).collect(Collectors.toList());
+
+        return new MileageListResDto(mileages.getTotalPages(), mileageChageList);
+    }
+
+    // 마일리지 충전 요청
+    @Transactional
+    public void mileageChargeReq(Long userId, Integer mileageCharge) {
+        // 마일리지 요청 사유 CHARGE(충전), 마일리지 요청 처리 상태(처리 중)으로 지정
+        MileageReq mileageReq = MileageReq.builder()
+                .userId(userId)
+                .mileageReqAmount(mileageCharge)
+                .mileageReqReason(MileageContents.CHARGE)
+                .mileageReqState(MileageReqState.PROCESSING)
+                .build();
+
+        mileageReqRepository.save(mileageReq);
+    }
 }
