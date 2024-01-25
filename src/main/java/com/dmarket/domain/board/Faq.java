@@ -15,7 +15,6 @@ public class Faq {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long faqId;
 
-    private Long userId;
 
     @Enumerated(EnumType.STRING)
     private FaqType faqType;
