@@ -1,5 +1,8 @@
 package com.dmarket.service;
 
+import com.dmarket.domain.user.User;
+import com.dmarket.dto.common.MyOrderDetaillistDto;
+import com.dmarket.dto.common.MyOrderlistDto;
 import com.dmarket.dto.response.CartCountResDto;
 import com.dmarket.dto.response.UserHeaderInfoResDto;
 import com.dmarket.dto.response.UserInfoResDto;
@@ -12,8 +15,11 @@ import com.dmarket.domain.user.Cart;
 import com.dmarket.domain.user.Wishlist;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.weaver.ast.Or;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 import java.util.*;
 
 import com.dmarket.domain.order.Order;
@@ -37,6 +43,7 @@ public class UserService {
     private final CartRepository cartRepository;
     private final WishlistRepository wishlistRepository;
     private final UserRepository userRepository;
+    private final InquiryRepository inquiryRepository;
     // 조회가 아닌 메서드들은 꼭 @Transactional 넣어주세요 (CUD, 입력/수정/삭제)
 
     
@@ -54,6 +61,11 @@ public class UserService {
     public List<QnaResDto> getQnasfindByUserId(Long userId) {
         return qnaRepository.getQnasfindByUserId(userId);
     }
+
+    // 주문/배송 내역 조회
+
+
+    // 주문 내역 상세 조회
 
 
     public List<OrderResDto> getOrderDetailsWithoutReviewByUserId(Long userId) {
@@ -84,8 +96,6 @@ public class UserService {
         
         return orderResDtos;
     }
-
-    
 
 
     // 사용자 정보 조회
@@ -139,6 +149,10 @@ public class UserService {
                 .cartCount(productCount)
                 .build();
         cartRepository.save(cart);
+    }
+
+    public List<UserInquiryAllResDto> getUserInquiryAllbyUserId(Long userId) {
+        return inquiryRepository.findUserInquiryAllByUserId(userId);
     }
 
 }

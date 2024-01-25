@@ -1,5 +1,6 @@
 package com.dmarket.controller;
 
+import com.dmarket.dto.common.MyOrderlistDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.dto.request.*;
 
@@ -201,6 +202,32 @@ public class UserController {
         catch (Exception e) {
             // 기타 예외에 대한 예외 처리
             log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    // 작성한 고객 문의 목록
+    @GetMapping("/{userId}/mypage/inquiry")
+    public ResponseEntity<?> getUserInquiryAllByUserId(@PathVariable(name = "userId") Long userId) {
+        try {
+            List<UserInquiryAllResDto> userInquiryAllResDtos = userService.getUserInquiryAllbyUserId(userId);
+            log.info("데이터 조회 완료");
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("작성한 고객 문의 목록 조회 완료").data(userInquiryAllResDtos).build(), HttpStatus.OK);
+        }
+        catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+//        } catch (AuthenticationException e) {
+//            // 인증 오류에 대한 예외 처리
+//            log.warn("유효하지 않은 인증" + e.getMessage());
+//            return new ResponseEntity<>(CMResDto.builder()
+//                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류:" + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
