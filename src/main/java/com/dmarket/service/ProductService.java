@@ -1,8 +1,6 @@
 package com.dmarket.service;
 
-import com.dmarket.dto.response.CategoryListResDto;
-import com.dmarket.dto.response.NewProductResDto;
-import com.dmarket.dto.response.ProductListResDto;
+import com.dmarket.dto.response.*;
 import com.dmarket.repository.product.CategoryRepository;
 import com.dmarket.repository.product.ProductRepository;
 import com.dmarket.domain.product.Category;
@@ -10,8 +8,6 @@ import com.dmarket.domain.product.Product;
 import com.dmarket.dto.common.ProductDto;
 import com.dmarket.dto.common.ProductOptionDto;
 import com.dmarket.dto.common.ProductReviewDto;
-import com.dmarket.dto.response.ProductInfoResDto;
-import com.dmarket.dto.response.ProductReviewListResDto;
 import com.dmarket.repository.product.*;
 import com.dmarket.repository.user.WishlistRepository;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +36,7 @@ public class ProductService {
     private final ProductReviewRepository productReviewRepository;
 
     private static final int PRODUCT_PAGE_POST_COUNT = 16;
+    private static final int REVIEW_PAGE_POST_COUNT = 5;
 
     // 카테고리 전체 목록 depth별로 조회
     public List<CategoryListResDto> getCategories(Integer categoryDepthLevel){
@@ -68,6 +65,7 @@ public class ProductService {
     public List<NewProductResDto> findNewProducts() {
         return productRepository.findNewProducts();
     }
+
     // 최신 상품 조회 - 매핑
     public List<Object> mapToResponseFormat(List<NewProductResDto> latestProducts) {
         return latestProducts.stream()
@@ -102,14 +100,20 @@ public class ProductService {
     }
 
     // 상품별 사용자 리뷰 조회
-    public ProductReviewListResDto getReviewList(Long productId){
+    public ProductReviewListResDto getReviewList(Long productId, Integer pageNo){
+        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "reviewCreatedDate"));
         // 상품 번호, 상품 별점, 리뷰 개수 조회, 존재하지 않는 상품 번호의 경우 예외 발생
         ProductDto product = productRepository.findProductByProductId(productId)
                 .orElseThrow(()-> new IllegalArgumentException("존재하지 않는 상품"));
         // 상품의 리뷰 목록 불러오기
-        List<ProductReviewDto> reviewList = productReviewRepository.findReviewByProductId(productId);
+        Page<ProductReviewDto> reviewList = productReviewRepository.findReviewByProductId(pageable, productId);
+        return new ProductReviewListResDto(product, reviewList.getTotalPages(), reviewList.getContent());
+    }
 
-        return new ProductReviewListResDto(product, reviewList);
+    // 추천 상품 조회
+    public List<RecommendProductResDto> recommendProduct(Long productId) {
+        // PageRequest의 pageSize 4로 지정 최신 4개만 조회
+        return productRepository.findProduct(productId, PageRequest.of(0, 4, Sort.by(Sort.Direction.DESC, "productCreatedDate")));
     }
 
     @Transactional
