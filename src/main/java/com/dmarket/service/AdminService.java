@@ -1,6 +1,18 @@
 package com.dmarket.service;
 
 import com.dmarket.constant.FaqType;
+import com.dmarket.constant.ReturnState;
+import com.dmarket.domain.order.Return;
+import com.dmarket.domain.product.Category;
+import com.dmarket.domain.product.Product;
+import com.dmarket.domain.product.ProductImgs;
+import com.dmarket.domain.product.ProductOption;
+import com.dmarket.dto.request.ProductListDto;
+import com.dmarket.repository.order.ReturnRepository;
+import com.dmarket.repository.product.CategoryRepository;
+import com.dmarket.repository.product.ProductImgsRepository;
+import com.dmarket.repository.product.ProductOptionRepository;
+import com.dmarket.repository.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -23,6 +35,7 @@ import com.dmarket.repository.product.ProductRepository;
 import com.dmarket.repository.product.ProductReviewRepository;
 import com.dmarket.repository.user.*;
 import java.util.*;
+import java.time.*;
 
 @Slf4j
 @Service
@@ -33,7 +46,7 @@ public class AdminService {
     private final UserRepository userRepository;
     private final NoticeRepository noticeRepository;
     private final FaqRepository faqRepository;
-
+    private final ReturnRepository returnRepository;
     private final ProductRepository productRepository;
     private final ProductOptionRepository productOptionRepository;
     private final ProductImgsRepository productImgsRepository;
@@ -188,4 +201,81 @@ public Long postFaq(FaqType faqType, String faqQuestion, String faqAnswer) {
     public Page<AdminReviewsResDto> getProductReviews(Pageable pageable) {
         return productReviewRepository.getProductReviews(pageable);
     }
+    // 반품 상태 업데이트
+    @Transactional
+    public void updateReturnState(Long returnId, ReturnState returnState) {
+        Return returnEntity = returnRepository.findById(returnId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 returnId가 존재하지 않습니다. returnId: " + returnId));
+        returnEntity.updateReturnState(returnState);
+    }
+
+    // 신상품 등록
+    @Transactional
+    public void saveProductList(List<ProductListDto> productList) {
+        System.out.println("1.");
+        for (ProductListDto productitem : productList) {
+            System.out.println("********");
+            // CategoryId 가져오기
+            Long categoryId = getCategoryByCategoryName(productitem.getCategoryName());
+
+            // Product 저장
+            Product savedProduct = saveProduct(productitem, categoryId);
+
+            // OptionList 저장
+            saveProductOptions(savedProduct.getProductId(), productitem.getOptionList());
+
+            // ProductImgs 저장
+            saveProductImgs(savedProduct.getProductId(), productitem.getImgList());
+        }
+    }
+    @Transactional
+    public Long getCategoryByCategoryName(String categoryName) {
+        System.out.println("2.");
+        Category category = categoryRepository.findByCategoryName(categoryName);
+        if (category != null) {
+            return category.getCategoryId();
+        }
+        return null;
+    }
+    @Transactional
+    public Product saveProduct(ProductListDto productitem, Long categoryId) {
+        System.out.println("3.");
+        Product newProduct = Product.builder()
+                .categoryId(categoryId)
+                .productBrand(productitem.getBrand())
+                .productName(productitem.getProductName())
+                .productPrice(Integer.parseInt(productitem.getProductPrice().replace(",", "")))
+                .productSalePrice(Integer.parseInt(productitem.getProductSalePrice().replace(",", "")))
+                .productDescription(productitem.getProductDes())
+                .build();
+
+        return productRepository.save(newProduct);
+    }
+    @Transactional
+    public void saveProductOptions(Long productId, List<ProductListDto.Option> optionList) {
+        System.out.println("4.");
+        for (ProductListDto.Option option : optionList) {
+            ProductOption newOption = ProductOption.builder()
+                    .productId(productId)
+                    .optionName(option.getOptionName())
+                    .optionValue(option.getOptionValue())
+                    .optionQuantity(option.getOptionQuantity())
+                    .build();
+
+            productOptionRepository.save(newOption);
+        }
+    }
+    @Transactional
+    public void saveProductImgs(Long productId, List<String> imgAddresses) {
+        System.out.println("5.");
+        for (String imgAddress : imgAddresses) {
+            ProductImgs productImgs = ProductImgs.builder()
+                    .productId(productId)
+                    .imgAddress(imgAddress)
+                    .build();
+
+            productImgsRepository.save(productImgs);
+        }
+    }
+
 }
