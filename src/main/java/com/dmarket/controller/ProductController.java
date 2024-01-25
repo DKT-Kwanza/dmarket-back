@@ -143,23 +143,23 @@ public class ProductController {
         }
     }
 
-    // // 상품 별 Q&A 리스트 조회
-    // @GetMapping("/{productId}/qna")
-    // public ResponseEntity<CMResDto> getQnasByProdcutId(@PathVariable Long productId,
-    //                                                    @RequestParam(required = false, defaultValue = "0") int page,
-    //                                                    @RequestParam(required = false, defaultValue = "10") int size) {
-    //     try {
-    //         Page<QnaProductIdListResDto> qnaList = productService.findQnasByProductId(productId, PageRequest.of(page, size));
+    // 상품 별 Q&A 리스트 조회
+    @GetMapping("/{productId}/qna")
+    public ResponseEntity<CMResDto> getQnasByProdcutId(@PathVariable Long productId,
+                                                       @RequestParam(required = false, defaultValue = "0") int page,
+                                                       @RequestParam(required = false, defaultValue = "10") int size) {
+        try {
+            Page<QnaProductIdListResDto> qnaList = productService.findQnasByProductId(productId, PageRequest.of(page, size));
 
-    //         Map<String, Object> responseData = new HashMap<>();
-    //         responseData.put("count", qnaList.getTotalElements());
-    //         responseData.put("content", qnaList.getContent());
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("count", qnaList.getTotalElements());
+            responseData.put("content", qnaList.getContent());
 
-    //         CMResDto cmResDto = CMResDto.builder()
-    //                 .code(200)
-    //                 .msg("상품 별 Q&A 리스트 조회 완료")
-    //                 .data(responseData)
-    //                 .build();
+            CMResDto cmResDto = CMResDto.builder()
+                    .code(200)
+                    .msg("상품 별 Q&A 리스트 조회 완료")
+                    .data(responseData)
+                    .build();
 
             return new ResponseEntity<>(cmResDto, HttpStatus.OK);
         }
