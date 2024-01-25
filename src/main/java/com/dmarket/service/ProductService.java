@@ -3,7 +3,6 @@ package com.dmarket.service;
 import com.dmarket.domain.product.Qna;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.response.*;
-import com.dmarket.dto.response.*;
 import com.dmarket.repository.product.CategoryRepository;
 import com.dmarket.repository.product.ProductRepository;
 import com.dmarket.repository.product.QnaRepository;

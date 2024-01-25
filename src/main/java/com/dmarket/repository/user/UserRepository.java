@@ -13,6 +13,8 @@ import java.util.List;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
+    boolean existsByUserEmail(String userEmail);
+    boolean existsByUserDktNum(Integer userDktNum);
 
     void deleteByUserId(@Param("userId") Long userId);
 
