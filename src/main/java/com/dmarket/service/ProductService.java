@@ -3,17 +3,19 @@ package com.dmarket.service;
 import com.dmarket.domain.product.ProductReview;
 import com.dmarket.dto.request.ReviewReqDto;
 import com.dmarket.dto.response.CategoryListResDto;
-import com.dmarket.dto.response.NewProductDto;
 import com.dmarket.dto.response.ProductListResDto;
+import com.dmarket.domain.product.Qna;
+import com.dmarket.domain.user.User;
+import com.dmarket.dto.response.*;
 import com.dmarket.repository.product.CategoryRepository;
 import com.dmarket.repository.product.ProductRepository;
+import com.dmarket.repository.product.QnaRepository;
+import com.dmarket.repository.user.UserRepository;
 import com.dmarket.domain.product.Category;
 import com.dmarket.domain.product.Product;
 import com.dmarket.dto.common.ProductDto;
 import com.dmarket.dto.common.ProductOptionDto;
 import com.dmarket.dto.common.ProductReviewDto;
-import com.dmarket.dto.response.ProductInfoResDto;
-import com.dmarket.dto.response.ProductReviewListResDto;
 import com.dmarket.repository.product.*;
 import com.dmarket.repository.user.WishlistRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -35,12 +38,15 @@ public class ProductService {
     //조회가 아닌 메서드들은 꼭 @Transactional 넣어주세요 (CUD, 입력/수정/삭제)
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
+    private final QnaRepository qnaRepository;
     private final WishlistRepository wishlistRepository;
     private final ProductImgsRepository productImgsRepository;
     private final ProductOptionRepository productOptionRepository;
     private final ProductReviewRepository productReviewRepository;
 
     private static final int PRODUCT_PAGE_POST_COUNT = 16;
+    private static final int REVIEW_PAGE_POST_COUNT = 5;
 
     // 카테고리 전체 목록 depth별로 조회
     public List<CategoryListResDto> getCategories(Integer categoryDepthLevel){
@@ -66,8 +72,21 @@ public class ProductService {
     }
 
     // 최신 상품 조회
-    public List<NewProductDto> findNewProducts() {
+    public List<NewProductResDto> findNewProducts() {
         return productRepository.findNewProducts();
+    }
+
+    // 최신 상품 조회 - 매핑
+    public List<Object> mapToResponseFormat(List<NewProductResDto> latestProducts) {
+        return latestProducts.stream()
+                .limit(8).map(product -> new Object() {
+                    public final Long productId = product.getProductId();
+                    public final String productBrand = product.getProductBrand();
+                    public final String productName = product.getProductName();
+                    public final String productImg = product.getProductImg();
+                    public final String productSalePrice = String.valueOf(product.getProductSalePrice());
+                })
+                .collect(Collectors.toList());
     }
 
     // 상품 상세 정보 조회
@@ -91,14 +110,54 @@ public class ProductService {
     }
 
     // 상품별 사용자 리뷰 조회
-    public ProductReviewListResDto getReviewList(Long productId){
+    public ProductReviewListResDto getReviewList(Long productId, Integer pageNo){
+        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "reviewCreatedDate"));
         // 상품 번호, 상품 별점, 리뷰 개수 조회, 존재하지 않는 상품 번호의 경우 예외 발생
         ProductDto product = productRepository.findProductByProductId(productId)
                 .orElseThrow(()-> new IllegalArgumentException("존재하지 않는 상품"));
         // 상품의 리뷰 목록 불러오기
-        List<ProductReviewDto> reviewList = productReviewRepository.findReviewByProductId(productId);
+        Page<ProductReviewDto> reviewList = productReviewRepository.findReviewByProductId(pageable, productId);
+        return new ProductReviewListResDto(product, reviewList.getTotalPages(), reviewList.getContent());
+    }
 
-        return new ProductReviewListResDto(product, reviewList);
+    // 상품 별 Q&A 리스트 조회
+    public Page<QnaProductIdListResDto> findQnasByProductId(Long productId, Pageable pageable) {
+        System.out.println("2");
+        return qnaRepository.findQnasByProductId(productId, pageable);
+    }
+
+
+    //Q&A 작성
+    @Transactional
+    public QnaWriteResponseDto qnaWrite(Long productId, Long userId, String qnaTitle, String qnaContents, Boolean qnaIsSecret){
+        // userId로 회원 이름 가져오기
+        User userdata = userRepository.findUserNameByUserId(userId);
+        String qnaWriter = userdata.getUserName();
+
+        // qna 정보 저장
+        Qna qna = Qna.builder()
+                .userId(userId)
+                .productId(productId)
+                .qnaTitle(qnaTitle)
+                .qnaContents(qnaContents)
+                .qnaSecret(qnaIsSecret)
+                .qnaState(false)
+                .build();
+
+        Qna savedQna = qnaRepository.save(qna);
+
+        // 반환값 생성
+        return new QnaWriteResponseDto(savedQna.getQnaSecret(), qnaWriter, savedQna.getQnaTitle(), savedQna.getQnaCreatedDate(), savedQna.getQnaState());
+    }
+    // 추천 상품 조회
+    public List<RecommendProductResDto> recommendProduct(Long productId) {
+        // PageRequest의 pageSize 4로 지정 최신 4개만 조회
+        return productRepository.findProduct(productId, PageRequest.of(0, 4, Sort.by(Sort.Direction.DESC, "productCreatedDate")));
+    }
+
+    @Transactional
+    public void deleteReviewByReviewId(Long productId, Long reviewId) {
+        productReviewRepository.deleteByReviewId(reviewId);
     }
 
     // 리뷰 작성
@@ -115,3 +174,4 @@ public class ProductService {
         productReviewRepository.save(productReview);
     }
 }
+

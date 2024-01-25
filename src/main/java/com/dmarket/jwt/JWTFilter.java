@@ -4,7 +4,7 @@ import com.dmarket.domain.user.RefreshToken;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.response.CMResDto;
 import com.dmarket.dto.response.CustomUserDetails;
-import com.dmarket.dto.response.TokenResponseDto;
+import com.dmarket.dto.common.TokenResponseDto;
 import com.dmarket.repository.user.RefreshTokenRepository;
 import com.dmarket.repository.user.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -19,7 +19,7 @@ public class OrderDetail {
     private Long orderId;
     private Long optionId;
     private Long productId;
-    private Long reviewId;
+    // private Long reviewId; // 24일부로 수정됐습니다
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
