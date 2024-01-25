@@ -2,16 +2,14 @@ package com.dmarket.domain.user;
 
 import com.dmarket.constant.Role;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
 
@@ -39,16 +37,15 @@ public class User {
     @Column(nullable = false)
     private String userPhoneNum;
 
-    private LocalDateTime userRegisterDate;  //가입일
-    private LocalDate userJoinDate;  //입사일
+    private LocalDateTime userRegisterDate;  // 가입일
 
     @Column(nullable = false)
+    private LocalDate userJoinDate;  // 입사일
+
     private Integer userPostalCode;
 
-    @Column(nullable = false)
     private String userAddress;
 
-    @Column(nullable = false)
     private String userAddressDetail;
 
 
