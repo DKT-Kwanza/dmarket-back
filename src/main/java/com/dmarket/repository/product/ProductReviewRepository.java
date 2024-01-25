@@ -28,9 +28,10 @@ public interface ProductReviewRepository extends JpaRepository<ProductReview, Lo
     void deleteByReviewId(@Param("reviewId") Long reviewId);
 
     @Query("select new com.dmarket.dto.response.AdminReviewsResDto" +
-    "(r, o, u) " +
+    "(r, o, u, p) " +
     "from ProductReview r " +
     "join User u on r.userId = u.userId " +
+    "join Product p on r.productId = p.productId " +
     "join ProductOption o on r.optionId = o.optionId ORDER BY r.reviewId DESC")
     Page<AdminReviewsResDto> getProductReviews(Pageable pageable);
 }
