@@ -1,5 +1,7 @@
 package com.dmarket.controller;
 
+import com.dmarket.constant.InquiryType;
+import com.dmarket.domain.board.Inquiry;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
 import com.dmarket.service.AdminService;
@@ -8,6 +10,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -25,7 +29,7 @@ import java.util.*;
 @RequestMapping("/api/admin")
 public class AdminController {
     @Autowired
-    AdminService adminService;
+    private final AdminService adminService;
 
     @GetMapping("/GM")
     public String adminGMP() {
@@ -188,6 +192,41 @@ public class AdminController {
                     .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+    //문의 목록 조회(카테고리별)
+    @GetMapping("/board/inquiry")
+    public ResponseEntity<?> getInquiries(
+            @RequestParam(required = false, value = "type") InquiryType inquiryType,
+            @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
+            @RequestParam(required = false, value = "size", defaultValue = "10") int pageSize) {
+        try {
+            if (pageNo < 0 || pageSize <= 0) {
+                return new ResponseEntity<>(CMResDto.builder()
+                        .code(400).msg("검증되지 않은 페이지").build(), HttpStatus.BAD_REQUEST);
+            }
+
+            Page<Inquiry> inquiriesPage = adminService.getAllInquiriesByType(inquiryType, PageRequest.of(pageNo, pageSize));
+            Page<InquiryListResDto> mappedInquiries = adminService.mapToInquiryListResDto(inquiriesPage);
+
+            CMResDto<Page<InquiryListResDto>> response = CMResDto.<Page<InquiryListResDto>>builder()
+                    .code(200).msg("문의 목록").data(mappedInquiries).build();
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+
+
+
 
 
 }
