@@ -18,16 +18,19 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT new com.dmarket.dto.response.UserResDto(u) FROM User u WHERE u.userDktNum = :userDktNum")
     List<UserResDto> getUsersFindByDktNum(@Param("userDktNum") Integer userDktNum);
-    @Query(value = "select new com.dmarket.dto.response.UserInfoResDto(u.userName, u.userEmail, u.userDktNum, u.userPhoneNum, u.userAddress, u.userAddressDetail, u.userPostalCode, u.userJoinDate)" +
-                    " from User u " +
-                    " where u.userId = :userId")
-    UserInfoResDto findUserInfoByUserId(@Param("userId")Long userId);
+
+    @Query(value = "select new com.dmarket.dto.response.UserInfoResDto(u.userName, u.userEmail, u.userDktNum, u.userPhoneNum, u.userAddress, u.userAddressDetail, u.userPostalCode, u.userJoinDate)"
+            +
+            " from User u " +
+            " where u.userId = :userId")
+    UserInfoResDto findUserInfoByUserId(@Param("userId") Long userId);
 
     // 마이페이지 서브헤더 사용자 정보 및 마일리지 조회
-    @Query(value = "select new com.dmarket.dto.response.UserHeaderInfoResDto (u.userName, u.userJoinDate, u.userMileage) " +
-                    "from User u " +
-                    "where u.userId = :userId")
+    @Query(value = "select new com.dmarket.dto.response.UserHeaderInfoResDto (u.userName, u.userJoinDate, u.userMileage) "
+            +
+            "from User u " +
+            "where u.userId = :userId")
     UserHeaderInfoResDto findUserHeaderInfoByUserId(Long userId);
+
     User findByUserEmail(String userEmail);
 }
-
