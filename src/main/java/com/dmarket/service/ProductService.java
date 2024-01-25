@@ -3,9 +3,6 @@ package com.dmarket.service;
 import com.dmarket.domain.product.Qna;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.response.*;
-import com.dmarket.repository.product.CategoryRepository;
-import com.dmarket.repository.product.ProductRepository;
-import com.dmarket.repository.product.QnaRepository;
 import com.dmarket.repository.user.UserRepository;
 import com.dmarket.domain.product.Category;
 import com.dmarket.domain.product.Product;
@@ -33,7 +30,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ProductService {
-    //조회가 아닌 메서드들은 꼭 @Transactional 넣어주세요 (CUD, 입력/수정/삭제)
+    // 조회가 아닌 메서드들은 꼭 @Transactional 넣어주세요 (CUD, 입력/수정/삭제)
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
@@ -47,22 +44,23 @@ public class ProductService {
     private static final int REVIEW_PAGE_POST_COUNT = 5;
 
     // 카테고리 전체 목록 depth별로 조회
-    public List<CategoryListResDto> getCategories(Integer categoryDepthLevel){
+    public List<CategoryListResDto> getCategories(Integer categoryDepthLevel) {
         return categoryRepository.findByCategoryDepth(categoryDepthLevel);
     }
 
     // 카테고리별 상품 목록 필터링 조회
     public Page<ProductListResDto> getCategoryProducts(Pageable pageable, int pageNo, Long cateId,
-                                                       String sorter, Integer minPrice, Integer maxPrice, Float star) {
+            String sorter, Integer minPrice, Integer maxPrice, Float star) {
         pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
-        Page<ProductListResDto> productList = productRepository.findByCateId(pageable, cateId, minPrice, maxPrice, star);
+        Page<ProductListResDto> productList = productRepository.findByCateId(pageable, cateId, minPrice, maxPrice,
+                star);
 
         return productList;
     }
 
     // 상품 목록 조건 검색
     public Page<ProductListResDto> getSearchProducts(Pageable pageable, int pageNo, String query,
-                                                     String sorter, Integer minPrice, Integer maxPrice, Float star) {
+            String sorter, Integer minPrice, Integer maxPrice, Float star) {
         pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
         Page<ProductListResDto> productList = productRepository.findByQuery(pageable, query, minPrice, maxPrice, star);
 
@@ -88,10 +86,10 @@ public class ProductService {
     }
 
     // 상품 상세 정보 조회
-    public ProductInfoResDto getProductInfo(Long productId, Long userId){
+    public ProductInfoResDto getProductInfo(Long productId, Long userId) {
         // 싱품 정보 조회
         Product product = productRepository.findById(productId)
-                .orElseThrow(()->new IllegalArgumentException("존재하지 않는 상품입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
         // 상품의 카테고리 depth 1, depth2 조회 후 합치기
         Category category = categoryRepository.findByCategoryId(product.getCategoryId());
         String productCategory = category.getParent().getCategoryName() + " / " + category.getCategoryName();
@@ -108,20 +106,53 @@ public class ProductService {
     }
 
     // 상품별 사용자 리뷰 조회
-    public ProductReviewListResDto getReviewList(Long productId, Integer pageNo){
-        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "reviewCreatedDate"));
+    public ProductReviewListResDto getReviewList(Long productId, Integer pageNo) {
+        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_POST_COUNT,
+                Sort.by(Sort.Direction.DESC, "reviewCreatedDate"));
         // 상품 번호, 상품 별점, 리뷰 개수 조회, 존재하지 않는 상품 번호의 경우 예외 발생
         ProductDto product = productRepository.findProductByProductId(productId)
-                .orElseThrow(()-> new IllegalArgumentException("존재하지 않는 상품"));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품"));
         // 상품의 리뷰 목록 불러오기
         Page<ProductReviewDto> reviewList = productReviewRepository.findReviewByProductId(pageable, productId);
         return new ProductReviewListResDto(product, reviewList.getTotalPages(), reviewList.getContent());
     }
 
+    // 상품 별 Q&A 리스트 조회
+    public Page<QnaProductIdListResDto> findQnasByProductId(Long productId, Pageable pageable) {
+        System.out.println("2");
+        return qnaRepository.findQnasByProductId(productId, pageable);
+    }
+
+    // Q&A 작성
+    @Transactional
+    public QnaWriteResponseDto qnaWrite(Long productId, Long userId, String qnaTitle, String qnaContents,
+            Boolean qnaIsSecret) {
+        // userId로 회원 이름 가져오기
+        User userdata = userRepository.findUserNameByUserId(userId);
+        String qnaWriter = userdata.getUserName();
+
+        // qna 정보 저장
+        Qna qna = Qna.builder()
+                .userId(userId)
+                .productId(productId)
+                .qnaTitle(qnaTitle)
+                .qnaContents(qnaContents)
+                .qnaSecret(qnaIsSecret)
+                .qnaState(false)
+                .build();
+
+        Qna savedQna = qnaRepository.save(qna);
+
+        // 반환값 생성
+        return new QnaWriteResponseDto(savedQna.getQnaSecret(), qnaWriter, savedQna.getQnaTitle(),
+                savedQna.getQnaCreatedDate(), savedQna.getQnaState());
+    }
+
     // 추천 상품 조회
     public List<RecommendProductResDto> recommendProduct(Long productId) {
         // PageRequest의 pageSize 4로 지정 최신 4개만 조회
-        return productRepository.findProduct(productId, PageRequest.of(0, 4, Sort.by(Sort.Direction.DESC, "productCreatedDate")));
+        return productRepository.findProduct(productId,
+                PageRequest.of(0, 4, Sort.by(Sort.Direction.DESC, "productCreatedDate")));
     }
 
     @Transactional
@@ -131,7 +162,7 @@ public class ProductService {
 
     // 리뷰 작성
     @Transactional
-    public void saveReview(ReviewReqDto reviewReqDto, Long productId){
+    public void saveReview(ReviewReqDto reviewReqDto, Long productId) {
         ProductReview productReview = ProductReview.builder()
                 .optionId(reviewReqDto.getOptionId())
                 .productId(productId)
@@ -143,4 +174,3 @@ public class ProductService {
         productReviewRepository.save(productReview);
     }
 }
-
