@@ -1,5 +1,6 @@
 package com.dmarket.domain.user;
 
+import com.dmarket.constant.MileageContents;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,13 +20,14 @@ public class Mileage {
     private Long userId;
 
     @Column(nullable = false)
-    private Integer mileageRemain;
+    private Integer remainMileage;
 
     @Column(nullable = false)
-    private Integer mileageUse;
+    private Integer changeMileage;
 
     @Column(nullable = false)
-    private String mileageInfo;
+    @Enumerated(EnumType.STRING)
+    private MileageContents mileageInfo;
 
     @CreatedDate
     @Column(nullable = false)

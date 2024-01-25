@@ -43,9 +43,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        // 로그인 요청 API 에서 username 값을 추출
-        String username = obtainUsername(request);
-
         // 로그인 요청 API 에서 password 값을 추출
         String password = obtainPassword(request);
 
