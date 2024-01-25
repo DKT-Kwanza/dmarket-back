@@ -64,8 +64,15 @@ public class AdminService {
 
     //문의 삭제
     @Transactional
-    public void deleteInquiry(Long inquiryId) {
-        inquiryRepository.deleteByInquiryId(inquiryId);
+    public boolean deleteInquiry(Long inquiryId) {
+        Optional<Inquiry> inquiryOptional = inquiryRepository.findById(inquiryId);
+
+        if (inquiryOptional.isPresent()) {
+            inquiryRepository.deleteById(inquiryId);
+            return true;
+        } else {
+            return false; // 삭제 대상이 없음
+        }
     }
 
 
@@ -89,21 +96,20 @@ public class AdminService {
                 .build();
 
         return inquiryDetailsDto;
+        // 나중에 수정할게요..
     }
 
     // 문의 답변 삭제
     @Transactional
-    public void deleteInquiryReply(Long inquiryReplyId) {
-        inquiryReplyRepository.deleteByInquiryReplyId(inquiryReplyId);
+    public boolean deleteInquiryReply(Long inquiryReplyId) {
+        Optional<InquiryReply> inquiryReplyOptional = inquiryReplyRepository.findById(inquiryReplyId);
 
+        if (inquiryReplyOptional.isPresent()) {
+            inquiryReplyRepository.deleteById(inquiryReplyId);
+            return true;
+        } else {
+            return false; // 삭제 대상이 없을 때
+        }
     }
-
-
-
-
-
-
-
-
 
 }

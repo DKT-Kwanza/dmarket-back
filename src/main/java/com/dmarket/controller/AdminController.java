@@ -227,8 +227,13 @@ public class AdminController {
     @DeleteMapping("/board/inquiry/{inquiryId}")
     public ResponseEntity<?> deleteInquiry(@PathVariable Long inquiryId) {
         try {
-            adminService.deleteInquiry(inquiryId);
-            return new ResponseEntity<>(CMResDto.builder().code(200).msg("Inquiry 삭제 성공").build(), HttpStatus.OK);
+            boolean isDeleted = adminService.deleteInquiry(inquiryId);
+
+            if (isDeleted) {
+                return new ResponseEntity<>(CMResDto.builder().code(200).msg("Inquiry 삭제 성공").build(), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(CMResDto.builder().code(404).msg("삭제할 대상이 없습니다.").build(), HttpStatus.NOT_FOUND);
+            }
         } catch (IllegalArgumentException e) {
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
@@ -237,6 +242,7 @@ public class AdminController {
             return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     // 문의 답변 등록
     @PostMapping("/board/inquiry/reply/{inquiryId}")
@@ -251,7 +257,6 @@ public class AdminController {
 
             InquiryReply createdInquiryReply = adminService.createInquiryReply(inquiryReply);
 
-            // Assuming you have a method to retrieve the inquiry details by id
             InquiryDetailsDto inquiryDetails = adminService.getInquiryDetails(inquiryId);
 
             return ResponseEntity.ok(CMResDto.builder()
@@ -270,8 +275,13 @@ public class AdminController {
     @DeleteMapping("/board/inquiry/reply/{inquiryReplyId}")
     public ResponseEntity<?> deleteInquiryReply(@PathVariable Long inquiryReplyId) {
         try {
-            adminService.deleteInquiryReply(inquiryReplyId);
-            return new ResponseEntity<>(CMResDto.builder().code(200).msg("Inquiry Reply 삭제 성공").build(), HttpStatus.OK);
+            boolean isDeleted = adminService.deleteInquiryReply(inquiryReplyId);
+
+            if (isDeleted) {
+                return new ResponseEntity<>(CMResDto.builder().code(200).msg("Inquiry Reply 삭제 성공").build(), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(CMResDto.builder().code(404).msg("삭제할 대상이 없습니다.").build(), HttpStatus.NOT_FOUND);
+            }
         } catch (IllegalArgumentException e) {
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
@@ -280,6 +290,8 @@ public class AdminController {
             return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
 
 
 
