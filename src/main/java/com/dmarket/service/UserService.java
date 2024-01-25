@@ -1,10 +1,13 @@
 package com.dmarket.service;
 
+import com.dmarket.domain.user.User;
+import com.dmarket.dto.request.UserAddressReqDto;
+import com.dmarket.dto.response.*;
+import com.dmarket.dto.common.WishlistItemDto;
+import com.dmarket.jwt.JWTUtil;
 import com.dmarket.domain.board.Inquiry;
 import com.dmarket.domain.user.Cart;
-import com.dmarket.domain.user.User;
 import com.dmarket.domain.user.Wishlist;
-import com.dmarket.dto.common.WishlistItemDto;
 import com.dmarket.dto.request.JoinReqDto;
 import com.dmarket.repository.user.UserRepository;
 import com.dmarket.dto.response.CartCountResDto;
@@ -14,6 +17,7 @@ import com.dmarket.dto.response.WishlistResDto;
 import com.dmarket.repository.board.InquiryRepository;
 import com.dmarket.repository.user.CartRepository;
 import com.dmarket.repository.user.WishlistRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +28,6 @@ import java.util.*;
 
 import com.dmarket.domain.order.Order;
 import com.dmarket.dto.common.CartListDto;
-import com.dmarket.dto.response.*;
 import com.dmarket.repository.order.OrderDetailRepository;
 import com.dmarket.repository.order.OrderRepository;
 import com.dmarket.repository.product.QnaRepository;
@@ -46,7 +49,9 @@ public class UserService {
     private final CartRepository cartRepository;
     private final WishlistRepository wishlistRepository;
     private final UserRepository userRepository;
+    private final InquiryRepository inquiryRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JWTUtil jwtUtil;
     private final MailService mailService;
     private final RedisService redisService;
 
@@ -81,7 +86,7 @@ public class UserService {
     //회원가입 유효성 확인
     public void verifyJoin(JoinReqDto dto) {
 
-        String regExp = "^[a-zA-Z0-9!@#$%^]*$";
+        String regExp = "^(?=.*[a-zA-Z])(?=.*[!@#$%^])(?=.*[0-9]).{8,25}$";
         String userEmail = dto.getUserEmail();
         String password = dto.getUserPassword();
         Integer userDktNum = dto.getUserDktNum();
@@ -134,21 +139,6 @@ public class UserService {
         }
     }
 
-
-    public User findById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
-    }
-
-    public boolean existByUserEmail(String userEmail) {
-        return userRepository.existsByUserEmail(userEmail);
-    }
-
-    public boolean existByUserDktNum(Integer userDktNum) {
-        return userRepository.existsByUserDktNum(userDktNum);
-    }
-
-
     private String createCode() {
         int length = 6;
         try {
@@ -163,7 +153,6 @@ public class UserService {
             throw new RuntimeException(e.getMessage(), e.getCause());
         }
     }
-
 
 
     public List<CartListDto> getCartsfindByUserId(Long userId) {
@@ -211,15 +200,10 @@ public class UserService {
         return orderResDtos;
     }
 
-
-
-
     // 사용자 정보 조회
     public UserInfoResDto getUserInfoByUserId(Long userId) {
         return userRepository.findUserInfoByUserId(userId);
     }
-
-    private final InquiryRepository inquiryRepository;
 
     // 위시리스트 조회
     public WishlistResDto getWishlistByUserId(Long userId) {
@@ -256,8 +240,6 @@ public class UserService {
         wishlistRepository.deleteById(wishlistId);
     }
 
-
-
     // 문의 작성
     @Transactional
     public Inquiry createInquiry(Inquiry inquiry) {
@@ -280,6 +262,69 @@ public class UserService {
                 .cartCount(productCount)
                 .build();
         cartRepository.save(cart);
+    }
+
+    //사용자 배송지 변경
+    @Transactional
+    public UserAddressResDto updateAddress(HttpServletRequest request,
+                              Long userId, UserAddressReqDto userAddressReqDto){
+        String header = jwtUtil.getAuthHeader(request);
+        String token = jwtUtil.getToken(header);
+        if (token == null || !jwtUtil.isTokenValid(token)) {
+            throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
+        }
+        String email = jwtUtil.getEmail(token);
+        User user = userRepository.findByUserEmail(email);
+        user.updateAddress(userAddressReqDto);
+        return new UserAddressResDto(user);
+    }
+
+    //사용자 비밀번호 확인
+    @Transactional
+    public void validatePassword(HttpServletRequest request, String currentPassword){
+        String header = jwtUtil.getAuthHeader(request);
+        String token = jwtUtil.getToken(header);
+
+        if (token == null || !jwtUtil.isTokenValid(token)) {
+            throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
+        }
+        String email = jwtUtil.getEmail(token);
+        User user = userRepository.findByUserEmail(email);
+        if (!isPasswordSame(currentPassword, user.getUserPassword())) {
+            throw new IllegalArgumentException("비밀번호가 다릅니다.");
+        }
+    }
+
+    //사용자 비밀번호 변경
+    @Transactional
+    public void updatePassword(String newPassword, Long userId){
+        String regExp = "^(?=.*[a-zA-Z])(?=.*[!@#$%^])(?=.*[0-9]).{8,25}$";
+        //비밀번호 유효성 검사
+        if (!newPassword.matches(regExp)) {
+            throw new IllegalArgumentException("비밀번호는 영문자, 숫자, 특수문자(!@#$%^)가 포함되어야 합니다.");
+        }
+        User user = findById(userId);
+        if (isPasswordSame(newPassword, user.getUserPassword())) {
+            throw new IllegalArgumentException("동일한 비밀번호입니다.");
+        } else{
+            user.updatePassword(passwordEncoder.encode(newPassword));
+        }
+    }
+
+    public User findById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않은 회원 입니다."));
+    }
+    public boolean isPasswordSame(String pwd, String originPwd) {
+        return passwordEncoder.matches(pwd, originPwd);
+    }
+
+    public boolean existByUserEmail(String userEmail) {
+        return userRepository.existsByUserEmail(userEmail);
+    }
+
+    public boolean existByUserDktNum(Integer userDktNum) {
+        return userRepository.existsByUserDktNum(userDktNum);
     }
 
 }
