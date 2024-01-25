@@ -1,5 +1,6 @@
 package com.dmarket.controller;
 
+import com.dmarket.dto.request.EmailReqDto;
 import com.dmarket.dto.request.JoinReqDto;
 import com.dmarket.dto.response.CMResDto;
 import com.dmarket.service.UserService;
@@ -52,6 +53,23 @@ public class UserController {
     public ResponseEntity<?> email(@RequestBody String userEmail) {
         try {
             userService.sendCodeToEmail(userEmail);
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("이메일 인증 코드 전송 완료").build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("이메일 인증 코드 전송 실패").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("이메일 인증 코드 전송 실패").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/email/verify")
+    public ResponseEntity<?> emailVerify(@RequestBody EmailReqDto dto) {
+        try {
+            userService.isValidEmailCode(dto.getUserEmail(), dto.getCode());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("이메일 인증 코드 전송 완료").build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {

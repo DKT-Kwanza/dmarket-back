@@ -2,15 +2,12 @@ package com.dmarket.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -40,6 +37,10 @@ public class RedisService {
         return (String) values.get(key);
     }
 
+    public boolean checkExistsValue(String value) {
+        return !value.equals("false");
+    }
+
     @Transactional
     public void deleteValues(String key) {
         redisTemplate.delete(key);
@@ -66,8 +67,4 @@ public class RedisService {
 //        HashOperations<String, Object, Object> values = redisTemplate.opsForHash();
 //        values.delete(key, hashKey);
 //    }
-
-    public boolean checkExistsValue(String value) {
-        return !value.equals("false");
-    }
 }

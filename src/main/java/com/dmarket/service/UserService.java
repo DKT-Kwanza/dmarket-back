@@ -28,6 +28,7 @@ public class UserService {
 
     @Value("${spring.mail.auth-code-expiration-millis}")
     private long authCodeExpirationMillis;
+    private static final String AUTH_CODE_PREFIX = "auth:email:";
 
     /**
      * 회원가입
@@ -87,25 +88,28 @@ public class UserService {
     }
 
     public void sendCodeToEmail(String toEmail) {
-//        if (existByUserEmail(toEmail)) throw new IllegalArgumentException("이미 존재하는 회원입니다.");
         isValidEmail(toEmail);
         String title = "Dmarket 회원가입 인증번호";
         String authCode = createCode();
         mailService.sendEmail(toEmail, title, authCode);
 
         // 이메일 인증 요청 시 인증 번호 Redis에 저장 ( key = auth:email:abc@gachon.ac.kr / value = 000000 )
-        redisService.setValues("auth:email:" + toEmail, authCode, Duration.ofMillis(this.authCodeExpirationMillis));
+        redisService.setValues(AUTH_CODE_PREFIX + toEmail, authCode, Duration.ofMillis(this.authCodeExpirationMillis));
     }
 
-    /* Redis 구현 후 완성
-    public EmailVerificationResult verifiedCode(String email, String authCode) {
-        this.checkDuplicatedEmail(email);
+    // Redis 구현 후 완성
+    public void isValidEmailCode(String email, String authCode) {
+        isValidEmail(email);
         String redisAuthCode = redisService.getValues(AUTH_CODE_PREFIX + email);
-        boolean authResult = redisService.checkExistsValue(redisAuthCode) && redisAuthCode.equals(authCode);
 
-        return EmailVerificationResult.of(authResult);
+        //Redis에서 갖고 온 값이 null이 아니고 이메일 인증 코드가 동일하면 true
+        boolean isValid = redisService.checkExistsValue(redisAuthCode) && redisAuthCode.equals(authCode);
+
+        if (!isValid) {
+            throw new IllegalArgumentException("인증 코드가 동일하지 않습니다.");
+        }
     }
-    */
+
 
     public User findById(Long userId) {
         return userRepository.findById(userId)
