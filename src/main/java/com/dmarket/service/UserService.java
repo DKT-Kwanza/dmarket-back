@@ -1,8 +1,6 @@
 package com.dmarket.service;
 
 import com.dmarket.domain.user.User;
-import com.dmarket.dto.common.MyOrderDetaillistDto;
-import com.dmarket.dto.common.MyOrderlistDto;
 import com.dmarket.dto.response.CartCountResDto;
 import com.dmarket.dto.response.UserHeaderInfoResDto;
 import com.dmarket.dto.response.UserInfoResDto;
