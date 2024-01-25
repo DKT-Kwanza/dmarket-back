@@ -118,8 +118,9 @@ public class AdminController {
     public ResponseEntity<?> getNotices(
             @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "10") Integer size) {
+
         try {
-            page = page > 0 ? page-1 : page;
+            page = page > 0 ? page - 1 : page;
             if (page < 0 || size <= 0) {
                 return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 페이지 또는 크기").build(),
                         HttpStatus.BAD_REQUEST);
@@ -151,7 +152,7 @@ public class AdminController {
             @RequestParam(required = false, value = "page", defaultValue = "0") int page,
             @RequestParam(required = false, value = "size", defaultValue = "10") int size) {
         try {
-            page = page > 0 ? page-1 : page;
+            page = page > 0 ? page - 1 : page;
 
             // request body 유효성 확인
             bindingResultErrorsCheck(bindingResult);
@@ -201,11 +202,12 @@ public class AdminController {
                     .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     // faq 조회
     @GetMapping("/board/faq")
     public ResponseEntity<?> getFaqs(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
-                                     @RequestParam(required = false, value = "size", defaultValue = "10") int pageSize,
-                                     @RequestParam(required = false, value = "type") FaqType faqType) {
+            @RequestParam(required = false, value = "size", defaultValue = "10") int pageSize,
+            @RequestParam(required = false, value = "type") FaqType faqType) {
         try {
             if (pageNo < 0 || pageSize <= 0) {
                 return new ResponseEntity<>(CMResDto.builder()
@@ -215,20 +217,24 @@ public class AdminController {
             Page<Faq> faqsPage = adminService.getAllFaqs(faqType, PageRequest.of(pageNo, pageSize));
             Page<FaqListResDto> mappedFaqs = adminService.mapToFaqListResDto(faqsPage);
 
-            CMResDto<Page<FaqListResDto>> response = CMResDto.<Page<FaqListResDto>>builder().code(200).msg("FAQ 조회 성공").data(mappedFaqs).build();
+            CMResDto<Page<FaqListResDto>> response = CMResDto.<Page<FaqListResDto>>builder().code(200).msg("FAQ 조회 성공")
+                    .data(mappedFaqs).build();
 
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
-            return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(),
+                    HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error("Error retrieving FAQs: " + e.getMessage());
-            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     // faq 삭제
     @DeleteMapping("/board/faq/{faqId}")
-    public ResponseEntity<?> deleteFaq(@PathVariable(name="faqId") Long faqId) {
+    public ResponseEntity<?> deleteFaq(@PathVariable(name = "faqId") Long faqId) {
         try {
             adminService.deleteFaqByFaqId(faqId);
             return new ResponseEntity<>(CMResDto.builder()
@@ -252,10 +258,11 @@ public class AdminController {
                     .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     // FAQ 등록
     @PostMapping("/board/faq")
     public ResponseEntity<?> postFaq(@Valid @RequestBody FaqReqDto faqReqDto,
-                                     BindingResult bindingResult) {
+            BindingResult bindingResult) {
         try {
             // request body 유효성 확인
             bindingResultErrorsCheck(bindingResult);
@@ -277,6 +284,69 @@ public class AdminController {
         } catch (Exception e) {
             return new ResponseEntity<>(CMResDto.builder()
                     .code(400).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 상품 수정
+    @PutMapping("/products/{productId}")
+    public ResponseEntity<?> updateProduct(@Valid @RequestBody ProductReqDto productReqDto,
+            BindingResult bindingResult) {
+        try {
+            // request body 유효성 확인
+            bindingResultErrorsCheck(bindingResult);
+
+            // 상품 수정
+            adminService.updateProduct(productReqDto);
+
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("상품 수정 완료").build(), HttpStatus.OK);
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 상품 상세 정보 조회
+    @GetMapping("/products/{productId}")
+    public ResponseEntity<?> getProductInfo(@PathVariable Long productId) {
+        try {
+            Long userId = 1L;
+            ProductInfoResDto res = adminService.getProductInfo(productId, userId);
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("상품 정보 가져오기 완료").data(res).build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(),
+                    HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 상품 리뷰
+    @GetMapping("/products/review")
+    public ResponseEntity<?> getReviews(@RequestParam(required = false, defaultValue = "0") Integer page,
+            @RequestParam(required = false, defaultValue = "10") Integer size) {
+        try {
+            page = page > 0 ? page - 1 : page;
+            if (page < 0 || size <= 0) {
+                return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 페이지 또는 크기").build(),
+                        HttpStatus.BAD_REQUEST);
+            }
+            Pageable pageable = PageRequest.of(page, size);
+            Page<AdminReviewsResDto> adminReviewsResDtos = adminService.getProductReviews(pageable);
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("상품 리뷰 조회 완료").data(adminReviewsResDtos).build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(),
+                    HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
