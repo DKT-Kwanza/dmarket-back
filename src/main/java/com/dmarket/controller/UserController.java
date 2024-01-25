@@ -25,11 +25,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.AuthenticationException;
 
 @Slf4j
@@ -37,8 +34,6 @@ import org.springframework.security.core.AuthenticationException;
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
 public class UserController {
-
-    @Autowired
     private final UserService userService;
 
     // 장바구니 추가 api
@@ -61,7 +56,7 @@ public class UserController {
                     .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>(CMResDto.builder()
-                    .code(400).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -82,7 +77,7 @@ public class UserController {
             return new ResponseEntity<>(CMResDto.builder()
                     .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            return new ResponseEntity<>(CMResDto.builder().code(400).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -211,17 +206,6 @@ public class UserController {
             log.error("서버 내부 오류: " + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    //validation 체크
-    private void bindingResultErrorsCheck(BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            Map<String, String> errorMap = new HashMap<>();
-            for (FieldError fe : bindingResult.getFieldErrors()) {
-                errorMap.put(fe.getField(), fe.getDefaultMessage());
-            }
-            throw new RuntimeException(errorMap.toString());
         }
     }
 
@@ -391,6 +375,42 @@ public class UserController {
             return new ResponseEntity<>(createdInquiry, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 마일리지 충전 요청 api
+    @PostMapping("{userId}/mypage/mileage-charge")
+    public ResponseEntity<?> mileageChargeReq(@PathVariable Long userId,
+                                              @Valid @RequestBody MileageChargeReqDto mileageChargeReqDto,
+                                              BindingResult bindingResult) {
+        try {
+            bindingResultErrorsCheck(bindingResult);
+
+            // 충전 요청
+            userService.mileageChargeReq(userId, mileageChargeReqDto.getMileageCharge());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("마일리지 충전 요청 성공").build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    //validation 체크
+    private void bindingResultErrorsCheck(BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            Map<String, String> errorMap = new HashMap<>();
+            for (FieldError fe : bindingResult.getFieldErrors()) {
+                errorMap.put(fe.getField(), fe.getDefaultMessage());
+            }
+            throw new RuntimeException(errorMap.toString());
         }
     }
 }

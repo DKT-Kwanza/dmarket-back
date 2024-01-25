@@ -1,6 +1,9 @@
 package com.dmarket.service;
 
+import com.dmarket.constant.MileageReqState;
+import com.dmarket.constant.MileageReqType;
 import com.dmarket.domain.board.Inquiry;
+import com.dmarket.domain.user.MileageReq;
 import com.dmarket.dto.response.CartCountResDto;
 import com.dmarket.dto.response.UserHeaderInfoResDto;
 import com.dmarket.dto.response.UserInfoResDto;
@@ -21,7 +24,6 @@ import java.util.*;
 import com.dmarket.domain.order.Order;
 import com.dmarket.dto.common.CartListDto;
 import com.dmarket.dto.response.*;
-import com.dmarket.repository.board.*;
 import com.dmarket.repository.order.OrderDetailRepository;
 import com.dmarket.repository.order.OrderRepository;
 import com.dmarket.repository.product.QnaRepository;
@@ -39,6 +41,7 @@ public class UserService {
     private final CartRepository cartRepository;
     private final WishlistRepository wishlistRepository;
     private final UserRepository userRepository;
+    private final MileageReqRepository mileageReqRepository;
     // 조회가 아닌 메서드들은 꼭 @Transactional 넣어주세요 (CUD, 입력/수정/삭제)
 
 
@@ -158,4 +161,17 @@ public class UserService {
         cartRepository.save(cart);
     }
 
+    // 마일리지 충전 요청
+    @Transactional
+    public void mileageChargeReq(Long userId, Integer mileageCharge) {
+        // 마일리지 요청 사유 CHARGE(충전), 마일리지 요청 처리 상태(처리 중)으로 지정
+        MileageReq mileageReq = MileageReq.builder()
+                .userId(userId)
+                .mileageReqAmount(mileageCharge)
+                .mileageReqReason(MileageReqType.CHARGE)
+                .mileageReqState(MileageReqState.PROCESSING)
+                .build();
+
+        mileageReqRepository.save(mileageReq);
+    }
 }
