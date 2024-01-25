@@ -2,6 +2,8 @@ package com.dmarket.controller;
 
 import com.dmarket.constant.InquiryType;
 import com.dmarket.domain.board.Inquiry;
+import com.dmarket.domain.board.InquiryReply;
+import com.dmarket.dto.common.InquiryDetailsDto;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
 import com.dmarket.service.AdminService;
@@ -232,6 +234,49 @@ public class AdminController {
             return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error("Error deleting Inquiry: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 문의 답변 등록
+    @PostMapping("/board/inquiry/reply/{inquiryId}")
+    public ResponseEntity<?> postInquiryReply(
+            @PathVariable Long inquiryId,
+            @RequestBody InquiryReplyRequestDto inquiryReplyRequestDto) {
+        try {
+            InquiryReply inquiryReply = InquiryReply.builder()
+                    .inquiryId(inquiryId)
+                    .inquiryReplyContents(inquiryReplyRequestDto.getInquiryReplyContents())
+                    .build();
+
+            InquiryReply createdInquiryReply = adminService.createInquiryReply(inquiryReply);
+
+            // Assuming you have a method to retrieve the inquiry details by id
+            InquiryDetailsDto inquiryDetails = adminService.getInquiryDetails(inquiryId);
+
+            return ResponseEntity.ok(CMResDto.builder()
+                    .code(HttpStatus.OK.value())
+                    .msg("답변 작성 완료")
+                    .data(inquiryDetails)
+                    .build());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error while processing the request.");
+        }
+    }
+
+
+    //문의 답변 삭제
+    @DeleteMapping("/board/inquiry/reply/{inquiryReplyId}")
+    public ResponseEntity<?> deleteInquiryReply(@PathVariable Long inquiryReplyId) {
+        try {
+            adminService.deleteInquiryReply(inquiryReplyId);
+            return new ResponseEntity<>(CMResDto.builder().code(200).msg("Inquiry Reply 삭제 성공").build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Error deleting Inquiry Reply: " + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

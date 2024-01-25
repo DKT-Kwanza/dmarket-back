@@ -1,6 +1,7 @@
 package com.dmarket.service;
 
 import com.dmarket.constant.InquiryType;
+import com.dmarket.dto.common.InquiryDetailsDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -25,6 +26,7 @@ public class AdminService {
     private final UserRepository userRepository;
     private final NoticeRepository noticeRepository;
     private final InquiryRepository inquiryRepository;
+    private final InquiryReplyRepository inquiryReplyRepository;
 
     @Transactional
     public void deleteUserByUserId(Long userId) {
@@ -65,5 +67,43 @@ public class AdminService {
     public void deleteInquiry(Long inquiryId) {
         inquiryRepository.deleteByInquiryId(inquiryId);
     }
+
+
+    //문의 답변 등록
+    @Transactional
+    public InquiryReply createInquiryReply(InquiryReply inquiryReply) {
+        return inquiryReplyRepository.save(inquiryReply);
+    }
+
+    public InquiryDetailsDto getInquiryDetails(Long inquiryId) {
+        InquiryDetailsDto inquiryDetailsDto = InquiryDetailsDto.builder()
+                .inquiryId(inquiryId)
+                .inquiryTitle("Sample Title")
+                .inquiryContents("Sample Contents")
+                .inquiryType("Sample Type")
+                .inquiryStatus(false)
+                .inquiryWriter("Sample Writer")
+                .inquiryImg("www.example.com/sample.png")
+                .inquiryCreateDate("2024-01-07 13:48:00")
+                .inquiryReplyContents("Sample Reply Contents")
+                .build();
+
+        return inquiryDetailsDto;
+    }
+
+    // 문의 답변 삭제
+    @Transactional
+    public void deleteInquiryReply(Long inquiryReplyId) {
+        inquiryReplyRepository.deleteByInquiryReplyId(inquiryReplyId);
+
+    }
+
+
+
+
+
+
+
+
 
 }
