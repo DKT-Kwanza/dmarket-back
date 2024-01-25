@@ -1,5 +1,7 @@
 package com.dmarket.service;
 
+import com.dmarket.domain.product.Qna;
+import com.dmarket.domain.user.User;
 import com.dmarket.dto.response.*;
 import com.dmarket.repository.product.CategoryRepository;
 import com.dmarket.repository.product.ProductRepository;
@@ -123,6 +125,20 @@ public class ProductService {
     @Transactional
     public void deleteReviewByReviewId(Long productId, Long reviewId) {
         productReviewRepository.deleteByReviewId(reviewId);
+    }
+
+    // 리뷰 작성
+    @Transactional
+    public void saveReview(ReviewReqDto reviewReqDto, Long productId){
+        ProductReview productReview = ProductReview.builder()
+                .optionId(reviewReqDto.getOptionId())
+                .productId(productId)
+                .userId(reviewReqDto.getUserId())
+                .reviewRating(reviewReqDto.getReviewRating())
+                .reviewContents(reviewReqDto.getReviewContents())
+                .reviewImg(reviewReqDto.getReviewImg())
+                .build();
+        productReviewRepository.save(productReview);
     }
 }
 

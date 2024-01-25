@@ -1,9 +1,14 @@
 package com.dmarket.controller;
 
-import com.dmarket.domain.product.Qna;
-import com.dmarket.dto.response.*;
+import com.dmarket.dto.request.ReviewReqDto;
+import com.dmarket.dto.response.CMResDto;
+import com.dmarket.dto.response.ProductInfoResDto;
+import com.dmarket.dto.response.ProductReviewListResDto;
+import com.dmarket.dto.response.CategoryListResDto;
+import com.dmarket.dto.response.ProductListResDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,16 +17,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.springframework.security.core.AuthenticationException;
 
 @Slf4j
@@ -77,11 +81,6 @@ public class ProductController {
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
-//        } catch (AuthenticationException e) {
-//            // 인증 오류에 대한 예외 처리
-//            log.warn("유효하지 않은 인증" + e.getMessage());
-//            return new ResponseEntity<>(CMResDto.builder()
-//                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
             // 기타 예외에 대한 예외 처리
             log.error("서버 내부 오류: " + e.getMessage());
@@ -111,11 +110,6 @@ public class ProductController {
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
-//        } catch (AuthenticationException e) {
-//            // 인증 오류에 대한 예외 처리
-//            log.warn("유효하지 않은 인증" + e.getMessage());
-//            return new ResponseEntity<>(CMResDto.builder()
-//                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
             // 기타 예외에 대한 예외 처리
             log.error("서버 내부 오류: " + e.getMessage());
@@ -139,11 +133,6 @@ public class ProductController {
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
-//        } catch (AuthenticationException e) {
-//            // Handle authentication errors
-//            log.warn("유효하지 않은 인증" + e.getMessage());
-//            return new ResponseEntity<>(CMResDto.builder()
-//                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
             // 기타 예외에 대한 예외 처리
             log.error("Error retrieving latest products: " + e.getMessage());
@@ -172,62 +161,51 @@ public class ProductController {
     //                 .data(responseData)
     //                 .build();
 
-    //         return new ResponseEntity<>(cmResDto, HttpStatus.OK);
-    //     }
-    //     catch (IllegalArgumentException e) {
-    //         // 잘못된 요청에 대한 예외 처리
-    //         log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
-    //         return new ResponseEntity<>(CMResDto.builder()
-    //                 .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
-    //     }
-    //     // catch (AuthenticationException e) {
-    //     // // 인증 오류에 대한 예외 처리
-    //     // log.warn("유효하지 않은 인증" + e.getMessage());
-    //     // return new ResponseEntity<>(CMResDto.builder()
-    //     //         .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
-    //     // }
-    //     catch (Exception e) {
-    //         // 기타 예외에 대한 예외 처리
-    //         log.error("서버 내부 오류: " + e.getMessage());
-    //         return new ResponseEntity<>(CMResDto.builder()
-    //                 .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
-    //     }
-    // }
+            return new ResponseEntity<>(cmResDto, HttpStatus.OK);
+        }
+        catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        }
+        catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
-    // //Q&A 작성 API
-    // @PostMapping("/{productId}/qna")
-    // public ResponseEntity<?> saveQnaAboutProduct(@PathVariable Long productId,
-    //                                              @RequestParam Long userId,
-    //                                              @RequestParam String qnaTitle,
-    //                                              @RequestParam String qnaContents,
-    //                                              @RequestParam(defaultValue = "false") Boolean qnaIsSecret) {
-    //     try {
-    //         QnaWriteResponseDto qnaWriteRespone = productService.qnaWrite(productId,userId,qnaTitle,qnaContents,qnaIsSecret );
-    //         log.info("QnA 저장 완료");
-    //         System.out.println("qnaWriteRespone.getQnaTitle() : " + qnaWriteRespone.getQnaTitle());
-    //         return new ResponseEntity<>(CMResDto.builder()
-    //                 .code(200).msg("QnA 저장 완료").data(qnaWriteRespone).build(), HttpStatus.OK);
-    //     }
-    //     catch (IllegalArgumentException e) {
-    //         // 잘못된 요청에 대한 예외 처리
-    //         log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
-    //         return new ResponseEntity<>(CMResDto.builder()
-    //                 .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
-    //     }
-    //     // catch (AuthenticationException e) {
-    //     // // 인증 오류에 대한 예외 처리
-    //     // log.warn("유효하지 않은 인증" + e.getMessage());
-    //     // return new ResponseEntity<>(CMResDto.builder()
-    //     //         .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
-    //     // }
-    //     catch (Exception e) {
-    //         // 기타 예외에 대한 예외 처리
-    //         log.error("서버 내부 오류: " + e.getMessage());
-    //         return new ResponseEntity<>(CMResDto.builder()
-    //                 .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
-    //     }
-    // }
-    // // 상품 상세 조회 api
+    //Q&A 작성 API
+    @PostMapping("/{productId}/qna")
+    public ResponseEntity<?> saveQnaAboutProduct(@PathVariable Long productId,
+                                                 @RequestParam Long userId,
+                                                 @RequestParam String qnaTitle,
+                                                 @RequestParam String qnaContents,
+                                                 @RequestParam(defaultValue = "false") Boolean qnaIsSecret) {
+        try {
+            QnaWriteResponseDto qnaWriteRespone = productService.qnaWrite(productId,userId,qnaTitle,qnaContents,qnaIsSecret );
+            log.info("QnA 저장 완료");
+            System.out.println("qnaWriteRespone.getQnaTitle() : " + qnaWriteRespone.getQnaTitle());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("QnA 저장 완료").data(qnaWriteRespone).build(), HttpStatus.OK);
+        }
+        catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        }
+        catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 상품 상세 조회 api
     @GetMapping("/{productId}")
     public ResponseEntity<?> getProductInfo(@PathVariable Long productId){
         try {
@@ -259,6 +237,31 @@ public class ProductController {
         } catch (Exception e) {
             return new ResponseEntity<>(CMResDto.builder().
                     code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 마이페이지 리뷰 작성
+    @PostMapping("{productId}/review")
+    public ResponseEntity<?> saveReview(@PathVariable Long productId,
+                                       @Valid @RequestBody ReviewReqDto reviewReqDto,
+                                       BindingResult bindingResult) {
+        try {
+            bindingResultErrorsCheck(bindingResult);
+            productService.saveReview(reviewReqDto, productId);
+
+            log.info("데이터 저장 완료");
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("리뷰 작성 완료").build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -304,4 +307,17 @@ public class ProductController {
                     .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    // 데이터 유효성 검사 메서드
+    private void bindingResultErrorsCheck(BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            Map<String, String> errorMap = new HashMap<>();
+            for (FieldError fe : bindingResult.getFieldErrors()) {
+                errorMap.put(fe.getField(), fe.getDefaultMessage());
+            }
+            throw new RuntimeException(errorMap.toString());
+        }
+    }
+
+
 }

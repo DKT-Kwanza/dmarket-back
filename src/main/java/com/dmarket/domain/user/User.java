@@ -1,6 +1,7 @@
 package com.dmarket.domain.user;
 
 import com.dmarket.constant.Role;
+import com.dmarket.dto.request.UserAddressReqDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -48,6 +49,15 @@ public class User {
 
     private String userAddressDetail;
 
+    public void updatePassword(String password) {
+        this.userPassword = password;
+    }
+
+    public void updateAddress(UserAddressReqDto userAddressReqDto) {
+        this.userPostalCode = userAddressReqDto.getUserPostalCode();
+        this.userAddress = userAddressReqDto.getUserAddress();
+        this.userAddressDetail = userAddressReqDto.getUserDetailedAddress();
+    }
 
     @Builder
     public User(String userEmail, Integer userDktNum, String password, String userName, LocalDate userJoinDate, String userPhoneNum, Integer userPostalCode, String userAddress, String userAddressDetail) {
