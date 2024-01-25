@@ -7,11 +7,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class NewProductDto {
-    // 최신 상품 조회
+public class RecommendProductResDto {
+    private Long cateId;
     private Long productId;
     private String productBrand;
     private String productName;
-    private String productImg;
     private Integer productSalePrice;
+    private Float productRating;
+    private Long productReviewCount;
 }

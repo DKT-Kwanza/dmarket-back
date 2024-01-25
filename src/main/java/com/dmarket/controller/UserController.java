@@ -1,5 +1,11 @@
 package com.dmarket.controller;
 
+import com.dmarket.constant.InquiryType;
+import com.dmarket.domain.board.Inquiry;
+import com.dmarket.dto.common.InquiryRequestDto;
+import com.dmarket.dto.response.CMResDto;
+import com.dmarket.dto.response.UserInfoResDto;
+import com.dmarket.dto.response.WishlistResDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.dto.request.*;
 
@@ -9,13 +15,15 @@ import com.dmarket.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+
+import java.util.List;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -342,19 +350,19 @@ public class UserController {
                 List<OrderResDto> orderResDtos = userService.getOrderDetailsWithReviewByUserId(userId);
                 return new ResponseEntity<>(CMResDto.builder()
                         .code(200).msg("작성한 리뷰 조회 완료").data(orderResDtos).build(), HttpStatus.OK);
-        
+
             } catch (IllegalArgumentException e) {
                 // 잘못된 요청에 대한 예외 처리
                 log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
                 return new ResponseEntity<>(CMResDto.builder()
                         .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
-    
+
             } catch (AuthenticationException e) {
                 // 인증 오류에 대한 예외 처리
                 log.warn("유효하지 않은 인증" + e.getMessage());
                 return new ResponseEntity<>(CMResDto.builder()
                         .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
-    
+
             } catch (Exception e) {
                 // 기타 예외에 대한 예외 처리
                 log.error("서버 내부 오류: " + e.getMessage());
@@ -363,4 +371,26 @@ public class UserController {
             }
         }
 
+
+    // 문의 작성
+    @PostMapping("/{userId}/board/inquiry")
+    public ResponseEntity<Inquiry> createInquiry(
+            @PathVariable Long userId,
+            @RequestBody InquiryRequestDto inquiryRequestDto) {
+        try {
+            Inquiry inquiry = Inquiry.builder()
+                    .userId(userId)
+                    .inquiryType(inquiryRequestDto.getInquiryType())
+                    .inquiryTitle(inquiryRequestDto.getInquiryTitle())
+                    .inquiryContents(inquiryRequestDto.getInquiryContents())
+                    .inquiryImg(inquiryRequestDto.getInquiryImg())
+                    .inquiryState(false) // 기본값 false로 설정
+                    .build();
+
+            Inquiry createdInquiry = userService.createInquiry(inquiry);
+            return new ResponseEntity<>(createdInquiry, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

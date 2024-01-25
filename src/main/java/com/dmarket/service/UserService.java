@@ -1,10 +1,12 @@
 package com.dmarket.service;
 
+import com.dmarket.domain.board.Inquiry;
 import com.dmarket.dto.response.CartCountResDto;
 import com.dmarket.dto.response.UserHeaderInfoResDto;
 import com.dmarket.dto.response.UserInfoResDto;
 import com.dmarket.dto.common.WishlistItemDto;
 import com.dmarket.dto.response.WishlistResDto;
+import com.dmarket.repository.board.InquiryRepository;
 import com.dmarket.repository.user.CartRepository;
 import com.dmarket.repository.user.UserRepository;
 import com.dmarket.repository.user.WishlistRepository;
@@ -39,7 +41,7 @@ public class UserService {
     private final UserRepository userRepository;
     // 조회가 아닌 메서드들은 꼭 @Transactional 넣어주세요 (CUD, 입력/수정/삭제)
 
-    
+
     public List<CartListDto> getCartsfindByUserId(Long userId) {
         List<CartListDto> originalList = cartRepository.getCartsfindByUserId(userId);
         return originalList;
@@ -58,7 +60,7 @@ public class UserService {
 
     public List<OrderResDto> getOrderDetailsWithoutReviewByUserId(Long userId) {
         List<OrderResDto> orderResDtos = new ArrayList<>();
-        
+
         List<Order> orders = orderRepository.findByUserId(userId);
         for (Order order : orders) {
             List<OrderDetailResDto> orderDetailResDtos = orderDetailRepository.findOrderDetailsWithoutReviewByOrder(order.getOrderId());
@@ -66,14 +68,14 @@ public class UserService {
                 orderResDtos.add(new OrderResDto(order, orderDetailResDtos));
             }
         }
-        
+
         return orderResDtos;
     }
 
 
     public List<OrderResDto> getOrderDetailsWithReviewByUserId(Long userId) {
         List<OrderResDto> orderResDtos = new ArrayList<>();
-        
+
         List<Order> orders = orderRepository.findByUserId(userId);
         for (Order order : orders) {
             List<ReviewResDto> orderDetailResDtos = orderDetailRepository.findOrderDetailsWithReviewByOrder(order.getOrderId());
@@ -81,17 +83,19 @@ public class UserService {
                 orderResDtos.add(new OrderResDto(order, orderDetailResDtos));
             }
         }
-        
+
         return orderResDtos;
     }
 
-    
+
 
 
     // 사용자 정보 조회
     public UserInfoResDto getUserInfoByUserId(Long userId) {
         return userRepository.findUserInfoByUserId(userId);
     }
+
+    private final InquiryRepository inquiryRepository;
 
     // 위시리스트 조회
     public WishlistResDto getWishlistByUserId(Long userId) {
@@ -126,6 +130,19 @@ public class UserService {
     @Transactional
     public void deleteWishlistById(Long wishlistId) {
         wishlistRepository.deleteById(wishlistId);
+    }
+
+
+
+    // 문의 작성
+    @Transactional
+    public Inquiry createInquiry(Inquiry inquiry) {
+        try {
+            return inquiryRepository.save(inquiry);
+        } catch (Exception e) {
+            log.error("문의 작성 실패 로그: {}", e.getMessage());
+            throw new RuntimeException("문의 작성 실패", e);
+        }
     }
 
     // 장바구니 추가
