@@ -2,8 +2,11 @@ package com.dmarket.repository.product;
 
 import com.dmarket.domain.product.Qna;
 import com.dmarket.dto.response.QnaProductIdListResDto;
+import com.dmarket.dto.response.QnaResDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import com.dmarket.dto.response.QnaResDto;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,6 +27,14 @@ public interface QnaRepository extends JpaRepository<Qna, Long> {
             "order by q.qnaCreatedDate desc")
 
     Page<QnaProductIdListResDto> findQnasByProductId(@Param("productId") Long productId, Pageable pageable);
+
+
+    @Query("SELECT new com.dmarket.dto.response.QnaResDto(q, p, qr) " +
+                "FROM Qna q " +
+                "JOIN Product p ON p.productId = q.productId " +
+                "LEFT JOIN QnaReply qr ON qr.qnaId = q.qnaId " +
+                "WHERE q.userId = :userId")
+    List<QnaResDto> getQnasfindByUserId(@Param("userId") Long userId);
 }
 
 

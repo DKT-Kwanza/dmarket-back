@@ -37,16 +37,15 @@ public class User {
     @Column(nullable = false)
     private String userPhoneNum;
 
-    private LocalDateTime userRegisterDate;  //가입일
-    private LocalDate userJoinDate;  //입사일
+    private LocalDateTime userRegisterDate;  // 가입일
 
     @Column(nullable = false)
+    private LocalDate userJoinDate;  // 입사일
+
     private Integer userPostalCode;
 
-    @Column(nullable = false)
     private String userAddress;
 
-    @Column(nullable = false)
     private String userAddressDetail;
 
 

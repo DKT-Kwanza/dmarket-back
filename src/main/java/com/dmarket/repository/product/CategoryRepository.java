@@ -12,4 +12,7 @@ import java.util.List;
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     @Query(value = "select c from Category c where c.categoryDepth = :categoryDepth")
     List<CategoryListResDto> findByCategoryDepth(Integer categoryDepth);
+
+    // 상품의 카테고리 1, 2 조회
+    Category findByCategoryId(Long categoryId);
 }
