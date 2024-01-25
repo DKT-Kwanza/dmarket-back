@@ -229,8 +229,6 @@ public class ProductController {
         try {
             pageNo = pageNo > 0 ? pageNo-1 : pageNo;
             ProductReviewListResDto res = productService.getReviewList(productId, pageNo);
-            pageNo = pageNo > 0 ? pageNo-1 : pageNo;
-            ProductReviewListResDto res = productService.getReviewList(productId, pageNo);
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("상품 리뷰 목록 조회 성공").data(res).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
@@ -264,22 +262,6 @@ public class ProductController {
             log.error("서버 내부 오류: " + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    // 추천 상품 조회 api
-    @GetMapping("/{productId}/recommend")
-    public ResponseEntity<?> recommendProduct(@PathVariable Long productId){
-        try {
-            List<RecommendProductResDto> res = productService.recommendProduct(productId);
-            return new ResponseEntity<>(CMResDto.builder()
-                    .code(200).msg("추천 상품 조회").data(res).build(), HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(CMResDto.builder().
-                    code(400).msg(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            return new ResponseEntity<>(CMResDto.builder().
-                    code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

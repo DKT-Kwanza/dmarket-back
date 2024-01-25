@@ -6,7 +6,6 @@ import com.dmarket.dto.response.*;
 import com.dmarket.dto.response.CMResDto;
 import com.dmarket.dto.response.UserInfoResDto;
 import com.dmarket.dto.response.WishlistResDto;
-import com.dmarket.constant.InquiryType;
 import com.dmarket.domain.board.Inquiry;
 
 import com.dmarket.dto.response.*;
@@ -55,7 +54,7 @@ public class UserController {
     public ResponseEntity<?> join(@Valid @RequestBody JoinReqDto dto, BindingResult bindingResult) {
 
         try {
-            //유효성 확인
+            // 유효성 확인
             bindingResultErrorsCheck(bindingResult);
             userService.verifyJoin(dto);
 
@@ -193,11 +192,11 @@ public class UserController {
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
-            } catch (AuthenticationException e) {
+        } catch (AuthenticationException e) {
             // 인증 오류에 대한 예외 처리
             log.warn("유효하지 않은 인증" + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
-            .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
+                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
             // 기타 예외에 대한 예외 처리
             log.error("서버 내부 오류: " + e.getMessage());
@@ -210,8 +209,7 @@ public class UserController {
     @GetMapping("/{userId}/mypage/mileage")
     public ResponseEntity<?> getSubHeader(@PathVariable(name = "userId") Long userId) {
         try {
-    public ResponseEntity<?> getSubHeader(@PathVariable(name = "userId") Long userId) {
-        try {
+
             UserHeaderInfoResDto subHeader = userService.getSubHeader(userId);
             log.info("데이터 조회 완료");
             return new ResponseEntity<>(CMResDto.builder()
@@ -221,11 +219,11 @@ public class UserController {
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
-            } catch (AuthenticationException e) {
+        } catch (AuthenticationException e) {
             // 인증 오류에 대한 예외 처리
             log.warn("유효하지 않은 인증" + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
-            .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
+                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
             // 기타 예외에 대한 예외 처리
             log.error("서버 내부 오류: " + e.getMessage());
@@ -236,8 +234,6 @@ public class UserController {
 
     // 위시리스트 삭제
     @DeleteMapping("/{userId}/wish/{wishlistIds}")
-    public ResponseEntity<?> deleteWishlistId(@PathVariable(name = "userId") Long userId,
-            @PathVariable(name = "wishlistIds") List<Long> wishlistIds) {
     public ResponseEntity<?> deleteWishlistId(@PathVariable(name = "userId") Long userId,
             @PathVariable(name = "wishlistIds") List<Long> wishlistIds) {
         try {
@@ -284,9 +280,9 @@ public class UserController {
     // 사용자 비밀번호 변경
     @PutMapping("{userId}/mypage/change-pwd")
     public ResponseEntity<?> updatePassword(HttpServletRequest request,
-                                            @PathVariable(name = "userId") Long userId,
-                                            @Valid @RequestBody ChangePwdReqDto changePwdReqDto,
-                                            BindingResult bindingResult){
+            @PathVariable(name = "userId") Long userId,
+            @Valid @RequestBody ChangePwdReqDto changePwdReqDto,
+            BindingResult bindingResult) {
         try {
             bindingResultErrorsCheck(bindingResult);
             String currentPassword = changePwdReqDto.getCurrentPassword();
@@ -298,8 +294,7 @@ public class UserController {
             log.info("데이터 변경 완료");
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("비밀번호 변경 완료").build(), HttpStatus.OK);
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             // 잘못된 요청에 대한 예외 처리
             log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
@@ -315,9 +310,9 @@ public class UserController {
     // 사용자 배송지 수정
     @PutMapping("{userId}/mypage/myinfo")
     public ResponseEntity<?> updateAddress(HttpServletRequest request,
-                                           @PathVariable(name = "userId") Long userId,
-                                           @Valid @RequestBody UserAddressReqDto userAddressReqDto,
-                                           BindingResult bindingResult){
+            @PathVariable(name = "userId") Long userId,
+            @Valid @RequestBody UserAddressReqDto userAddressReqDto,
+            BindingResult bindingResult) {
         try {
             bindingResultErrorsCheck(bindingResult);
 
@@ -325,14 +320,12 @@ public class UserController {
             log.info("데이터 변경 완료");
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("배송지 변경 완료").build(), HttpStatus.OK);
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             // 잘못된 요청에 대한 예외 처리
             log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(400).msg(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             // 기타 예외에 대한 예외 처리
             log.error("서버 내부 오류: " + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
@@ -534,9 +527,9 @@ public class UserController {
     // 마일리지 사용(충전) 내역 api
     @GetMapping("/{userId}/mypage/mileage-usage")
     public ResponseEntity<?> getMileageUsage(@PathVariable Long userId,
-                                             @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
+            @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
         try {
-            pageNo = pageNo > 0 ? pageNo-1 : pageNo;
+            pageNo = pageNo > 0 ? pageNo - 1 : pageNo;
             // 충전 요청
             MileageListResDto res = userService.getMileageUsage(userId, pageNo);
             return new ResponseEntity<>(CMResDto.builder()
@@ -557,8 +550,8 @@ public class UserController {
     // 마일리지 충전 요청 api
     @PostMapping("/{userId}/mypage/mileage-charge")
     public ResponseEntity<?> mileageChargeReq(@PathVariable Long userId,
-                                              @Valid @RequestBody MileageChargeReqDto mileageChargeReqDto,
-                                              BindingResult bindingResult) {
+            @Valid @RequestBody MileageChargeReqDto mileageChargeReqDto,
+            BindingResult bindingResult) {
         try {
             bindingResultErrorsCheck(bindingResult);
 
@@ -579,7 +572,7 @@ public class UserController {
         }
     }
 
-    //validation 체크
+    // validation 체크
     private void bindingResultErrorsCheck(BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             Map<String, String> errorMap = new HashMap<>();

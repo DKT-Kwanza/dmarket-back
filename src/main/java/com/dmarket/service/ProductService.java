@@ -42,7 +42,6 @@ public class ProductService {
 
     private static final int PRODUCT_PAGE_POST_COUNT = 16;
     private static final int REVIEW_PAGE_POST_COUNT = 5;
-    private static final int REVIEW_PAGE_POST_COUNT = 5;
 
     // 카테고리 전체 목록 depth별로 조회
     public List<CategoryListResDto> getCategories(Integer categoryDepthLevel) {
