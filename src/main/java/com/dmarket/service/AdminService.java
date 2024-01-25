@@ -56,19 +56,8 @@ public class AdminService {
 
     //문의 목록 조회(카테고리별)
     @Transactional
-    public Page<Inquiry> getAllInquiriesByType(InquiryType inquiryType, Pageable pageable) {
+    public Page<InquiryListResDto> getAllInquiriesByType(InquiryType inquiryType, Pageable pageable) {
         return inquiryRepository.findByInquiryType(inquiryType, pageable);
-    }
-    public Page<InquiryListResDto> mapToInquiryListResDto(Page<Inquiry> inquiriesPage) {
-        return inquiriesPage.map(inquiry -> new InquiryListResDto(
-                inquiry.getInquiryId(),
-                inquiry.getInquiryTitle(),
-                inquiry.getInquiryContents(),
-                inquiry.getInquiryType(),
-                inquiry.getInquiryState(),
-                inquiry.getInquiryImg(),
-                inquiry.getInquiryCreatedDate()
-        ));
     }
 
     //문의 삭제

@@ -193,7 +193,6 @@ public class AdminController {
         }
     }
 
-
     //문의 목록 조회(카테고리별)
     @GetMapping("/board/inquiry")
     public ResponseEntity<?> getInquiries(
@@ -206,8 +205,7 @@ public class AdminController {
                         .code(400).msg("검증되지 않은 페이지").build(), HttpStatus.BAD_REQUEST);
             }
 
-            Page<Inquiry> inquiriesPage = adminService.getAllInquiriesByType(inquiryType, PageRequest.of(pageNo, pageSize));
-            Page<InquiryListResDto> mappedInquiries = adminService.mapToInquiryListResDto(inquiriesPage);
+            Page<InquiryListResDto> mappedInquiries = adminService.getAllInquiriesByType(inquiryType, PageRequest.of(pageNo, pageSize));
 
             CMResDto<Page<InquiryListResDto>> response = CMResDto.<Page<InquiryListResDto>>builder()
                     .code(200).msg("문의 목록").data(mappedInquiries).build();
@@ -221,6 +219,7 @@ public class AdminController {
             return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     // 문의 삭제
     @DeleteMapping("/board/inquiry/{inquiryId}")

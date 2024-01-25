@@ -21,9 +21,10 @@ public class InquiryListResDto {
     private Boolean inquiryStatus;
     private String inquiryImg;
     private String inquiryCreateDate;
+    private String inquiryWriter;
 
     public InquiryListResDto(Long inquiryId, String inquiryTitle, String inquiryContents, InquiryType inquiryType,
-                             Boolean inquiryStatus, String inquiryImg, LocalDateTime inquiryCreateDate) {
+                             Boolean inquiryStatus, String inquiryImg, LocalDateTime inquiryCreateDate, String inquiryWriter) {
         this.inquiryId = inquiryId;
         this.inquiryTitle = inquiryTitle;
         this.inquiryContents = inquiryContents;
@@ -31,9 +32,6 @@ public class InquiryListResDto {
         this.inquiryStatus = inquiryStatus;
         this.inquiryImg = inquiryImg;
         this.inquiryCreateDate = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(inquiryCreateDate);
+        this.inquiryWriter = inquiryWriter;
     }
-
-
-
-
 }
