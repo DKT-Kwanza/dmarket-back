@@ -1,12 +1,9 @@
 package com.dmarket.service;
 
 import com.dmarket.domain.user.User;
-import com.dmarket.dto.request.ChangePwdReqDto;
-import com.dmarket.dto.response.CartCountResDto;
-import com.dmarket.dto.response.UserHeaderInfoResDto;
-import com.dmarket.dto.response.UserInfoResDto;
+import com.dmarket.dto.request.UserAddressReqDto;
+import com.dmarket.dto.response.*;
 import com.dmarket.dto.common.WishlistItemDto;
-import com.dmarket.dto.response.WishlistResDto;
 import com.dmarket.jwt.JWTUtil;
 import com.dmarket.repository.user.CartRepository;
 import com.dmarket.repository.user.UserRepository;
@@ -87,6 +84,21 @@ public class UserService {
         cartRepository.save(cart);
     }
 
+    //사용자 배송지 변경
+    @Transactional
+    public UserAddressResDto updateAddress(HttpServletRequest request,
+                              Long userId, UserAddressReqDto userAddressReqDto){
+        String header = jwtUtil.getAuthHeader(request);
+        String token = jwtUtil.getToken(header);
+        if (token == null || !jwtUtil.isTokenValid(token)) {
+            throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
+        }
+        String email = jwtUtil.getEmail(token);
+        User user = userRepository.findByUserEmail(email);
+        user.updateAddress(userAddressReqDto);
+        return new UserAddressResDto(user);
+    }
+
     //사용자 비밀번호 확인
     @Transactional
     public void validatePassword(HttpServletRequest request, String currentPassword){
@@ -97,8 +109,8 @@ public class UserService {
             throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
         }
         String email = jwtUtil.getEmail(token);
-        User findUser = userRepository.findByUserEmail(email);
-        if (!isPasswordSame(currentPassword, findUser.getUserPassword())) {
+        User user = userRepository.findByUserEmail(email);
+        if (!isPasswordSame(currentPassword, user.getUserPassword())) {
             throw new IllegalArgumentException("비밀번호가 다릅니다.");
         }
     }
@@ -106,6 +118,11 @@ public class UserService {
     //사용자 비밀번호 변경
     @Transactional
     public void updatePassword(String newPassword, Long userId){
+        String regExp = "^(?=.*[a-zA-Z])(?=.*[!@#$%^])(?=.*[0-9]).{8,25}$";
+        //비밀번호 유효성 검사
+        if (newPassword.matches(regExp)) {
+            throw new IllegalArgumentException("비밀번호는 영문자, 숫자, 특수문자(!@#$%^)가 포함되어야 합니다.");
+        }
         User user = findById(userId);
         if (isPasswordSame(newPassword, user.getUserPassword())) {
             throw new IllegalArgumentException("동일한 비밀번호입니다.");
