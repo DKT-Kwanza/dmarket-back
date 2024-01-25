@@ -2,6 +2,8 @@ package com.dmarket.controller;
 
 import com.dmarket.constant.FaqType;
 import com.dmarket.domain.board.Faq;
+import com.dmarket.constant.ReturnState;
+import com.dmarket.domain.product.Product;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
 import com.dmarket.service.AdminService;
@@ -22,6 +24,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import java.time.*;
 import java.util.*;
 
 @Slf4j
@@ -31,21 +34,6 @@ import java.util.*;
 public class AdminController {
     @Autowired
     AdminService adminService;
-
-    @GetMapping("/GM")
-    public String adminGMP() {
-        return "Admin GM Page";
-    }
-
-    @GetMapping("/PM")
-    public String adminPMP() {
-        return "Admin PM Page";
-    }
-
-    @GetMapping("/SM")
-    public String adminSMP() {
-        return "Admin SM Page";
-    }
 
     private void bindingResultErrorsCheck(BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -136,6 +124,12 @@ public class AdminController {
             log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+
+        } catch (AuthenticationException e) {
+            // 인증 오류에 대한 예외 처리
+            log.warn("유효하지 않은 인증" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
 
         } catch (Exception e) {
             // 기타 예외에 대한 예외 처리
@@ -350,4 +344,57 @@ public class AdminController {
         }
     }
 
+    // 반품 상태 변경
+    @PutMapping("/orders/returns/{returnId}")
+    public ResponseEntity<?> changeReturnStatus(@PathVariable Long returnId, @RequestParam String returnStatus) {
+        try {
+            adminService.updateReturnState(returnId, ReturnState.valueOf(returnStatus));
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("반품 상태 변경 완료").build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+
+        } catch (AuthenticationException e) {
+            // 인증 오류에 대한 예외 처리
+            log.warn("유효하지 않은 인증" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
+
+        } catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 새로운 상품 추가
+    @PostMapping("/product")
+    public ResponseEntity<?> addNewProduct(@RequestBody List<ProductListDto> productList) {
+        try {
+            adminService.saveProductList(productList);
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("상품 등록 완료").build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+
+        } catch (AuthenticationException e) {
+            // 인증 오류에 대한 예외 처리
+            log.warn("유효하지 않은 인증" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
+
+        } catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
