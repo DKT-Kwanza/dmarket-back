@@ -33,4 +33,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     UserHeaderInfoResDto findUserHeaderInfoByUserId(Long userId);
 
     User findByUserEmail(String userEmail);
+
+
+    User findUserNameByUserId(Long userId);
 }
