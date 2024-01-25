@@ -222,6 +222,21 @@ public class AdminController {
         }
     }
 
+    // 문의 삭제
+    @DeleteMapping("/board/inquiry/{inquiryId}")
+    public ResponseEntity<?> deleteInquiry(@PathVariable Long inquiryId) {
+        try {
+            adminService.deleteInquiry(inquiryId);
+            return new ResponseEntity<>(CMResDto.builder().code(200).msg("Inquiry 삭제 성공").build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Error deleting Inquiry: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
 
 

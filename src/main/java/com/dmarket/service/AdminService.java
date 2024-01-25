@@ -71,4 +71,10 @@ public class AdminService {
         ));
     }
 
+    //문의 삭제
+    @Transactional
+    public void deleteInquiry(Long inquiryId) {
+        inquiryRepository.deleteByInquiryId(inquiryId);
+    }
+
 }
