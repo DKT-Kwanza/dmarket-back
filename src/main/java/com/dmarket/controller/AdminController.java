@@ -1,5 +1,7 @@
 package com.dmarket.controller;
 
+import com.dmarket.constant.FaqType;
+import com.dmarket.domain.board.Faq;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
 import com.dmarket.service.AdminService;
@@ -8,6 +10,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -187,6 +191,30 @@ public class AdminController {
                     .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    // faq 조회 null 일때 고려해야함
+    @GetMapping("/board/faq")
+    public ResponseEntity<?> getFaqs(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
+                                     @RequestParam(required = false, value = "size", defaultValue = "10") int pageSize,
+                                     @RequestParam(required = false, value = "type") FaqType faqType) {
+        try {
+            if (pageNo < 0 || pageSize <= 0) {
+                return new ResponseEntity<>(CMResDto.builder()
+                        .code(400).msg("유효하지 않은 페이지 또는 크기").build(), HttpStatus.BAD_REQUEST);
+            }
 
+            Page<Faq> faqsPage = adminService.getAllFaqs(faqType, PageRequest.of(pageNo, pageSize));
+            Page<FaqListResDto> mappedFaqs = adminService.mapToFaqListResDto(faqsPage);
+
+            CMResDto<Page<FaqListResDto>> response = CMResDto.<Page<FaqListResDto>>builder().code(200).msg("FAQ 조회 성공").data(mappedFaqs).build();
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Error retrieving FAQs: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 }
