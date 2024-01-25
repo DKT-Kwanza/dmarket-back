@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -21,4 +22,6 @@ public interface ProductReviewRepository extends JpaRepository<ProductReview, Lo
             "join ProductOption o on r.optionId = o.optionId " +
             "where r.productId = :productId")
     Page<ProductReviewDto> findReviewByProductId(Pageable pageable, Long productId);
+
+    void deleteByReviewId(@Param("reviewId") Long reviewId);
 }

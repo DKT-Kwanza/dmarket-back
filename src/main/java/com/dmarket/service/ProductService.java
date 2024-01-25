@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -61,8 +62,21 @@ public class ProductService {
     }
 
     // 최신 상품 조회
-    public List<NewProductDto> findNewProducts() {
+    public List<NewProductResDto> findNewProducts() {
         return productRepository.findNewProducts();
+    }
+
+    // 최신 상품 조회 - 매핑
+    public List<Object> mapToResponseFormat(List<NewProductResDto> latestProducts) {
+        return latestProducts.stream()
+                .limit(8).map(product -> new Object() {
+                    public final Long productId = product.getProductId();
+                    public final String productBrand = product.getProductBrand();
+                    public final String productName = product.getProductName();
+                    public final String productImg = product.getProductImg();
+                    public final String productSalePrice = String.valueOf(product.getProductSalePrice());
+                })
+                .collect(Collectors.toList());
     }
 
     // 상품 상세 정보 조회
@@ -100,5 +114,10 @@ public class ProductService {
     public List<RecommendProductResDto> recommendProduct(Long productId) {
         // PageRequest의 pageSize 4로 지정 최신 4개만 조회
         return productRepository.findProduct(productId, PageRequest.of(0, 4, Sort.by(Sort.Direction.DESC, "productCreatedDate")));
+    }
+
+    @Transactional
+    public void deleteReviewByReviewId(Long productId, Long reviewId) {
+        productReviewRepository.deleteByReviewId(reviewId);
     }
 }

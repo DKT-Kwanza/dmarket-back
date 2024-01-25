@@ -84,8 +84,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/PM").hasRole("PM")
                         .requestMatchers("/api/admin/SM").hasRole("SM")
                         .requestMatchers("/user").hasRole("USER")
-                        .anyRequest().authenticated()
-                );
+                        // .anyRequest().authenticated()
+                        .anyRequest().permitAll());
+
 
         // 커스텀 필터 적용
         http

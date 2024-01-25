@@ -4,6 +4,9 @@ import com.dmarket.dto.response.*;
 import com.dmarket.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.security.core.AuthenticationException;
 
 @Slf4j
 @RestController
@@ -107,35 +111,19 @@ public class ProductController {
     @GetMapping("/new-products")
     public ResponseEntity<?> getLatestProducts() {
         try {
-            List<NewProductDto> latestProducts = productService.findNewProducts();
-
+            List<NewProductResDto> latestProducts = productService.findNewProducts();
             // response format mapping
-            List<Object> responseData = latestProducts.stream()
-                    .limit(8) // 8개만 조회
-                    .map(product -> new Object() {
-                        public final Long productId = product.getProductId();
-                        public final String productBrand = product.getProductBrand();
-                        public final String productName = product.getProductName();
-                        public final String productImg = product.getProductImg();
-                        public final String productSalePrice = String.valueOf(product.getProductSalePrice());
-                    })
-                    .collect(Collectors.toList());
-
+            List<Object> responseData = productService.mapToResponseFormat(latestProducts);
             // response build
-            CMResDto response = CMResDto.builder()
-                    .code(200)
-                    .msg("신상품 8개 조회")
-                    .data(responseData)
-                    .build();
-
+            CMResDto response = CMResDto.builder().code(200).msg("신상품 8개 조회").data(responseData).build();
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
-            // Handle invalid requests
+            // 잘못된 요청에 대한 예외 처리
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            // Handle other exceptions
+            // 기타 예외에 대한 예외 처리
             log.error("Error retrieving latest products: " + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(500)
@@ -192,6 +180,33 @@ public class ProductController {
         } catch (Exception e) {
             return new ResponseEntity<>(CMResDto.builder().
                     code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 리뷰 삭제 api
+    @DeleteMapping("/{productId}/reviews/{reviewId}")
+    public ResponseEntity<?> deleteReview(@PathVariable Long productId, @PathVariable Long reviewId) {
+        try {
+            productService.deleteReviewByReviewId(productId, reviewId);
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("리뷰 삭제 완료").build(), HttpStatus.OK);
+
+        } catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+
+        } catch (AuthenticationException e) {
+            // 인증 오류에 대한 예외 처리
+            log.warn("유효하지 않은 인증" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
