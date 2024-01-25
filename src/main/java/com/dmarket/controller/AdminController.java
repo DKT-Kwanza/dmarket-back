@@ -191,7 +191,7 @@ public class AdminController {
                     .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    // faq 조회 null 일때 고려해야함
+    // faq 조회
     @GetMapping("/board/faq")
     public ResponseEntity<?> getFaqs(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
                                      @RequestParam(required = false, value = "size", defaultValue = "10") int pageSize,
@@ -214,6 +214,32 @@ public class AdminController {
         } catch (Exception e) {
             log.error("Error retrieving FAQs: " + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    // faq 삭제
+    @DeleteMapping("/board/faq/{faqId}")
+    public ResponseEntity<?> deleteFaq(@PathVariable(name="faqId") Long faqId) {
+        try {
+            adminService.deleteFaqByFaqId(faqId);
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("FAQ 삭제 완료").build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+
+        } catch (AuthenticationException e) {
+            // 인증 오류에 대한 예외 처리
+            log.warn("유효하지 않은 인증" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
+
+        } catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

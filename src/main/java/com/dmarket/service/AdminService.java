@@ -63,6 +63,11 @@ public class AdminService {
                 faq.getFaqAnswer()
         ));
     }
+    // FAQ 삭제
+    @Transactional
+    public void deleteFaqByFaqId(Long faqId) {
+        faqRepository.deleteByFaqId(faqId);
+    }
 
 
 }

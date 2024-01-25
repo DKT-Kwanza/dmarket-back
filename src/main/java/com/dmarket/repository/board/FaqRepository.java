@@ -14,4 +14,7 @@ public interface FaqRepository extends JpaRepository<Faq, Long> {
 
     @Query("select f from Faq f where f.faqType = :faqType")
     Page<Faq> findFaqType(@Param("faqType") FaqType faqType, Pageable pageable);
+
+    // faq 삭제
+    void deleteByFaqId(@Param("faqId") Long faqId);
 }
