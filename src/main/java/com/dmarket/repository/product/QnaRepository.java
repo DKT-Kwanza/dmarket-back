@@ -5,7 +5,6 @@ import com.dmarket.dto.response.QnaProductIdListResDto;
 import com.dmarket.dto.response.QnaResDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import com.dmarket.dto.response.QnaResDto;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

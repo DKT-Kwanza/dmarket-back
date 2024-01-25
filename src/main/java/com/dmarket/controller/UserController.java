@@ -1,40 +1,95 @@
 package com.dmarket.controller;
 
-import com.dmarket.constant.InquiryType;
-import com.dmarket.domain.board.Inquiry;
 import com.dmarket.dto.common.InquiryRequestDto;
+import com.dmarket.dto.request.*;
+import com.dmarket.dto.response.*;
 import com.dmarket.dto.response.CMResDto;
 import com.dmarket.dto.response.UserInfoResDto;
 import com.dmarket.dto.response.WishlistResDto;
-import com.dmarket.dto.response.*;
-import com.dmarket.dto.request.*;
-
-import com.dmarket.dto.common.CartListDto;
-
 import com.dmarket.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
-import java.util.*;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-
-import java.util.List;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.security.core.AuthenticationException;
+
+import com.dmarket.dto.common.CartListDto;
+import com.dmarket.domain.board.Inquiry;
+import org.springframework.web.bind.annotation.PostMapping;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
 public class UserController {
+
     private final UserService userService;
+
+    @PostMapping("/join")
+    public ResponseEntity<?> join(@Valid @RequestBody JoinReqDto dto, BindingResult bindingResult) {
+
+        try {
+            //유효성 확인
+            bindingResultErrorsCheck(bindingResult);
+            userService.verifyJoin(dto);
+
+            Long userId = userService.join(dto);
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(201).msg("회원가입 성공").data("userId=" + userId).build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("회원가입 실패").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("회원가입 실패").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/email")
+    public ResponseEntity<?> email(@RequestBody String userEmail) {
+        try {
+            userService.sendCodeToEmail(userEmail);
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("이메일 인증 코드 전송 완료").build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("이메일 인증 코드 전송 실패").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("이메일 인증 코드 전송 실패").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/email/verify")
+    public ResponseEntity<?> emailVerify(@RequestBody EmailReqDto dto) {
+        try {
+            userService.isValidEmailCode(dto.getUserEmail(), dto.getCode());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("이메일 인증 코드 전송 완료").build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("이메일 인증 코드 전송 실패").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("이메일 인증 코드 전송 실패").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        }
+    }
 
     // 장바구니 추가 api
     @PostMapping("/{userId}/cart")
@@ -122,11 +177,6 @@ public class UserController {
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
-//        } catch (AuthenticationException e) {
-//            // 인증 오류에 대한 예외 처리
-//            log.warn("유효하지 않은 인증" + e.getMessage());
-//            return new ResponseEntity<>(CMResDto.builder()
-//                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
             // 기타 예외에 대한 예외 처리
             log.error("서버 내부 오류: " + e.getMessage());
@@ -142,17 +192,12 @@ public class UserController {
             UserHeaderInfoResDto subHeader = userService.getSubHeader(userId);
             log.info("데이터 조회 완료");
             return new ResponseEntity<>(CMResDto.builder()
-                    .code(200).msg("장바구니 상품 개수 조회 완료").data(subHeader).build(), HttpStatus.OK);
+                    .code(200).msg("마이페이지 서브 헤더 조회 완료").data(subHeader).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             // 잘못된 요청에 대한 예외 처리
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
-//        } catch (AuthenticationException e) {
-//            // 인증 오류에 대한 예외 처리
-//            log.warn("유효하지 않은 인증" + e.getMessage());
-//            return new ResponseEntity<>(CMResDto.builder()
-//                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
             // 기타 예외에 대한 예외 처리
             log.error("서버 내부 오류: " + e.getMessage());
@@ -209,6 +254,66 @@ public class UserController {
         }
     }
 
+    // 사용자 비밀번호 변경
+    @PutMapping("{userId}/mypage/change-pwd")
+    public ResponseEntity<?> updatePassword(HttpServletRequest request,
+                                            @PathVariable(name = "userId") Long userId,
+                                            @Valid @RequestBody ChangePwdReqDto changePwdReqDto,
+                                            BindingResult bindingResult){
+        try {
+            bindingResultErrorsCheck(bindingResult);
+            String currentPassword = changePwdReqDto.getCurrentPassword();
+            String newPassword = changePwdReqDto.getNewPassword();
+
+            userService.validatePassword(request, currentPassword);
+            userService.updatePassword(newPassword, userId);
+
+            log.info("데이터 변경 완료");
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("비밀번호 변경 완료").build(), HttpStatus.OK);
+        }
+        catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        }
+        catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg(e.getMessage()).build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 사용자 배송지 수정
+    @PutMapping("{userId}/mypage/myinfo")
+    public ResponseEntity<?> updateAddress(HttpServletRequest request,
+                                           @PathVariable(name = "userId") Long userId,
+                                           @Valid @RequestBody UserAddressReqDto userAddressReqDto,
+                                           BindingResult bindingResult){
+        try {
+            bindingResultErrorsCheck(bindingResult);
+
+            UserAddressResDto result = userService.updateAddress(request, userId, userAddressReqDto);
+            log.info("데이터 변경 완료");
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("배송지 변경 완료").build(), HttpStatus.OK);
+        }
+        catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        }
+        catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg(e.getMessage()).build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     // 장바구니 조회
     @GetMapping("/{userId}/cart")
     public ResponseEntity<?> getCarts(@PathVariable Long userId) {
@@ -218,7 +323,6 @@ public class UserController {
             TotalCartResDto totalCartResDto = new TotalCartResDto(cartListDtos);
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("장바구니 조회").data(totalCartResDto).build(), HttpStatus.OK);
-
         } catch (IllegalArgumentException e) {
             // 잘못된 요청에 대한 예외 처리
             log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
@@ -433,7 +537,7 @@ public class UserController {
             for (FieldError fe : bindingResult.getFieldErrors()) {
                 errorMap.put(fe.getField(), fe.getDefaultMessage());
             }
-            throw new RuntimeException(errorMap.toString());
+            throw new IllegalArgumentException(errorMap.toString());
         }
     }
 }
