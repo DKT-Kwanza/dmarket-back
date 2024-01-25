@@ -378,8 +378,31 @@ public class UserController {
         }
     }
 
+    // 마일리지 사용(충전) 내역 api
+    @GetMapping("/{userId}/mypage/mileage-usage")
+    public ResponseEntity<?> getMileageUsage(@PathVariable Long userId,
+                                             @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
+        try {
+            pageNo = pageNo > 0 ? pageNo-1 : pageNo;
+            // 충전 요청
+            MileageListResDto res = userService.getMileageUsage(userId, pageNo);
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("마일리지 사용 내역 조회 성공").data(res).build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
     // 마일리지 충전 요청 api
-    @PostMapping("{userId}/mypage/mileage-charge")
+    @PostMapping("/{userId}/mypage/mileage-charge")
     public ResponseEntity<?> mileageChargeReq(@PathVariable Long userId,
                                               @Valid @RequestBody MileageChargeReqDto mileageChargeReqDto,
                                               BindingResult bindingResult) {
