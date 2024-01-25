@@ -15,10 +15,6 @@ import com.dmarket.domain.user.Cart;
 import com.dmarket.domain.user.Wishlist;
 import com.dmarket.dto.request.JoinReqDto;
 import com.dmarket.repository.user.*;
-import com.dmarket.dto.response.CartCountResDto;
-import com.dmarket.dto.response.UserHeaderInfoResDto;
-import com.dmarket.dto.response.UserInfoResDto;
-import com.dmarket.dto.response.WishlistResDto;
 import com.dmarket.repository.board.InquiryRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +25,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
@@ -178,36 +176,39 @@ public class UserService {
 
     }
 
-    public List<QnaResDto> getQnasfindByUserId(Long userId) {
-        return qnaRepository.getQnasfindByUserId(userId);
+    public Page<QnaResDto> getQnasfindByUserId(Long userId, Pageable pageable) {
+        return qnaRepository.getQnasfindByUserId(userId, pageable);
     }
 
-    public List<OrderResDto> getOrderDetailsWithoutReviewByUserId(Long userId) {
+    public Page<OrderResDto> getOrderDetailsWithoutReviewByUserId(Long userId, Pageable pageable) {
         List<OrderResDto> orderResDtos = new ArrayList<>();
 
-        List<Order> orders = orderRepository.findByUserId(userId);
-        for (Order order : orders) {
-            List<OrderDetailResDto> orderDetailResDtos = orderDetailRepository.findOrderDetailsWithoutReviewByOrder(order.getOrderId());
+        Page<Order> ordersPage = orderRepository.findByUserIdOrderedByOrderIdDesc(userId, pageable);
+        for (Order order : ordersPage) {
+            List<OrderDetailResDto> orderDetailResDtos = orderDetailRepository
+                    .findOrderDetailsWithoutReviewByOrder(order.getOrderId());
+            if (!orderDetailResDtos.isEmpty()) {
+                orderResDtos.add(new OrderResDto(order, orderDetailResDtos));
+            }
+        }
+        // PageImpl을 사용하여 List를 Page로 변환합니다.
+        return new PageImpl<>(orderResDtos, pageable, ordersPage.getTotalElements());
+    }
+
+    public Page<OrderResDto> getOrderDetailsWithReviewByUserId(Long userId, Pageable pageable) {
+        List<OrderResDto> orderResDtos = new ArrayList<>();
+
+        Page<Order> ordersPage = orderRepository.findByUserIdOrderedByOrderIdDesc(userId, pageable);
+        for (Order order : ordersPage) {
+            List<ReviewResDto> orderDetailResDtos = orderDetailRepository
+                    .findOrderDetailsWithReviewByOrder(order.getOrderId());
             if (!orderDetailResDtos.isEmpty()) {
                 orderResDtos.add(new OrderResDto(order, orderDetailResDtos));
             }
         }
 
-        return orderResDtos;
-    }
-
-    public List<OrderResDto> getOrderDetailsWithReviewByUserId(Long userId) {
-        List<OrderResDto> orderResDtos = new ArrayList<>();
-
-        List<Order> orders = orderRepository.findByUserId(userId);
-        for (Order order : orders) {
-            List<ReviewResDto> orderDetailResDtos = orderDetailRepository.findOrderDetailsWithReviewByOrder(order.getOrderId());
-            if (!orderDetailResDtos.isEmpty()) {
-                orderResDtos.add(new OrderResDto(order, orderDetailResDtos));
-            }
-        }
-
-        return orderResDtos;
+        // PageImpl을 사용하여 List를 Page로 변환합니다.
+        return new PageImpl<>(orderResDtos, pageable, ordersPage.getTotalElements());
     }
 
     // 사용자 정보 조회
@@ -223,13 +224,13 @@ public class UserService {
                 .build();
     }
 
-    //장바구니 상품 개수 조회
-    public CartCountResDto getCartCount(Long userId){
+    // 장바구니 상품 개수 조회
+    public CartCountResDto getCartCount(Long userId) {
         return cartRepository.findCountByUserId(userId);
     }
 
     // 마이페이지 서브헤더 사용자 정보 및 마일리지 조회
-    public UserHeaderInfoResDto getSubHeader(Long userId){
+    public UserHeaderInfoResDto getSubHeader(Long userId) {
         return userRepository.findUserHeaderInfoByUserId(userId);
     }
 
@@ -249,6 +250,8 @@ public class UserService {
     public void deleteWishlistById(Long wishlistId) {
         wishlistRepository.deleteById(wishlistId);
     }
+
+
 
     // 문의 작성
     @Transactional
