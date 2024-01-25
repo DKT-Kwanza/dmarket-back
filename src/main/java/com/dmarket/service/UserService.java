@@ -57,7 +57,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final MileageRepository mileageRepository;
     private final MileageReqRepository mileageReqRepository;
-    private final InquiryRepository inquiryRepository;
     private final PasswordEncoder passwordEncoder;
     private final JWTUtil jwtUtil;
     private final MailService mailService;
@@ -216,6 +215,8 @@ public class UserService {
         return userRepository.findUserInfoByUserId(userId);
     }
 
+    private final InquiryRepository inquiryRepository;
+
     // 위시리스트 조회
     public WishlistResDto getWishlistByUserId(Long userId) {
         List<WishlistItemDto> wishlistItems = wishlistRepository.findWishlistItemsByUserId(userId);
@@ -250,6 +251,9 @@ public class UserService {
     public void deleteWishlistById(Long wishlistId) {
         wishlistRepository.deleteById(wishlistId);
     }
+
+
+
 
 
 

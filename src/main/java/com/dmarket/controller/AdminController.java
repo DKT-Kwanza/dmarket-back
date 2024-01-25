@@ -118,6 +118,9 @@ public class AdminController {
     public ResponseEntity<?> getNotices(
             @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "10") Integer size) {
+    public ResponseEntity<?> getNotices(
+            @RequestParam(required = false, defaultValue = "0") Integer page,
+            @RequestParam(required = false, defaultValue = "10") Integer size) {
         try {
             page = page > 0 ? page-1 : page;
             if (page < 0 || size <= 0) {

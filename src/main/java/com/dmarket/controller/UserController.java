@@ -8,7 +8,7 @@ import com.dmarket.dto.response.UserInfoResDto;
 import com.dmarket.dto.response.WishlistResDto;
 import com.dmarket.constant.InquiryType;
 import com.dmarket.domain.board.Inquiry;
-import com.dmarket.dto.common.InquiryRequestDto;
+
 import com.dmarket.dto.response.*;
 import com.dmarket.dto.request.*;
 
@@ -210,6 +210,8 @@ public class UserController {
     @GetMapping("/{userId}/mypage/mileage")
     public ResponseEntity<?> getSubHeader(@PathVariable(name = "userId") Long userId) {
         try {
+    public ResponseEntity<?> getSubHeader(@PathVariable(name = "userId") Long userId) {
+        try {
             UserHeaderInfoResDto subHeader = userService.getSubHeader(userId);
             log.info("데이터 조회 완료");
             return new ResponseEntity<>(CMResDto.builder()
@@ -234,6 +236,8 @@ public class UserController {
 
     // 위시리스트 삭제
     @DeleteMapping("/{userId}/wish/{wishlistIds}")
+    public ResponseEntity<?> deleteWishlistId(@PathVariable(name = "userId") Long userId,
+            @PathVariable(name = "wishlistIds") List<Long> wishlistIds) {
     public ResponseEntity<?> deleteWishlistId(@PathVariable(name = "userId") Long userId,
             @PathVariable(name = "wishlistIds") List<Long> wishlistIds) {
         try {
@@ -299,9 +303,8 @@ public class UserController {
             // 잘못된 요청에 대한 예외 처리
             log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
-                    .code(400).msg(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
-        }
-        catch (Exception e) {
+                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
             // 기타 예외에 대한 예외 처리
             log.error("서버 내부 오류: " + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
