@@ -1,6 +1,7 @@
 package com.dmarket.repository.product;
 
 import com.dmarket.domain.product.Qna;
+import com.dmarket.dto.common.QnaDto;
 import com.dmarket.dto.response.QnaProductIdListResDto;
 import com.dmarket.dto.response.QnaResDto;
 import org.springframework.data.domain.Page;
@@ -36,6 +37,13 @@ public interface QnaRepository extends JpaRepository<Qna, Long> {
             "LEFT JOIN QnaReply qr ON qr.qnaId = q.qnaId " +
             "WHERE q.userId = :userId ORDER BY q.qnaId DESC")
     Page<QnaResDto> getQnasfindByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    // QnA 전체 조회, 페이징
+    @Query("select new com.dmarket.dto.common.QnaDto(q.qnaId, p.productName, q.qnaTitle, u.userName, q.qnaCreatedDate, q.qnaState, q.qnaSecret) " +
+            "from Qna q " +
+            "join User u on q.userId = u.userId " +
+            "join Product p on q.productId = p.productId")
+    Page<QnaDto> findAllQna(Pageable pageable);
 }
 
 

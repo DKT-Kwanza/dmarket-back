@@ -3,6 +3,8 @@ package com.dmarket.service;
 import com.dmarket.constant.InquiryType;
 import com.dmarket.dto.common.InquiryDetailsDto;
 import com.dmarket.constant.FaqType;
+import com.dmarket.dto.common.QnaDto;
+import com.dmarket.repository.product.*;
 import com.dmarket.constant.OrderDetailState;
 import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.order.Return;
@@ -20,7 +22,9 @@ import com.dmarket.repository.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +37,6 @@ import com.dmarket.dto.request.OptionReqDto;
 import com.dmarket.dto.request.ProductReqDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.repository.board.*;
-import com.dmarket.repository.product.ProductReviewRepository;
 import com.dmarket.repository.user.*;
 import java.util.*;
 import java.time.*;
@@ -47,6 +50,8 @@ public class AdminService {
     private final UserRepository userRepository;
     private final NoticeRepository noticeRepository;
     private final FaqRepository faqRepository;
+    private final QnaRepository qnaRepository;
+
     private final ReturnRepository returnRepository;
     private final ProductRepository productRepository;
     private final ProductOptionRepository productOptionRepository;
@@ -57,6 +62,8 @@ public class AdminService {
     private final InquiryRepository inquiryRepository;
     private final InquiryReplyRepository inquiryReplyRepository;
     private final OrderDetailRepository orderDetailRepository;
+
+    private static final int PAGE_SIZE = 10;
 
     @Transactional
     public void deleteUserByUserId(Long userId) {
@@ -208,6 +215,13 @@ public class AdminService {
 
     public Page<AdminReviewsResDto> getProductReviews(Pageable pageable) {
         return productReviewRepository.getProductReviews(pageable);
+    }
+
+    // 상품 QnA 조회
+    public QnaListResDto getQnaList(int pageNo) {
+        Pageable pageable = PageRequest.of(pageNo, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "qnaCreatedDate"));
+        Page<QnaDto> qnaList = qnaRepository.findAllQna(pageable);
+        return new QnaListResDto(qnaList.getTotalPages(), qnaList.getContent());
     }
 
     // 반품 상태 업데이트
