@@ -1,10 +1,11 @@
 package com.dmarket.service;
 
 import com.dmarket.constant.InquiryType;
+import com.dmarket.domain.product.*;
+import com.dmarket.constant.*;
+import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.InquiryDetailsDto;
 import com.dmarket.constant.FaqType;
-import com.dmarket.domain.product.Category;
-import com.dmarket.domain.product.Product;
 import com.dmarket.dto.common.ProductOptionDto;
 import com.dmarket.dto.common.ProductOptionListDto;
 import com.dmarket.dto.common.QnaDto;
@@ -13,18 +14,9 @@ import com.dmarket.repository.product.*;
 import com.dmarket.constant.OrderDetailState;
 import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.order.Return;
-import com.dmarket.domain.product.Category;
-import com.dmarket.domain.product.Product;
-import com.dmarket.domain.product.ProductImgs;
-import com.dmarket.domain.product.ProductOption;
 import com.dmarket.dto.request.ProductListDto;
 import com.dmarket.repository.order.OrderDetailRepository;
 import com.dmarket.repository.order.ReturnRepository;
-import com.dmarket.domain.product.Category;
-import com.dmarket.domain.product.Product;
-import com.dmarket.dto.common.ProductOptionDto;
-import com.dmarket.dto.common.ProductOptionListDto;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -35,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dmarket.domain.board.*;
-import com.dmarket.dto.common.ProductOptionDto;
 import com.dmarket.dto.request.OptionReqDto;
 import com.dmarket.dto.request.ProductReqDto;
 import com.dmarket.dto.response.*;
@@ -57,6 +48,7 @@ public class AdminService {
     private final ProductImgsRepository productImgsRepository;
     private final CategoryRepository categoryRepository;
     private final QnaRepository qnaRepository;
+    private final QnaReplyRepository qnaReplyRepository;
 
     private final ReturnRepository returnRepository;
     private final ProductReviewRepository productReviewRepository;
@@ -229,6 +221,42 @@ public class AdminService {
     // 상품 QnA 상세(개별) 조회
     public QnaDetailResDto getQnADetail(Long qnaId) {
         return qnaRepository.findQnaAndReply(qnaId);
+    }
+
+    // 상품 QnA 답변 작성
+    @Transactional
+    public QnaDetailResDto createQnaReply(Long qnaId, String qnaReplyContents){
+        // QnA 존재 확인
+        Qna qna = qnaRepository.findById(qnaId).orElseThrow(()->new IllegalArgumentException("존재하지 않는 Qna"));
+
+        // 답변 저장
+        QnaReply qnaReply = QnaReply.builder()
+                .qnaId(qnaId)
+                .qnaReplyContents(qnaReplyContents)
+                .build();
+        qnaReplyRepository.save(qnaReply);
+
+        // QnA 답변 상태 변경 -> 답변 대기
+        qna.updateState(true);
+
+        return qnaRepository.findQnaAndReply(qnaId);
+    }
+
+    // 상품 QnA 답변 삭제
+    @Transactional
+    public void deleteQnaReply(Long qnaReplyId){
+        // QnA 번호 가져오기
+        Long qnaId = qnaReplyRepository.findQnaIdByQnaReplyId(qnaReplyId);
+
+        // QnA 존재 확인
+        Qna qna = qnaRepository.findById(qnaId)
+                .orElseThrow(()->new IllegalArgumentException("존재하지 않는 Qna"));
+
+        // QnA 답변 삭제
+        qnaReplyRepository.deleteById(qnaReplyId);
+
+        // 답변 상태 변경 -> 답변 대기
+        qna.updateState(false);
     }
 
     // 반품 상태 리스트
@@ -442,5 +470,31 @@ public class AdminService {
         }
 
         return result;
+    }
+
+    public TotalAdminResDto getAdminUserDetails() {
+        List<User> allManagers = userRepository.findAllByUserRoleIsNot(Role.ROLE_USER);
+        List<ManagerInfoDto> managerInfoDTOList = new ArrayList<>();
+
+        int gmCount = adminCount(allManagers, Role.ROLE_GM);
+        int smCount = adminCount(allManagers, Role.ROLE_SM);
+        int pmCount = adminCount(allManagers, Role.ROLE_PM);
+
+        for (User manager : allManagers) {
+            ManagerInfoDto managerInfoDto = new ManagerInfoDto(
+                    manager.getUserId(),
+                    manager.getUserName(),
+                    manager.getUserEmail(),
+                    manager.getUserRole(),
+                    manager.getUserJoinDate().atStartOfDay()
+            );
+            managerInfoDTOList.add(managerInfoDto);
+        }
+
+        return new TotalAdminResDto(allManagers.size(), gmCount, smCount, pmCount, managerInfoDTOList);
+    }
+
+    private int adminCount(List<User> users, Role role) {
+        return (int) users.stream().filter(user -> user.getUserRole() == role).count();
     }
 }

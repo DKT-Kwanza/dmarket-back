@@ -16,7 +16,6 @@ public class QnaReply {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long qnaReplyId;
 
-    private Long userId;
     private Long qnaId;
 
     @Column(columnDefinition="TEXT")
@@ -26,8 +25,7 @@ public class QnaReply {
 
 
     @Builder
-    public QnaReply(Long userId, Long qnaId, String qnaReplyContents) {
-        this.userId = userId;
+    public QnaReply(Long qnaId, String qnaReplyContents) {
         this.qnaId = qnaId;
         this.qnaReplyContents = qnaReplyContents;
         this.qnaReplyDate = LocalDateTime.now().withNano(0);

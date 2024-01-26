@@ -13,14 +13,12 @@ import com.dmarket.service.AdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.security.core.AuthenticationException;
@@ -373,11 +371,40 @@ public class AdminController {
         }
     }
 
+    // 상품 QnA 상세 + 답변 조회 api
     @GetMapping("/products/qna/{qnaId}")
     public ResponseEntity<?> getQnADetailed(@PathVariable Long qnaId) {
         QnaDetailResDto qnaDetail = adminService.getQnADetail(qnaId);
         return new ResponseEntity<>(CMResDto.builder()
-                .code(200).msg("반품 상태 변경 완료").data(qnaDetail).build(), HttpStatus.OK);
+                .code(200).msg("성공").data(qnaDetail).build(), HttpStatus.OK);
+    }
+
+    // 상품 QnA 답변 작성 api
+    @PostMapping("/products/qna/{qnaId}")
+    public ResponseEntity<?> writeQnaReply(@PathVariable Long qnaId ,@Valid @RequestBody QnaReplyReqDto qnaReplyReqDto, BindingResult bindingResult){
+        try {
+            bindingResultErrorsCheck(bindingResult);
+
+            QnaDetailResDto qnaDetail = adminService.createQnaReply(qnaId, qnaReplyReqDto.getQnaReplyContents());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("성공").data(qnaDetail).build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg(e.getMessage()).build(), HttpStatus.OK);
+        }
+    }
+
+    // 상품 QnA 답변 작성 api
+    @DeleteMapping("/products/qna/reply/{qnaReplyId}")
+    public ResponseEntity<?> writeQnaReply(@PathVariable Long qnaReplyId){
+        try {
+            adminService.deleteQnaReply(qnaReplyId);
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("성공").build(), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg(e.getMessage()).build(), HttpStatus.OK);
+        }
     }
 
     // 반품 상태 변경
@@ -612,6 +639,23 @@ public class AdminController {
             log.error("서버 내부 오류: " + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 그룹별 관리자 조회
+    @GetMapping("/admin-users")
+    public ResponseEntity<?> getAdmins() {
+        try {
+            TotalAdminResDto adminUserResponse = adminService.getAdminUserDetails();
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("관리자 조회 성공").data(adminUserResponse).build(), HttpStatus.OK);
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
         }
     }
 
