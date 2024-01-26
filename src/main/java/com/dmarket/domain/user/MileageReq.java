@@ -1,7 +1,7 @@
 package com.dmarket.domain.user;
 
-import com.dmarket.constant.MileageReqState;
 import com.dmarket.constant.MileageContents;
+import com.dmarket.constant.MileageReqState;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -28,6 +28,7 @@ public class MileageReq {
     @Column(nullable = false)
     private Integer mileageReqAmount;
 
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private MileageContents mileageReqReason;
 
@@ -44,5 +45,10 @@ public class MileageReq {
         this.mileageReqReason = mileageReqReason;
         this.mileageReqState = mileageReqState;
         this.mileageReqDate = LocalDateTime.now().withNano(0);
+    }
+
+    public void updateState(MileageReqState mileageReqState){
+        this.mileageReqState = mileageReqState;
+        this.mileageReqUpdatedDate = LocalDateTime.now().withNano(0);
     }
 }
