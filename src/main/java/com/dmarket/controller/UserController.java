@@ -293,12 +293,12 @@ public class UserController {
 
             log.info("데이터 변경 완료");
             return new ResponseEntity<>(CMResDto.builder()
-                    .code(200).msg("비밀번호 변경 완료").build(), HttpStatus.OK);
+                    .code(200).msg("성공").build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             // 잘못된 요청에 대한 예외 처리
             log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
-                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+                    .code(400).msg(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             // 기타 예외에 대한 예외 처리
             log.error("서버 내부 오류: " + e.getMessage());

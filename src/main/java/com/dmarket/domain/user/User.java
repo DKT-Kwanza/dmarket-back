@@ -2,6 +2,7 @@ package com.dmarket.domain.user;
 
 import com.dmarket.constant.Role;
 import com.dmarket.dto.request.UserAddressReqDto;
+import com.dmarket.dto.response.SearchUserResDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -57,6 +58,26 @@ public class User {
         this.userPostalCode = userAddressReqDto.getUserPostalCode();
         this.userAddress = userAddressReqDto.getUserAddress();
         this.userAddressDetail = userAddressReqDto.getUserDetailedAddress();
+    }
+
+    // user의 권한을 변경
+    public void changeRole(Role newRole) {
+        this.userRole = newRole;
+    }
+
+    public SearchUserResDto toUserInfoRes(){
+        return SearchUserResDto.builder()
+                .userId(this.userId)
+                .userName(this.userName)
+                .userEmail(this.userEmail)
+                .userDktNum(this.userDktNum)
+                .userRole(this.userRole.name()) // Enum 타입을 String으로 변환합니다.
+                .userJoinDate(this.userJoinDate)
+                .build();
+    }
+
+    public void updateMileage(Integer mileageCharge){
+        this.userMileage = userMileage + mileageCharge;
     }
 
     @Builder

@@ -1,6 +1,7 @@
 package com.dmarket.repository.user;
 
 import com.dmarket.domain.order.Order;
+import com.dmarket.constant.Role;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.ProductDetailListDto;
 import com.dmarket.dto.response.UserHeaderInfoResDto;
@@ -40,9 +41,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     User findByUserEmail(String userEmail);
 
-
     User findUserNameByUserId(Long userId);
 
     User findByUserId(Long userId);
+
+    // 사원 번호로 user 검색
+    User findByUserDktNum(Integer userDktNum);
+
+    // User 별로 사용자 집계
+    List<User> findAllByUserRoleIsNot(Role userRole);
 
 }

@@ -393,16 +393,8 @@ public class UserService {
         Long orderCancelCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_CANCEL);
         Long returnCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_REQUEST) +
                 orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_COMPLETE);
-//        Long confPayCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_COMPLETE);
-//        Long preShipCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_READY);
-//        Long inTransitCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_ING);
-//        Long cmpltDilCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_COMPLETE);
-//        Long orderCancelCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_CANCEL);
-//        Long returnCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_REQUEST) +
-//                orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_COMPLETE);
-
         for (Order order : orders) {
-            List<ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByUserId(order.getOrderId());
+            List<ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
             orderList.add(new OrderListDto(order, productDetailListDtos));
         }
 
