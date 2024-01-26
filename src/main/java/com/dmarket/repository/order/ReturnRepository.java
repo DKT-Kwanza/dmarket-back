@@ -24,7 +24,7 @@ public interface ReturnRepository extends JpaRepository<Return, Long> {
             "JOIN ProductImgs pi ON pi.productId = p.productId " +
             "WHERE r.returnState = :returnState AND pi.imgId = (" +
             "SELECT MIN(pi2.imgId) FROM ProductImgs pi2 WHERE pi2.productId = od.productId" +
-            ")")
+            ") ORDER BY r.returnId DESC")
     Page<ReturnDto> getReturnsByReturnState(@Param("returnState") ReturnState returnState, Pageable pageable);
 
     @Query("SELECT new com.dmarket.dto.response.ReturnListResDto(" +
@@ -32,4 +32,5 @@ public interface ReturnRepository extends JpaRepository<Return, Long> {
             "(SELECT count(r) FROM Return r WHERE r.returnState = 'COLLECT_ING'), " +
             "(SELECT count(r) FROM Return r WHERE r.returnState = 'COLLECT_COMPLETE'))")
     ReturnListResDto getReturnsCount();
+
 }

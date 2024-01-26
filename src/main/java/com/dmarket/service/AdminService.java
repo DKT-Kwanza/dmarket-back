@@ -8,7 +8,6 @@ import com.dmarket.domain.user.User;
 import com.dmarket.constant.InquiryType;
 import com.dmarket.domain.product.*;
 import com.dmarket.constant.*;
-import com.dmarket.constant.FaqType;
 import com.dmarket.dto.common.ProductOptionDto;
 import com.dmarket.dto.common.ProductOptionListDto;
 import com.dmarket.dto.request.ChangeRoleReqDto;
@@ -20,8 +19,6 @@ import com.dmarket.repository.product.ProductRepository;
 import com.dmarket.dto.common.QnaDto;
 import com.dmarket.dto.common.ReturnDto;
 import com.dmarket.repository.product.*;
-import com.dmarket.constant.OrderDetailState;
-import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.order.Return;
 import com.dmarket.domain.product.Category;
 import com.dmarket.domain.product.Product;
@@ -29,19 +26,9 @@ import com.dmarket.domain.product.ProductImgs;
 import com.dmarket.domain.product.ProductOption;
 import com.dmarket.dto.request.ProductListDto;
 import com.dmarket.repository.order.OrderDetailRepository;
+import com.dmarket.repository.order.RefundRepository;
 import com.dmarket.repository.order.ReturnRepository;
-import com.dmarket.repository.product.CategoryRepository;
-import com.dmarket.repository.product.ProductImgsRepository;
-import com.dmarket.repository.product.ProductOptionRepository;
-import com.dmarket.repository.product.ProductRepository;
-import com.dmarket.domain.product.Category;
-import com.dmarket.domain.product.Product;
-import com.dmarket.dto.common.ProductOptionDto;
-import com.dmarket.dto.common.ProductOptionListDto;
-import com.dmarket.repository.product.CategoryRepository;
-import com.dmarket.repository.product.ProductImgsRepository;
-import com.dmarket.repository.product.ProductOptionRepository;
-import com.dmarket.repository.product.ProductRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -54,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.dmarket.domain.board.*;
 import com.dmarket.dto.request.OptionReqDto;
 import com.dmarket.dto.request.ProductReqDto;
+import com.dmarket.dto.request.RefundReqDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.repository.board.*;
 import com.dmarket.repository.user.*;
@@ -295,9 +283,9 @@ public class AdminService {
 
     // 상품 QnA 답변 작성
     @Transactional
-    public QnaDetailResDto createQnaReply(Long qnaId, String qnaReplyContents){
+    public QnaDetailResDto createQnaReply(Long qnaId, String qnaReplyContents) {
         // QnA 존재 확인
-        Qna qna = qnaRepository.findById(qnaId).orElseThrow(()->new IllegalArgumentException("존재하지 않는 Qna"));
+        Qna qna = qnaRepository.findById(qnaId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Qna"));
 
         // 답변 저장
         QnaReply qnaReply = QnaReply.builder()
@@ -320,7 +308,7 @@ public class AdminService {
 
         // QnA 존재 확인
         Qna qna = qnaRepository.findById(qnaId)
-                .orElseThrow(()->new IllegalArgumentException("존재하지 않는 Qna"));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Qna"));
 
         // QnA 답변 삭제
         qnaReplyRepository.deleteById(qnaReplyId);
@@ -351,6 +339,7 @@ public class AdminService {
         ReturnListResDto returnListResDto = returnRepository.getReturnsCount();
         returnListResDto.setReturnList(returnDto);
         return returnListResDto;
+
 
     }
 
@@ -566,8 +555,7 @@ public class AdminService {
                     manager.getUserName(),
                     manager.getUserEmail(),
                     manager.getUserRole(),
-                    manager.getUserJoinDate().atStartOfDay()
-            );
+                    manager.getUserJoinDate().atStartOfDay());
             managerInfoDTOList.add(managerInfoDto);
         }
 
@@ -592,6 +580,7 @@ public class AdminService {
         userRepository.save(user); // 변경된 역할을 저장
     }
 
+
     // 사용자 검색
     @Transactional
     public SearchUserResDto searchUser(Integer dktNum){
@@ -600,5 +589,17 @@ public class AdminService {
         SearchUserResDto searchUserResDto = userdata.toUserInfoRes();
 
         return searchUserResDto ;
+    }
+
+    // 마일리지 환불
+    @Transactional
+    public void putRefund(RefundReqDto refundReqDto) {
+        Integer percent = refundReqDto.getRefundPercent();
+        Long returnId = refundReqDto.getReturnId();
+        Integer price = orderDetailRepository.getOrderDetailSalePriceFindByReturnId(returnId);
+        Integer amount = (int) (price * percent /100);
+        orderDetailRepository.updateReturnCompleteByReturnId(returnId, OrderDetailState.RETURN_COMPLETE);
+        refundRepository.updateRefundCompleteByReturnId(returnId);
+        userRepository.updateUserMileageByReturnId(returnId, amount);
     }
 }
