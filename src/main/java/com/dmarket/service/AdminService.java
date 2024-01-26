@@ -1,10 +1,9 @@
 package com.dmarket.service;
 
 import com.dmarket.constant.InquiryType;
+import com.dmarket.domain.product.*;
 import com.dmarket.dto.common.InquiryDetailsDto;
 import com.dmarket.constant.FaqType;
-import com.dmarket.domain.product.Category;
-import com.dmarket.domain.product.Product;
 import com.dmarket.dto.common.ProductOptionDto;
 import com.dmarket.dto.common.ProductOptionListDto;
 import com.dmarket.repository.product.CategoryRepository;
@@ -18,8 +17,6 @@ import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.order.Return;
 import com.dmarket.domain.product.Category;
 import com.dmarket.domain.product.Product;
-import com.dmarket.domain.product.ProductImgs;
-import com.dmarket.domain.product.ProductOption;
 import com.dmarket.dto.request.ProductListDto;
 import com.dmarket.repository.order.OrderDetailRepository;
 import com.dmarket.repository.order.ReturnRepository;
@@ -67,6 +64,7 @@ public class AdminService {
     private final ProductImgsRepository productImgsRepository;
     private final CategoryRepository categoryRepository;
     private final QnaRepository qnaRepository;
+    private final QnaReplyRepository qnaReplyRepository;
 
     private final ReturnRepository returnRepository;
     private final ProductReviewRepository productReviewRepository;
@@ -238,6 +236,25 @@ public class AdminService {
 
     // 상품 QnA 상세(개별) 조회
     public QnaDetailResDto getQnADetail(Long qnaId){
+        return qnaRepository.findQnaAndReply(qnaId);
+    }
+
+    @Transactional
+    // 상품 QnA 답변 작성
+    public QnaDetailResDto createQnaReply(Long qnaId, String qnaReplyContents){
+        // QnA 존재 확인
+        Qna qna = qnaRepository.findById(qnaId).orElseThrow(()->new IllegalArgumentException("존재하지 않는 Qna"));
+
+        // 답변 저장
+        QnaReply qnaReply = QnaReply.builder()
+                .qnaId(qnaId)
+                .qnaReplyContents(qnaReplyContents)
+                .build();
+        qnaReplyRepository.save(qnaReply);
+
+        // QnA 답변 상태 변경
+        qna.updateState(true);
+
         return qnaRepository.findQnaAndReply(qnaId);
     }
 

@@ -13,14 +13,12 @@ import com.dmarket.service.AdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.security.core.AuthenticationException;
@@ -372,11 +370,27 @@ public class AdminController {
         }
     }
 
+    // 상품 QnA 상세 + 답변 조회 api
     @GetMapping("/products/qna/{qnaId}")
     public ResponseEntity<?> getQnADetailed(@PathVariable Long qnaId){
         QnaDetailResDto qnaDetail = adminService.getQnADetail(qnaId);
         return new ResponseEntity<>(CMResDto.builder()
-                .code(200).msg("반품 상태 변경 완료").data(qnaDetail).build(), HttpStatus.OK);
+                .code(200).msg("성공").data(qnaDetail).build(), HttpStatus.OK);
+    }
+
+    // 상품 QnA 답변 작성 api
+    @PostMapping("/products/qna/{qnaId}")
+    public ResponseEntity<?> writeQnaReply(@PathVariable Long qnaId ,@Valid @RequestBody QnaReplyReqDto qnaReplyReqDto, BindingResult bindingResult){
+        try {
+            bindingResultErrorsCheck(bindingResult);
+
+            QnaDetailResDto qnaDetail = adminService.createQnaReply(qnaId, qnaReplyReqDto.getQnaReplyContents());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("성공").data(qnaDetail).build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg(e.getMessage()).build(), HttpStatus.OK);
+        }
     }
 
     // 반품 상태 변경
@@ -432,6 +446,7 @@ public class AdminController {
                     .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     //문의 목록 조회(카테고리별)
     @GetMapping("/board/inquiry")
     public ResponseEntity<?> getInquiries(
@@ -527,16 +542,6 @@ public class AdminController {
             return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
-
-
-
-
-
-
-
-
 
     //배송 상태 변경
     @PutMapping("/orders/{detailId}")

@@ -46,4 +46,9 @@ public class Qna {
         this.qnaState = qnaState;
         this.qnaCreatedDate = LocalDateTime.now().withNano(0);
     }
+
+    // 답변 상태 업데이트
+    public void updateState(Boolean state){
+        this.qnaState = state;
+    }
 }
