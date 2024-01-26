@@ -19,6 +19,7 @@ public class MileageReqListDto {
     private String userEmail;
     private String mileageReqReason;
     private Integer mileageCharge;
+    private String mileageReqStatus;
 
     public MileageReqListDto(MileageReqDto mileageReqDto){
         this.mileageReqId = mileageReqDto.getMileageReqId();
@@ -28,6 +29,7 @@ public class MileageReqListDto {
         this.userEmail = mileageReqDto.getUserEmail();
         this.mileageReqReason = mileageReqDto.getMileageReqReason().getLabel();
         this.mileageCharge = mileageReqDto.getMileageCharge();
+        this.mileageReqStatus = mileageReqDto.getMileageReqStatus().getLabel();
     }
 
 

@@ -188,6 +188,32 @@ public class AdminController {
         }
     }
 
+    //마일리지 충전 요청/처리 내역 조회
+    @GetMapping("/users/mileage-history")
+    public ResponseEntity<?> getMileageRequests(@RequestParam(required = true, value = "status", defaultValue = "PROCESSING") String status,
+                                                @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
+                                                Pageable pageable){
+        try{
+            pageNo = pageNo > 0 ? pageNo-1 : pageNo;
+            MileageReqListResDto requests = adminService.getMileageRequests(pageable, status, pageNo);
+
+            log.info("데이터 조회 완료");
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("성공").data(requests).build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg(e.getMessage()).build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
     //마일리지 충전 요청 승인
     @PutMapping("/users/mileage/approval/{mileageReqId}")
     public ResponseEntity<?> approveMileageReq(@PathVariable(name = "mileageReqId") Long mileageReqId){
@@ -207,30 +233,6 @@ public class AdminController {
             log.error("서버 내부 오류: " + e.getMessage());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(500).msg(e.getMessage()).build(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    //마일리지 충전 요청 내역 조회
-    @GetMapping("/users/mileage-history")
-    public ResponseEntity<?> getMileageRequests(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
-                                                Pageable pageable){
-        try{
-            pageNo = pageNo > 0 ? pageNo-1 : pageNo;
-            MileageReqListResDto requests = adminService.getMileageRequests(pageable, pageNo);
-
-            log.info("데이터 조회 완료");
-            return new ResponseEntity<>(CMResDto.builder()
-                    .code(200).msg("성공").data(requests).build(), HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            // 잘못된 요청에 대한 예외 처리
-            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
-            return new ResponseEntity<>(CMResDto.builder()
-                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            // 기타 예외에 대한 예외 처리
-            log.error("서버 내부 오류: " + e.getMessage());
-            return new ResponseEntity<>(CMResDto.builder()
-                    .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

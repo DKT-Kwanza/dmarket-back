@@ -57,10 +57,16 @@ public class AdminService {
 
     // 마일리지 충전 요청 내역
     @Transactional
-    public MileageReqListResDto getMileageRequests(Pageable pageable, int pageNo){
+    public MileageReqListResDto getMileageRequests(Pageable pageable, String status, int pageNo){
         pageable = PageRequest.of(pageNo, ADMIN_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "mileageReqDate"));
-
-        Page<MileageReqDto> dtos = mileageReqRepository.findAllBySelect(pageable);
+        Page<MileageReqDto> dtos;
+        if(status.equals("PROCESSING")){
+            dtos = mileageReqRepository.findAllByProcessing(pageable);
+        }else if(status.equals("PROCESSED")){
+            dtos = mileageReqRepository.findAllByProcessed(pageable);
+        }else{
+            throw new IllegalArgumentException("올바르지 않은 경로입니다.");
+        }
         List<MileageReqListDto> mileageRequests = dtos.getContent().stream()
                 .map(MileageReqListDto::new).toList();
 

@@ -1,6 +1,7 @@
 package com.dmarket.dto.common;
 
 import com.dmarket.constant.MileageContents;
+import com.dmarket.constant.MileageReqState;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,4 +19,5 @@ public class MileageReqDto {
     private String userEmail;
     private MileageContents mileageReqReason;
     private Integer mileageCharge;
+    private MileageReqState mileageReqStatus;
 }
