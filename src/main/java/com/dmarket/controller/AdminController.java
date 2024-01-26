@@ -508,4 +508,27 @@ public class AdminController {
 
 
 
+
+    //배송 상태 변경
+    @PutMapping("/orders/{detailId}")
+    public ResponseEntity<?> updateOrderStatus(@PathVariable Long detailId, @Valid @RequestBody OrderStatusReqDto requestDto, BindingResult bindingResult) {
+        try {
+            // request body 유효성 확인
+            bindingResultErrorsCheck(bindingResult);
+
+            String orderStatus = requestDto.getOrderStatus();
+            adminService.updateOrderDetailState(detailId, orderStatus);
+
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("배송 상태 변경 완료").build(), HttpStatus.OK);
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
 }
