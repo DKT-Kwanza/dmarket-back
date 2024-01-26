@@ -41,13 +41,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dmarket.domain.board.*;
-import com.dmarket.domain.product.*;
-import com.dmarket.domain.user.*;
 import com.dmarket.dto.common.ProductOptionDto;
 import com.dmarket.dto.request.OptionReqDto;
 import com.dmarket.dto.request.ProductReqDto;
@@ -55,7 +52,6 @@ import com.dmarket.dto.response.*;
 import com.dmarket.repository.board.*;
 import com.dmarket.repository.user.*;
 import java.util.*;
-import java.time.*;
 
 @Slf4j
 @Service
@@ -238,6 +234,11 @@ public class AdminService {
         Pageable pageable = PageRequest.of(pageNo, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "qnaCreatedDate"));
         Page<QnaDto> qnaList = qnaRepository.findAllQna(pageable);
         return new QnaListResDto(qnaList.getTotalPages(), qnaList.getContent());
+    }
+
+    // 상품 QnA 상세(개별) 조회
+    public QnaDetailResDto getQnADetail(Long qnaId){
+        return qnaRepository.findQnaAndReply(qnaId);
     }
 
     // 반품 상태 업데이트

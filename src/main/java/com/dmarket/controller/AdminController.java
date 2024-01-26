@@ -1,13 +1,11 @@
 package com.dmarket.controller;
 
 import com.dmarket.constant.InquiryType;
-import com.dmarket.domain.board.Inquiry;
 import com.dmarket.domain.board.InquiryReply;
 import com.dmarket.dto.common.InquiryDetailsDto;
 import com.dmarket.constant.FaqType;
 import com.dmarket.domain.board.Faq;
 import com.dmarket.constant.ReturnState;
-import com.dmarket.domain.product.Product;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
 import com.dmarket.service.AdminService;
@@ -28,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import java.time.*;
+
 import java.util.*;
 
 @Slf4j
@@ -372,6 +370,13 @@ public class AdminController {
         } catch (Exception e){
             return new  ResponseEntity<>(CMResDto.builder().code(200).msg(e.getMessage()).build(), HttpStatus.OK);
         }
+    }
+
+    @GetMapping("/products/qna/{qnaId}")
+    public ResponseEntity<?> getQnADetailed(@PathVariable Long qnaId){
+        QnaDetailResDto qnaDetail = adminService.getQnADetail(qnaId);
+        return new ResponseEntity<>(CMResDto.builder()
+                .code(200).msg("반품 상태 변경 완료").data(qnaDetail).build(), HttpStatus.OK);
     }
 
     // 반품 상태 변경
