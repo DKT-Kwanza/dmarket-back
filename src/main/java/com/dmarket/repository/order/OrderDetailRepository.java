@@ -1,6 +1,7 @@
 package com.dmarket.repository.order;
 
 import com.dmarket.constant.OrderDetailState;
+import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.order.OrderDetail;
 import com.dmarket.dto.response.OrderDetailResDto;
 import com.dmarket.dto.response.ReviewResDto;
@@ -39,5 +40,15 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
         @Modifying
         @Query("UPDATE OrderDetail od SET od.orderDetailState = :state WHERE od.orderDetailId = :id")
         void updateOrderDetailState(@Param("id") Long detailId, @Param("state") OrderDetailState orderDetailState);
+
+        @Modifying
+        @Query("UPDATE OrderDetail od SET od.orderDetailState = :state " +
+                        "WHERE od.orderDetailId IN (SELECT r.orderDetailId FROM Return r WHERE r.returnId = :returnId)")
+        void updateReturnCompleteByReturnId(@Param("returnId") Long returnId, @Param("state") OrderDetailState state);
+
+        @Query("SELECT od.orderDetailSalePrice FROM OrderDetail od " +
+                        "JOIN Return r ON r.orderDetailId = od.orderDetailId " +
+                        "WHERE r.returnId = :returnId")
+        Integer getOrderDetailSalePriceFindByReturnId(@Param("returnId") Long returnId);
 
 }

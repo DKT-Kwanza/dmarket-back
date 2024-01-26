@@ -1,21 +1,18 @@
 package com.dmarket.service;
 
-import com.dmarket.constant.InquiryType;
 import com.dmarket.domain.product.*;
 import com.dmarket.constant.*;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.InquiryDetailsDto;
-import com.dmarket.constant.FaqType;
 import com.dmarket.dto.common.ProductOptionDto;
 import com.dmarket.dto.common.ProductOptionListDto;
 import com.dmarket.dto.common.QnaDto;
 import com.dmarket.dto.common.ReturnDto;
 import com.dmarket.repository.product.*;
-import com.dmarket.constant.OrderDetailState;
-import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.order.Return;
 import com.dmarket.dto.request.ProductListDto;
 import com.dmarket.repository.order.OrderDetailRepository;
+import com.dmarket.repository.order.RefundRepository;
 import com.dmarket.repository.order.ReturnRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,12 +20,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dmarket.domain.board.*;
 import com.dmarket.dto.request.OptionReqDto;
 import com.dmarket.dto.request.ProductReqDto;
+import com.dmarket.dto.request.RefundReqDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.repository.board.*;
 import com.dmarket.repository.user.*;
@@ -56,7 +55,7 @@ public class AdminService {
     private final InquiryRepository inquiryRepository;
     private final InquiryReplyRepository inquiryReplyRepository;
     private final OrderDetailRepository orderDetailRepository;
-
+    private final RefundRepository refundRepository;
     private static final int PAGE_SIZE = 10;
 
     @Transactional
@@ -225,9 +224,9 @@ public class AdminService {
 
     // 상품 QnA 답변 작성
     @Transactional
-    public QnaDetailResDto createQnaReply(Long qnaId, String qnaReplyContents){
+    public QnaDetailResDto createQnaReply(Long qnaId, String qnaReplyContents) {
         // QnA 존재 확인
-        Qna qna = qnaRepository.findById(qnaId).orElseThrow(()->new IllegalArgumentException("존재하지 않는 Qna"));
+        Qna qna = qnaRepository.findById(qnaId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Qna"));
 
         // 답변 저장
         QnaReply qnaReply = QnaReply.builder()
@@ -244,13 +243,13 @@ public class AdminService {
 
     // 상품 QnA 답변 삭제
     @Transactional
-    public void deleteQnaReply(Long qnaReplyId){
+    public void deleteQnaReply(Long qnaReplyId) {
         // QnA 번호 가져오기
         Long qnaId = qnaReplyRepository.findQnaIdByQnaReplyId(qnaReplyId);
 
         // QnA 존재 확인
         Qna qna = qnaRepository.findById(qnaId)
-                .orElseThrow(()->new IllegalArgumentException("존재하지 않는 Qna"));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Qna"));
 
         // QnA 답변 삭제
         qnaReplyRepository.deleteById(qnaReplyId);
@@ -279,7 +278,7 @@ public class AdminService {
         ReturnListResDto returnListResDto = returnRepository.getReturnsCount();
         returnListResDto.setReturnList(returnDto);
         return returnListResDto;
-        
+
     }
 
     // 반품 상태 업데이트
@@ -486,8 +485,7 @@ public class AdminService {
                     manager.getUserName(),
                     manager.getUserEmail(),
                     manager.getUserRole(),
-                    manager.getUserJoinDate().atStartOfDay()
-            );
+                    manager.getUserJoinDate().atStartOfDay());
             managerInfoDTOList.add(managerInfoDto);
         }
 
@@ -496,5 +494,17 @@ public class AdminService {
 
     private int adminCount(List<User> users, Role role) {
         return (int) users.stream().filter(user -> user.getUserRole() == role).count();
+    }
+
+    // 마일리지 환불
+    @Transactional
+    public void putRefund(RefundReqDto refundReqDto) {
+        Integer percent = refundReqDto.getRefundPercent();
+        Long returnId = refundReqDto.getReturnId();
+        Integer price = orderDetailRepository.getOrderDetailSalePriceFindByReturnId(returnId);
+        Integer amount = (int) (price * percent /100);
+        orderDetailRepository.updateReturnCompleteByReturnId(returnId, OrderDetailState.RETURN_COMPLETE);
+        refundRepository.updateRefundCompleteByReturnId(returnId);
+        userRepository.updateUserMileageByReturnId(returnId, amount);
     }
 }

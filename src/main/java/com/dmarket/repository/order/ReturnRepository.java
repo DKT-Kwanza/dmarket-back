@@ -32,4 +32,5 @@ public interface ReturnRepository extends JpaRepository<Return, Long> {
             "(SELECT count(r) FROM Return r WHERE r.returnState = 'COLLECT_ING'), " +
             "(SELECT count(r) FROM Return r WHERE r.returnState = 'COLLECT_COMPLETE'))")
     ReturnListResDto getReturnsCount();
+
 }
