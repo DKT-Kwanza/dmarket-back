@@ -91,4 +91,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                         @Param("productSalePrice") Integer productSalePrice,
                         @Param("productDescription") String productDescription);
 
+
 }
