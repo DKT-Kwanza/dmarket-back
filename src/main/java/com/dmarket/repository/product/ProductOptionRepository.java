@@ -19,4 +19,7 @@ public interface ProductOptionRepository extends JpaRepository<ProductOption, Lo
 
     void deleteByProductId(@Param("productId") Long productId);
 
+
+    // 상품의 옵션 삭제
+    void deleteByOptionId(@Param("optionId") Long optionId);
 }

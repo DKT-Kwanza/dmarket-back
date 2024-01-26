@@ -14,5 +14,6 @@ public interface ProductImgsRepository extends JpaRepository<ProductImgs, Long> 
     @Query("select pi.imgAddress from ProductImgs pi where pi.productId = :productId")
     List<String> findAllByProductId(Long productId);
 
+
     void deleteByProductId(@Param("productId") Long productId);
 }

@@ -3,6 +3,14 @@ package com.dmarket.service;
 import com.dmarket.constant.InquiryType;
 import com.dmarket.dto.common.InquiryDetailsDto;
 import com.dmarket.constant.FaqType;
+import com.dmarket.domain.product.Category;
+import com.dmarket.domain.product.Product;
+import com.dmarket.dto.common.ProductOptionDto;
+import com.dmarket.dto.common.ProductOptionListDto;
+import com.dmarket.repository.product.CategoryRepository;
+import com.dmarket.repository.product.ProductImgsRepository;
+import com.dmarket.repository.product.ProductOptionRepository;
+import com.dmarket.repository.product.ProductRepository;
 import com.dmarket.dto.common.QnaDto;
 import com.dmarket.repository.product.*;
 import com.dmarket.constant.OrderDetailState;
@@ -50,13 +58,13 @@ public class AdminService {
     private final UserRepository userRepository;
     private final NoticeRepository noticeRepository;
     private final FaqRepository faqRepository;
+    private final ProductOptionRepository productOptionRepository;
+    private final ProductRepository productRepository;
+    private final ProductImgsRepository productImgsRepository;
+    private final CategoryRepository categoryRepository;
     private final QnaRepository qnaRepository;
 
     private final ReturnRepository returnRepository;
-    private final ProductRepository productRepository;
-    private final ProductOptionRepository productOptionRepository;
-    private final ProductImgsRepository productImgsRepository;
-    private final CategoryRepository categoryRepository;
     private final ProductReviewRepository productReviewRepository;
     private final WishlistRepository wishlistRepository;
     private final InquiryRepository inquiryRepository;
@@ -394,4 +402,25 @@ public class AdminService {
 
     }
 
+    // 옵션 삭제
+    @Transactional
+    public void deleteOptionByOptionId(Long optionId) {
+        productOptionRepository.deleteByOptionId(optionId);
+    }
+
+    // 상품 목록 조회
+    public List<ProductListAdminResDto> getProductListByCateogryId(Long categoryId) {
+        List<Product> products = categoryRepository.findProductsByCategoryId(categoryId);
+        Category category = categoryRepository.findByCategoryId(categoryId);
+        List<ProductOptionListDto> options = categoryRepository.findOptionsByCategoryId(categoryId);
+        List<String> imgs = categoryRepository.findImgsByCategoryId(categoryId);
+
+        // 제품 목록을 처리하고 DTO 목록을 만듭니다.
+        List<ProductListAdminResDto> result = new ArrayList<>();
+        for (Product product : products) {
+            result.add(new ProductListAdminResDto(product, category, options, imgs));
+        }
+
+        return result;
+    }
 }
