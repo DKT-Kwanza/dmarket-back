@@ -393,6 +393,19 @@ public class AdminController {
         }
     }
 
+    // 상품 QnA 답변 작성 api
+    @DeleteMapping("/products/qna/reply/{qnaReplyId}")
+    public ResponseEntity<?> writeQnaReply(@PathVariable Long qnaReplyId){
+        try {
+            adminService.deleteQnaReply(qnaReplyId);
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("성공").build(), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg(e.getMessage()).build(), HttpStatus.OK);
+        }
+    }
+
     // 반품 상태 변경
     @PutMapping("/orders/returns/{returnId}")
     public ResponseEntity<?> changeReturnStatus(@PathVariable Long returnId, @RequestParam String returnStatus) {
