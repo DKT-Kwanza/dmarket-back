@@ -1,5 +1,6 @@
 package com.dmarket.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,6 +13,8 @@ public class CMResDto<T> {
     private int code;
     private LocalDateTime time;
     private String msg;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private T data;
 
     @Builder

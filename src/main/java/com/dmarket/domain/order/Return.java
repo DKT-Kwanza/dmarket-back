@@ -27,4 +27,9 @@ public class Return {
 
     private LocalDateTime returnRequestDate;
     private LocalDateTime returnUpdatedDate;
+
+    public void updateReturnState(ReturnState returnState) {
+        this.returnState = returnState;
+        this.returnUpdatedDate = LocalDateTime.now();
+    }
 }

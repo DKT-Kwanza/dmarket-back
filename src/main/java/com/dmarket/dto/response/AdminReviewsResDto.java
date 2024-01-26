@@ -14,16 +14,18 @@ public class AdminReviewsResDto {
     private Long productId;
     private Long reviewId;
     private String reviewWriter;
+    private String productName;
     private String optionName;
     private Integer reviewRating;
     private String reviewContents;
     private LocalDateTime reviewCreatedDate;
 
 
-    public AdminReviewsResDto(ProductReview productReview, ProductOption productOption, User user){
+    public AdminReviewsResDto(ProductReview productReview, ProductOption productOption, User user, Product product){
         this.productId = productReview.getProductId();
         this.reviewId = productReview.getReviewId();
         this.reviewWriter = user.getUserName();
+        this.productName = product.getProductName();
         this.optionName = productOption.getOptionName();
         this.reviewRating = productReview.getReviewRating();
         this.reviewContents = productReview.getReviewContents();
