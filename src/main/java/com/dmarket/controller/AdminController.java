@@ -1,5 +1,9 @@
 package com.dmarket.controller;
 
+import com.dmarket.constant.InquiryType;
+import com.dmarket.domain.board.Inquiry;
+import com.dmarket.domain.board.InquiryReply;
+import com.dmarket.dto.common.InquiryDetailsDto;
 import com.dmarket.constant.FaqType;
 import com.dmarket.domain.board.Faq;
 import com.dmarket.constant.ReturnState;
@@ -12,6 +16,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,7 +39,7 @@ import java.util.*;
 @RequestMapping("/api/admin")
 public class AdminController {
     @Autowired
-    AdminService adminService;
+    private final AdminService adminService;
 
     private void bindingResultErrorsCheck(BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -397,6 +403,111 @@ public class AdminController {
                     .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    //문의 목록 조회(카테고리별)
+    @GetMapping("/board/inquiry")
+    public ResponseEntity<?> getInquiries(
+            @RequestParam(required = false, value = "type") InquiryType inquiryType,
+            @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
+            @RequestParam(required = false, value = "size", defaultValue = "10") int pageSize) {
+        try {
+            if (pageNo < 0 || pageSize <= 0) {
+                return new ResponseEntity<>(CMResDto.builder()
+                        .code(400).msg("검증되지 않은 페이지").build(), HttpStatus.BAD_REQUEST);
+            }
+
+            Page<InquiryListResDto> mappedInquiries = adminService.getAllInquiriesByType(inquiryType, PageRequest.of(pageNo, pageSize));
+
+            CMResDto<Page<InquiryListResDto>> response = CMResDto.<Page<InquiryListResDto>>builder()
+                    .code(200).msg("문의 목록").data(mappedInquiries).build();
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    // 문의 삭제
+    @DeleteMapping("/board/inquiry/{inquiryId}")
+    public ResponseEntity<?> deleteInquiry(@PathVariable Long inquiryId) {
+        try {
+            boolean isDeleted = adminService.deleteInquiry(inquiryId);
+
+            if (isDeleted) {
+                return new ResponseEntity<>(CMResDto.builder().code(200).msg("Inquiry 삭제 성공").build(), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(CMResDto.builder().code(404).msg("삭제할 대상이 없습니다.").build(), HttpStatus.NOT_FOUND);
+            }
+        } catch (IllegalArgumentException e) {
+            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Error deleting Inquiry: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    // 문의 답변 등록
+    @PostMapping("/board/inquiry/reply/{inquiryId}")
+    public ResponseEntity<?> postInquiryReply(
+            @PathVariable Long inquiryId,
+            @RequestBody InquiryReplyRequestDto inquiryReplyRequestDto) {
+        try {
+            InquiryReply inquiryReply = InquiryReply.builder()
+                    .inquiryId(inquiryId)
+                    .inquiryReplyContents(inquiryReplyRequestDto.getInquiryReplyContents())
+                    .build();
+
+            InquiryReply createdInquiryReply = adminService.createInquiryReply(inquiryReply);
+
+            InquiryDetailsDto inquiryDetails = adminService.getInquiryDetails(inquiryId);
+
+            return ResponseEntity.ok(CMResDto.builder()
+                    .code(HttpStatus.OK.value())
+                    .msg("답변 작성 완료")
+                    .data(inquiryDetails)
+                    .build());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error while processing the request.");
+        }
+    }
+
+
+    //문의 답변 삭제
+    @DeleteMapping("/board/inquiry/reply/{inquiryReplyId}")
+    public ResponseEntity<?> deleteInquiryReply(@PathVariable Long inquiryReplyId) {
+        try {
+            boolean isDeleted = adminService.deleteInquiryReply(inquiryReplyId);
+
+            if (isDeleted) {
+                return new ResponseEntity<>(CMResDto.builder().code(200).msg("Inquiry Reply 삭제 성공").build(), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(CMResDto.builder().code(404).msg("삭제할 대상이 없습니다.").build(), HttpStatus.NOT_FOUND);
+            }
+        } catch (IllegalArgumentException e) {
+            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Error deleting Inquiry Reply: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
 
     //배송 상태 변경
     @PutMapping("/orders/{detailId}")

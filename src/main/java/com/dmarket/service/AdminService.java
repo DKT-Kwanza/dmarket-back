@@ -1,5 +1,7 @@
 package com.dmarket.service;
 
+import com.dmarket.constant.InquiryType;
+import com.dmarket.dto.common.InquiryDetailsDto;
 import com.dmarket.constant.FaqType;
 import com.dmarket.constant.OrderDetailState;
 import com.dmarket.constant.ReturnState;
@@ -52,6 +54,8 @@ public class AdminService {
     private final CategoryRepository categoryRepository;
     private final ProductReviewRepository productReviewRepository;
     private final WishlistRepository wishlistRepository;
+    private final InquiryRepository inquiryRepository;
+    private final InquiryReplyRepository inquiryReplyRepository;
     private final OrderDetailRepository orderDetailRepository;
 
     @Transactional
@@ -284,6 +288,63 @@ public class AdminService {
                     .build();
 
             productImgsRepository.save(productImgs);
+        }
+    }
+
+
+    //문의 목록 조회(카테고리별)
+    @Transactional
+    public Page<InquiryListResDto> getAllInquiriesByType(InquiryType inquiryType, Pageable pageable) {
+        return inquiryRepository.findByInquiryType(inquiryType, pageable);
+    }
+
+    //문의 삭제
+    @Transactional
+    public boolean deleteInquiry(Long inquiryId) {
+        Optional<Inquiry> inquiryOptional = inquiryRepository.findById(inquiryId);
+
+        if (inquiryOptional.isPresent()) {
+            inquiryRepository.deleteById(inquiryId);
+            return true;
+        } else {
+            return false; // 삭제 대상이 없음
+        }
+    }
+
+
+    //문의 답변 등록
+    @Transactional
+    public InquiryReply createInquiryReply(InquiryReply inquiryReply) {
+        return inquiryReplyRepository.save(inquiryReply);
+    }
+
+    public InquiryDetailsDto getInquiryDetails(Long inquiryId) {
+        InquiryDetailsDto inquiryDetailsDto = InquiryDetailsDto.builder()
+                .inquiryId(inquiryId)
+                .inquiryTitle("Sample Title")
+                .inquiryContents("Sample Contents")
+                .inquiryType("Sample Type")
+                .inquiryStatus(false)
+                .inquiryWriter("Sample Writer")
+                .inquiryImg("www.example.com/sample.png")
+                .inquiryCreateDate("2024-01-07 13:48:00")
+                .inquiryReplyContents("Sample Reply Contents")
+                .build();
+
+        return inquiryDetailsDto;
+        // 나중에 수정할게요..
+    }
+
+    // 문의 답변 삭제
+    @Transactional
+    public boolean deleteInquiryReply(Long inquiryReplyId) {
+        Optional<InquiryReply> inquiryReplyOptional = inquiryReplyRepository.findById(inquiryReplyId);
+
+        if (inquiryReplyOptional.isPresent()) {
+            inquiryReplyRepository.deleteById(inquiryReplyId);
+            return true;
+        } else {
+            return false; // 삭제 대상이 없을 때
         }
     }
 
