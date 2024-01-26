@@ -467,9 +467,9 @@ public class AdminController {
     @DeleteMapping("/products/qna/reply/{qnaReplyId}")
     public ResponseEntity<?> writeQnaReply(@PathVariable Long qnaReplyId){
         try {
-            adminService.deleteQnaReply(qnaReplyId);
+            QnaDetailResDto qnaDetail = adminService.deleteQnaReply(qnaReplyId);
             return new ResponseEntity<>(CMResDto.builder()
-                    .code(200).msg("성공").build(), HttpStatus.OK);
+                    .code(200).msg("성공").data(qnaDetail).build(), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg(e.getMessage()).build(), HttpStatus.OK);

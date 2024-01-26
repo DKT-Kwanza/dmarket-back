@@ -290,7 +290,7 @@ public class AdminService {
 
     // 상품 QnA 답변 삭제
     @Transactional
-    public void deleteQnaReply(Long qnaReplyId){
+    public QnaDetailResDto deleteQnaReply(Long qnaReplyId){
         // QnA 번호 가져오기
         Long qnaId = qnaReplyRepository.findQnaIdByQnaReplyId(qnaReplyId);
 
@@ -303,6 +303,8 @@ public class AdminService {
 
         // 답변 상태 변경 -> 답변 대기
         qna.updateState(false);
+
+        return qnaRepository.findQnaAndReply(qnaId);
     }
 
     // 반품 상태 리스트
