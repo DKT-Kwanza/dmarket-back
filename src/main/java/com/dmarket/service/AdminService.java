@@ -1,5 +1,6 @@
 package com.dmarket.service;
 
+import com.dmarket.domain.order.Refund;
 import com.dmarket.dto.common.*;
 import com.dmarket.constant.MileageReqState;
 import com.dmarket.domain.user.MileageReq;
@@ -11,6 +12,7 @@ import com.dmarket.constant.FaqType;
 import com.dmarket.dto.common.ProductOptionDto;
 import com.dmarket.dto.common.ProductOptionListDto;
 import com.dmarket.dto.request.ChangeRoleReqDto;
+import com.dmarket.repository.order.RefundRepository;
 import com.dmarket.repository.product.CategoryRepository;
 import com.dmarket.repository.product.ProductImgsRepository;
 import com.dmarket.repository.product.ProductOptionRepository;
@@ -81,6 +83,7 @@ public class AdminService {
     private final InquiryRepository inquiryRepository;
     private final InquiryReplyRepository inquiryReplyRepository;
     private final OrderDetailRepository orderDetailRepository;
+    private final RefundRepository refundRepository;
 
     private static final int PAGE_POST_COUNT = 10;
 
@@ -356,6 +359,13 @@ public class AdminService {
     public void updateReturnState(Long returnId, ReturnState returnState) {
         Return returnEntity = returnRepository.findById(returnId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 returnId가 존재하지 않습니다. returnId: " + returnId));
+
+        // returnState 가 "반품 완료" 상태인 경우 환불 테이블에 state = 0으로 추가
+        if(returnState == ReturnState.COLLECT_COMPLETE){
+            Refund refund = new Refund(returnId, false); // 초기 refundState는 false로 설정
+            refundRepository.save(refund);
+        }
+
         returnEntity.updateReturnState(returnState);
     }
 
@@ -541,6 +551,7 @@ public class AdminService {
         return result;
     }
 
+    // 관리자 전체 조회
     public TotalAdminResDto getAdminUserDetails() {
         List<User> allManagers = userRepository.findAllByUserRoleIsNot(Role.ROLE_USER);
         List<ManagerInfoDto> managerInfoDTOList = new ArrayList<>();

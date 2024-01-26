@@ -19,4 +19,9 @@ public class Refund {
     private Long returnId;
 
     private Boolean refundState;
+
+    public Refund(Long returnId, Boolean refundState) {
+        this.returnId = returnId;
+        this.refundState = refundState;
+    }
 }
