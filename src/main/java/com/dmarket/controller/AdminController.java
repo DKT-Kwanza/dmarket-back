@@ -10,7 +10,6 @@ import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
 import com.dmarket.service.AdminService;
 
-import com.dmarket.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

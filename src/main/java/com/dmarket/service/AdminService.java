@@ -28,25 +28,13 @@ import com.dmarket.dto.request.ProductListDto;
 import com.dmarket.repository.order.OrderDetailRepository;
 import com.dmarket.repository.order.RefundRepository;
 import com.dmarket.repository.order.ReturnRepository;
-import com.dmarket.repository.product.CategoryRepository;
-import com.dmarket.repository.product.ProductImgsRepository;
-import com.dmarket.repository.product.ProductOptionRepository;
-import com.dmarket.repository.product.ProductRepository;
-import com.dmarket.domain.product.Category;
-import com.dmarket.domain.product.Product;
-import com.dmarket.dto.common.ProductOptionDto;
-import com.dmarket.dto.common.ProductOptionListDto;
-import com.dmarket.repository.product.CategoryRepository;
-import com.dmarket.repository.product.ProductImgsRepository;
-import com.dmarket.repository.product.ProductOptionRepository;
-import com.dmarket.repository.product.ProductRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -591,6 +579,7 @@ public class AdminService {
 
         userRepository.save(user); // 변경된 역할을 저장
     }
+
 
     // 사용자 검색
     @Transactional

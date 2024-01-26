@@ -1,9 +1,7 @@
 package com.dmarket.repository.user;
 
-import com.dmarket.domain.order.Order;
 import com.dmarket.constant.Role;
 import com.dmarket.domain.user.User;
-import com.dmarket.dto.common.ProductDetailListDto;
 import com.dmarket.dto.response.UserHeaderInfoResDto;
 import com.dmarket.dto.response.UserInfoResDto;
 import com.dmarket.dto.response.UserResDto;
@@ -55,7 +53,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
         @Modifying
         @Query("UPDATE User u SET u.userMileage = u.userMileage + :calculatedAmount " +
-                        "WHERE u.userId IN (" +
+        "WHERE u.userId IN (" +
                         "SELECT o.userId FROM Order o " +
                         "JOIN OrderDetail od ON o.orderId = od.orderId " +
                         "JOIN Return r ON od.orderDetailId = r.orderDetailId " +
