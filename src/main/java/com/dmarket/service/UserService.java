@@ -402,7 +402,7 @@ public class UserService {
 //                orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_COMPLETE);
 
         for (Order order : orders) {
-            List<ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByUserId(userId);
+            List<ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByUserId(order.getOrderId());
             orderList.add(new OrderListDto(order, productDetailListDtos));
         }
 
