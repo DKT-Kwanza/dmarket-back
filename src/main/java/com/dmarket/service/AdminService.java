@@ -1,10 +1,14 @@
 package com.dmarket.service;
 
 import com.dmarket.constant.FaqType;
+import com.dmarket.dto.common.QnaDto;
+import com.dmarket.repository.product.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,11 +20,6 @@ import com.dmarket.dto.request.OptionReqDto;
 import com.dmarket.dto.request.ProductReqDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.repository.board.*;
-import com.dmarket.repository.product.CategoryRepository;
-import com.dmarket.repository.product.ProductImgsRepository;
-import com.dmarket.repository.product.ProductOptionRepository;
-import com.dmarket.repository.product.ProductRepository;
-import com.dmarket.repository.product.ProductReviewRepository;
 import com.dmarket.repository.user.*;
 import java.util.*;
 
@@ -33,6 +32,7 @@ public class AdminService {
     private final UserRepository userRepository;
     private final NoticeRepository noticeRepository;
     private final FaqRepository faqRepository;
+    private final QnaRepository qnaRepository;
 
     private final ProductRepository productRepository;
     private final ProductOptionRepository productOptionRepository;
@@ -40,6 +40,8 @@ public class AdminService {
     private final CategoryRepository categoryRepository;
     private final ProductReviewRepository productReviewRepository;
     private final WishlistRepository wishlistRepository;
+
+    private static final int PAGE_SIZE = 10;
 
     @Transactional
     public void deleteUserByUserId(Long userId) {
@@ -187,5 +189,12 @@ public Long postFaq(FaqType faqType, String faqQuestion, String faqAnswer) {
 
     public Page<AdminReviewsResDto> getProductReviews(Pageable pageable) {
         return productReviewRepository.getProductReviews(pageable);
+    }
+
+    // 상품 QnA 조회
+    public QnaListResDto getQnaList(int pageNo) {
+        Pageable pageable = PageRequest.of(pageNo, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "qnaCreatedDate"));
+        Page<QnaDto> qnaList = qnaRepository.findAllQna(pageable);
+        return new QnaListResDto(qnaList.getTotalPages(), qnaList.getContent());
     }
 }

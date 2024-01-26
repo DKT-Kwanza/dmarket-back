@@ -9,7 +9,6 @@ import com.dmarket.service.AdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,8 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -29,8 +26,7 @@ import java.util.*;
 @RequiredArgsConstructor
 @RequestMapping("/api/admin")
 public class AdminController {
-    @Autowired
-    AdminService adminService;
+    private final AdminService adminService;
 
     @GetMapping("/GM")
     public String adminGMP() {
@@ -350,4 +346,15 @@ public class AdminController {
         }
     }
 
+    // 상품 QnA 전체 조회 api
+    @GetMapping("/products/qna")
+    public ResponseEntity<?> getQnAList(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo){
+        try {
+            pageNo = pageNo > 0 ? pageNo - 1 : pageNo;
+            QnaListResDto qnaList = adminService.getQnaList(pageNo);
+            return new ResponseEntity<>(CMResDto.builder().code(200).msg("성공").data(qnaList).build(), HttpStatus.OK);
+        } catch (Exception e){
+            return new  ResponseEntity<>(CMResDto.builder().code(200).msg(e.getMessage()).build(), HttpStatus.OK);
+        }
+    }
 }
