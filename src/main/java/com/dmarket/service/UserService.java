@@ -381,28 +381,25 @@ public class UserService {
         return new OrderDetailListResDto(order, user, productDetailList);
     }
 
-//    // 주문 / 배송 내역 조회
-//    public OrderListResDto getOrderListResByUserId(Long userId){
-//        List<OrderListDto> orderList = new ArrayList<>();
-//        List<Order> orders = userRepository.findOrderByUserId(userId);
-//        for (Order order : orders) {
-//            List<ProductDetailListDto> productDetailListDtos = userRepository.findOrderDetailByUserId(userId);
-//            orderList.add(new OrderListDto(order, productDetailListDtos));
-//        }
-//
-//        return new OrderListResDto(confPaycount, preShipCount, inTransitCount, cmpltDilCount, orderCancelCount, returnCount, orderList);
-//    }
+    // 주문 / 배송 내역 조회
     public OrderListResDto getOrderListResByUserId(Long userId) {
         List<OrderListDto> orderList = new ArrayList<>();
         List<Order> orders = orderRepository.findByUserId(userId);
 
-        Long confPayCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_COMPLETE);
-        Long preShipCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_READY);
-        Long inTransitCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_ING);
-        Long cmpltDilCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_COMPLETE);
-        Long orderCancelCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_CANCEL);
-        Long returnCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_REQUEST) +
-                orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_COMPLETE);
+        Long confPayCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_COMPLETE);
+        Long preShipCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_READY);
+        Long inTransitCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_ING);
+        Long cmpltDilCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_COMPLETE);
+        Long orderCancelCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_CANCEL);
+        Long returnCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_REQUEST) +
+                orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_COMPLETE);
+//        Long confPayCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_COMPLETE);
+//        Long preShipCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_READY);
+//        Long inTransitCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_ING);
+//        Long cmpltDilCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_COMPLETE);
+//        Long orderCancelCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_CANCEL);
+//        Long returnCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_REQUEST) +
+//                orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_COMPLETE);
 
         for (Order order : orders) {
             List<ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByUserId(userId);
@@ -411,12 +408,36 @@ public class UserService {
 
         OrderListResDto orderListResDto = new OrderListResDto();
 
-        orderListResDto.setConfPayCount(confPayCount);
-        orderListResDto.setPreShipCount(preShipCount);
-        orderListResDto.setInTransitCount(inTransitCount);
-        orderListResDto.setCmpltDilCount(cmpltDilCount);
-        orderListResDto.setOrderCancelCount(orderCancelCount);
-        orderListResDto.setReturnCount(returnCount);
+        if (confPayCount == null) {
+            orderListResDto.setConfPayCount(0L);
+        } else {
+            orderListResDto.setConfPayCount(confPayCount);
+        }
+        if (preShipCount == null) {
+            orderListResDto.setPreShipCount(0L);
+        } else {
+            orderListResDto.setPreShipCount(preShipCount);
+        }
+        if(inTransitCount == null) {
+            orderListResDto.setInTransitCount(0L);
+        } else {
+            orderListResDto.setInTransitCount(inTransitCount);
+        }
+        if(cmpltDilCount == null) {
+            orderListResDto.setCmpltDilCount(0L);
+        } else {
+            orderListResDto.setCmpltDilCount(cmpltDilCount);
+        }
+        if(orderCancelCount == null) {
+            orderListResDto.setOrderCancelCount(0L);
+        } else {
+            orderListResDto.setOrderCancelCount(orderCancelCount);
+        }
+        if(returnCount == null) {
+            orderListResDto.setReturnCount(0L);
+        } else {
+            orderListResDto.setReturnCount(returnCount);
+        }
         orderListResDto.setOrderList(orderList);
 
         return orderListResDto;

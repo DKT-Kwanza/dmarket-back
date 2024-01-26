@@ -74,4 +74,10 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
                         "and od.orderDetailState = :orderDetailState " +
                         "GROUP BY od.orderDetailState")
         Long countOrderDetailByUserIdAndOrderDetailState(@Param("userId") Long userId, @Param("orderDetailState") OrderDetailState orderDetailState);
+
+        // null 값 처리를 위해 메서드 수정
+        default Long safeCountOrderDetailByUserIdAndOrderDetailState(Long userId, OrderDetailState orderDetailState) {
+                Long count = countOrderDetailByUserIdAndOrderDetailState(userId, orderDetailState);
+                return count != null ? count : 0L;
+        }
 }
