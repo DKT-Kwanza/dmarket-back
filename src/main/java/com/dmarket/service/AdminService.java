@@ -1,6 +1,7 @@
 package com.dmarket.service;
 
 import com.dmarket.constant.FaqType;
+import com.dmarket.constant.OrderDetailState;
 import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.order.Return;
 import com.dmarket.domain.product.Category;
@@ -8,6 +9,7 @@ import com.dmarket.domain.product.Product;
 import com.dmarket.domain.product.ProductImgs;
 import com.dmarket.domain.product.ProductOption;
 import com.dmarket.dto.request.ProductListDto;
+import com.dmarket.repository.order.OrderDetailRepository;
 import com.dmarket.repository.order.ReturnRepository;
 import com.dmarket.repository.product.CategoryRepository;
 import com.dmarket.repository.product.ProductImgsRepository;
@@ -17,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,10 +31,6 @@ import com.dmarket.dto.request.OptionReqDto;
 import com.dmarket.dto.request.ProductReqDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.repository.board.*;
-import com.dmarket.repository.product.CategoryRepository;
-import com.dmarket.repository.product.ProductImgsRepository;
-import com.dmarket.repository.product.ProductOptionRepository;
-import com.dmarket.repository.product.ProductRepository;
 import com.dmarket.repository.product.ProductReviewRepository;
 import com.dmarket.repository.user.*;
 import java.util.*;
@@ -53,6 +52,7 @@ public class AdminService {
     private final CategoryRepository categoryRepository;
     private final ProductReviewRepository productReviewRepository;
     private final WishlistRepository wishlistRepository;
+    private final OrderDetailRepository orderDetailRepository;
 
     @Transactional
     public void deleteUserByUserId(Long userId) {
@@ -68,7 +68,8 @@ public class AdminService {
     }
 
     @Transactional
-    public Page<NoticeListResDto> postNotice(Long userId, String noticeTitle, String noticeContents, Pageable pageable) {
+    public Page<NoticeListResDto> postNotice(Long userId, String noticeTitle, String noticeContents,
+            Pageable pageable) {
         Notice notice = Notice.builder()
                 .userId(userId)
                 .noticeTitle(noticeTitle)
@@ -88,37 +89,40 @@ public class AdminService {
     public void deleteNoticeByNoticeId(Long noticeId) {
         noticeRepository.deleteByNoticeId(noticeId);
     }
-// FAQ 조회
-public Page<Faq> getAllFaqs(FaqType faqType, Pageable pageable) {
-    return faqRepository.findFaqType(faqType, pageable);
-}
-public Page<FaqListResDto> mapToFaqListResDto(Page<Faq> faqsPage) {
-    return faqsPage.map(faq -> new FaqListResDto(
-            faq.getFaqId(),
-            faq.getFaqType(),
-            faq.getFaqQuestion(),
-            faq.getFaqAnswer()
-    ));
-}
-// FAQ 삭제
-@Transactional
-public void deleteFaqByFaqId(Long faqId) {
-    faqRepository.deleteByFaqId(faqId);
-}
 
-// FAQ 등록
-@Transactional
-public Long postFaq(FaqType faqType, String faqQuestion, String faqAnswer) {
-    Faq faq = Faq.builder()
-            .faqType(faqType)
-            .faqQuestion(faqQuestion)
-            .faqAnswer(faqAnswer)
-            .build();
-    Faq savedFaq = faqRepository.save(faq);
-    Long faqId = savedFaq.getFaqId();
+    // FAQ 조회
+    public Page<Faq> getAllFaqs(FaqType faqType, Pageable pageable) {
+        return faqRepository.findFaqType(faqType, pageable);
+    }
 
-    return faqId;
-}
+    public Page<FaqListResDto> mapToFaqListResDto(Page<Faq> faqsPage) {
+        return faqsPage.map(faq -> new FaqListResDto(
+                faq.getFaqId(),
+                faq.getFaqType(),
+                faq.getFaqQuestion(),
+                faq.getFaqAnswer()));
+    }
+
+    // FAQ 삭제
+    @Transactional
+    public void deleteFaqByFaqId(Long faqId) {
+        faqRepository.deleteByFaqId(faqId);
+    }
+
+    // FAQ 등록
+    @Transactional
+    public Long postFaq(FaqType faqType, String faqQuestion, String faqAnswer) {
+        Faq faq = Faq.builder()
+                .faqType(faqType)
+                .faqQuestion(faqQuestion)
+                .faqAnswer(faqAnswer)
+                .build();
+        Faq savedFaq = faqRepository.save(faq);
+        Long faqId = savedFaq.getFaqId();
+
+        return faqId;
+    }
+
     @Transactional
     public void updateProduct(ProductReqDto productReqDto) {
         Long categoryId = categoryRepository.findByCategoryName(productReqDto.getCategoryName()).getCategoryId();
@@ -201,6 +205,7 @@ public Long postFaq(FaqType faqType, String faqQuestion, String faqAnswer) {
     public Page<AdminReviewsResDto> getProductReviews(Pageable pageable) {
         return productReviewRepository.getProductReviews(pageable);
     }
+
     // 반품 상태 업데이트
     @Transactional
     public void updateReturnState(Long returnId, ReturnState returnState) {
@@ -228,6 +233,7 @@ public Long postFaq(FaqType faqType, String faqQuestion, String faqAnswer) {
             saveProductImgs(savedProduct.getProductId(), productitem.getImgList());
         }
     }
+
     @Transactional
     public Long getCategoryByCategoryName(String categoryName) {
         System.out.println("2.");
@@ -237,6 +243,7 @@ public Long postFaq(FaqType faqType, String faqQuestion, String faqAnswer) {
         }
         return null;
     }
+
     @Transactional
     public Product saveProduct(ProductListDto productitem, Long categoryId) {
         System.out.println("3.");
@@ -251,6 +258,7 @@ public Long postFaq(FaqType faqType, String faqQuestion, String faqAnswer) {
 
         return productRepository.save(newProduct);
     }
+
     @Transactional
     public void saveProductOptions(Long productId, List<ProductListDto.Option> optionList) {
         System.out.println("4.");
@@ -265,6 +273,7 @@ public Long postFaq(FaqType faqType, String faqQuestion, String faqAnswer) {
             productOptionRepository.save(newOption);
         }
     }
+
     @Transactional
     public void saveProductImgs(Long productId, List<String> imgAddresses) {
         System.out.println("5.");
@@ -276,6 +285,38 @@ public Long postFaq(FaqType faqType, String faqQuestion, String faqAnswer) {
 
             productImgsRepository.save(productImgs);
         }
+    }
+
+    @Transactional
+    public void updateOrderDetailState(Long detailId, String orderStatus) {
+        OrderDetailState orderDetailState = null;
+        switch (orderStatus) {
+            case "결제 완료":
+                orderDetailState = OrderDetailState.ORDER_COMPLETE;
+                break;
+            case "배송 준비":
+                orderDetailState = OrderDetailState.DELIVERY_READY;
+                break;
+            case "배송중":
+                orderDetailState = OrderDetailState.DELIVERY_ING;
+                break;
+            case "배송 완료":
+                orderDetailState = OrderDetailState.DELIVERY_COMPLETE;
+                break;
+            case "주문 취소":
+                orderDetailState = OrderDetailState.ORDER_CANCEL;
+                break;
+            case "환불/반품신청":
+                orderDetailState = OrderDetailState.RETURN_REQUEST;
+                break;
+            case "환불/반품완료":
+                orderDetailState = OrderDetailState.RETURN_COMPLETE;
+                break;
+            default:
+                System.out.println("잘못된 주문 상태입니다.");
+        }
+        orderDetailRepository.updateOrderDetailState(detailId, orderDetailState);
+
     }
 
 }
