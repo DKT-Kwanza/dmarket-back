@@ -612,4 +612,21 @@ public class AdminController {
                     .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    // 그룹별 관리자 조회
+    @GetMapping("/admin-users")
+    public ResponseEntity<?> getAdmins() {
+        try {
+            TotalAdminResDto adminUserResponse = adminService.getAdminUserDetails();
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("관리자 조회 성공").data(adminUserResponse).build(), HttpStatus.OK);
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
+        }
+    }
 }
