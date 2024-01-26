@@ -8,6 +8,10 @@ import com.dmarket.constant.InquiryType;
 import com.dmarket.domain.product.*;
 import com.dmarket.constant.*;
 import com.dmarket.constant.FaqType;
+import com.dmarket.dto.common.ProductOptionDto;
+import com.dmarket.dto.common.ProductOptionListDto;
+import com.dmarket.dto.common.QnaDto;
+import com.dmarket.dto.common.ReturnDto;
 import com.dmarket.repository.product.*;
 import com.dmarket.constant.OrderDetailState;
 import com.dmarket.constant.ReturnState;
@@ -31,7 +35,6 @@ import com.dmarket.dto.response.*;
 import com.dmarket.repository.board.*;
 import com.dmarket.repository.user.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -262,7 +265,7 @@ public class AdminService {
     }
 
     // 상품 QnA 상세(개별) 조회
-    public QnaDetailResDto getQnADetail(Long qnaId){
+    public QnaDetailResDto getQnADetail(Long qnaId) {
         return qnaRepository.findQnaAndReply(qnaId);
     }
 
@@ -300,6 +303,29 @@ public class AdminService {
 
         // 답변 상태 변경 -> 답변 대기
         qna.updateState(false);
+    }
+
+    // 반품 상태 리스트
+    public ReturnListResDto getReturns(String returnStatus, Pageable pageable) {
+        ReturnState returnState = null;
+        switch (returnStatus) {
+            case "반품 요청":
+                returnState = ReturnState.RETURN_REQUEST;
+                break;
+            case "수거중":
+                returnState = ReturnState.COLLECT_ING;
+                break;
+            case "수거 완료":
+                returnState = ReturnState.COLLECT_COMPLETE;
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown return state: " + returnStatus);
+        }
+        Page<ReturnDto> returnDto = returnRepository.getReturnsByReturnState(returnState, pageable);
+        ReturnListResDto returnListResDto = returnRepository.getReturnsCount();
+        returnListResDto.setReturnList(returnDto);
+        return returnListResDto;
+        
     }
 
     // 반품 상태 업데이트
@@ -383,14 +409,13 @@ public class AdminService {
         }
     }
 
-
-    //문의 목록 조회(카테고리별)
+    // 문의 목록 조회(카테고리별)
     @Transactional
     public Page<InquiryListResDto> getAllInquiriesByType(InquiryType inquiryType, Pageable pageable) {
         return inquiryRepository.findByInquiryType(inquiryType, pageable);
     }
 
-    //문의 삭제
+    // 문의 삭제
     @Transactional
     public boolean deleteInquiry(Long inquiryId) {
         Optional<Inquiry> inquiryOptional = inquiryRepository.findById(inquiryId);
@@ -403,8 +428,7 @@ public class AdminService {
         }
     }
 
-
-    //문의 답변 등록
+    // 문의 답변 등록
     @Transactional
     public InquiryReply createInquiryReply(InquiryReply inquiryReply) {
         return inquiryReplyRepository.save(inquiryReply);
