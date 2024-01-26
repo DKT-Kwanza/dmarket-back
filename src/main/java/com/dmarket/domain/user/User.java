@@ -59,6 +59,10 @@ public class User {
         this.userAddressDetail = userAddressReqDto.getUserDetailedAddress();
     }
 
+    public void updateMileage(Integer mileageCharge){
+        this.userMileage = userMileage + mileageCharge;
+    }
+
     @Builder
     public User(String userEmail, Integer userDktNum, String password, String userName, LocalDate userJoinDate, String userPhoneNum, Integer userPostalCode, String userAddress, String userAddressDetail) {
         this.userEmail = userEmail;

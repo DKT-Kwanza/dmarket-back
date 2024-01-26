@@ -14,9 +14,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Mileage {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long mileageId;
 
+    @Column(nullable = false)
     private Long userId;
 
     @Column(nullable = false)

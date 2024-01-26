@@ -211,6 +211,76 @@ public class AdminController {
         }
     }
 
+    //마일리지 충전 요청/처리 내역 조회
+    @GetMapping("/users/mileage-history")
+    public ResponseEntity<?> getMileageRequests(@RequestParam(required = true, value = "status", defaultValue = "PROCESSING") String status,
+                                                @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
+                                                Pageable pageable){
+        try{
+            pageNo = pageNo > 0 ? pageNo-1 : pageNo;
+            MileageReqListResDto requests = adminService.getMileageRequests(pageable, status, pageNo);
+
+            log.info("데이터 조회 완료");
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("성공").data(requests).build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg(e.getMessage()).build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    //마일리지 충전 요청 승인
+    @PutMapping("/users/mileage/approval/{mileageReqId}")
+    public ResponseEntity<?> approveMileageReq(@PathVariable(name = "mileageReqId") Long mileageReqId){
+        try{
+            //true인 경우 승인, false인 경우 거부
+            adminService.approveMileageReq(mileageReqId, true);
+            log.info("데이터 변경 완료");
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("성공").build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg(e.getMessage()).build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    //마일리지 충전 요청 거부
+    @PutMapping("/users/mileage/refusal/{mileageReqId}")
+    public ResponseEntity<?> refusalMileageReq(@PathVariable(name = "mileageReqId") Long mileageReqId){
+        try{
+            //true인 경우 승인, false인 경우 거부
+            adminService.approveMileageReq(mileageReqId, false);
+            log.info("데이터 변경 완료");
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("성공").build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg(e.getMessage()).build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     // faq 조회
     @GetMapping("/board/faq")
     public ResponseEntity<?> getFaqs(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
@@ -221,7 +291,6 @@ public class AdminController {
                 return new ResponseEntity<>(CMResDto.builder()
                         .code(400).msg("유효하지 않은 페이지 또는 크기").build(), HttpStatus.BAD_REQUEST);
             }
-
             Page<Faq> faqsPage = adminService.getAllFaqs(faqType, PageRequest.of(pageNo, pageSize));
             Page<FaqListResDto> mappedFaqs = adminService.mapToFaqListResDto(faqsPage);
 
