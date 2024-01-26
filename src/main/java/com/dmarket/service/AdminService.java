@@ -358,25 +358,24 @@ public class AdminService {
 
     // 반품 상태 업데이트
     @Transactional
-    public void updateReturnState(Long returnId, ReturnState returnState) {
+    public void updateReturnState(Long returnId, String returnState) {
         Return returnEntity = returnRepository.findById(returnId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 returnId가 존재하지 않습니다. returnId: " + returnId));
 
-        // returnState 가 "반품 완료" 상태인 경우 환불 테이블에 state = 0으로 추가
-        if(returnState == ReturnState.COLLECT_COMPLETE){
+        // returnState 가 " 완료" 상태인 경우 환불 테이블에 state = 0으로 추가
+        if(returnState == ReturnState.COLLECT_COMPLETE.label){
             Refund refund = new Refund(returnId, false); // 초기 refundState는 false로 설정
             refundRepository.save(refund);
         }
+        ReturnState state = ReturnState.fromLabel(returnState);
 
-        returnEntity.updateReturnState(returnState);
+        returnEntity.updateReturnState(state);
     }
 
     // 신상품 등록
     @Transactional
     public void saveProductList(List<ProductListDto> productList) {
-        System.out.println("1.");
         for (ProductListDto productitem : productList) {
-            System.out.println("********");
             // CategoryId 가져오기
             Long categoryId = getCategoryByCategoryName(productitem.getCategoryName());
 
@@ -393,7 +392,6 @@ public class AdminService {
 
     @Transactional
     public Long getCategoryByCategoryName(String categoryName) {
-        System.out.println("2.");
         Category category = categoryRepository.findByCategoryName(categoryName);
         if (category != null) {
             return category.getCategoryId();
@@ -403,7 +401,6 @@ public class AdminService {
 
     @Transactional
     public Product saveProduct(ProductListDto productitem, Long categoryId) {
-        System.out.println("3.");
         Product newProduct = Product.builder()
                 .categoryId(categoryId)
                 .productBrand(productitem.getBrand())
@@ -418,7 +415,6 @@ public class AdminService {
 
     @Transactional
     public void saveProductOptions(Long productId, List<ProductListDto.Option> optionList) {
-        System.out.println("4.");
         for (ProductListDto.Option option : optionList) {
             ProductOption newOption = ProductOption.builder()
                     .productId(productId)
@@ -433,7 +429,6 @@ public class AdminService {
 
     @Transactional
     public void saveProductImgs(Long productId, List<String> imgAddresses) {
-        System.out.println("5.");
         for (String imgAddress : imgAddresses) {
             ProductImgs productImgs = ProductImgs.builder()
                     .productId(productId)

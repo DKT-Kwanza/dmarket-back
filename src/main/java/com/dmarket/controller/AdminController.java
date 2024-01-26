@@ -483,9 +483,10 @@ public class AdminController {
 
     // 반품 상태 변경
     @PutMapping("/orders/returns/{returnId}")
-    public ResponseEntity<?> changeReturnStatus(@PathVariable Long returnId, @RequestParam String returnStatus) {
+    public ResponseEntity<?> changeReturnStatus(@PathVariable Long returnId, @RequestBody ChangeReturnStateDto changeReturnStateDto) {
         try {
-            adminService.updateReturnState(returnId, ReturnState.valueOf(returnStatus));
+            String returnState = changeReturnStateDto.getReturnStatus();
+            adminService.updateReturnState(returnId, returnState);
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("반품 상태 변경 완료").build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
@@ -650,7 +651,7 @@ public class AdminController {
 
 
 
-    // 배송 상태 변경
+    // 배송 상태 변경경
     @PutMapping("/orders/{detailId}")
     public ResponseEntity<?> updateOrderStatus(@PathVariable Long detailId,
             @Valid @RequestBody OrderStatusReqDto requestDto, BindingResult bindingResult) {
@@ -752,7 +753,7 @@ public class AdminController {
         }
     }
 
-    // 권한 부여
+    // 권한 부여한
     // 사용힌 ChangeRoleReqDto
     @PutMapping("/admin-users/{userId}")
     public ResponseEntity<?> changeRole(@PathVariable Long userId,
@@ -843,7 +844,7 @@ public class AdminController {
         try {
             List<OrderCancelResDto> orderCancleList = adminService.orderCancle();
             return new ResponseEntity<>(CMResDto.builder()
-                    .code(200).msg("관리자 상품 목록 조회 완료").data(orderCancleList).build(), HttpStatus.OK);
+                    .code(200).msg("취소 목록 조회 완료").data(orderCancleList).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             // 잘못된 요청에 대한 예외 처리
             log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
