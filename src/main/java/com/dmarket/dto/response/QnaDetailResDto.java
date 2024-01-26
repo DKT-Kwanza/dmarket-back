@@ -4,6 +4,7 @@ import com.dmarket.domain.product.Product;
 import com.dmarket.domain.product.Qna;
 import com.dmarket.domain.product.QnaReply;
 import com.dmarket.domain.user.User;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -20,8 +21,12 @@ public class QnaDetailResDto {
     private String qnaStatus;
     private Boolean qnaIsSecret;
     private LocalDateTime qnaCreatedDate;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long qnaReplyId;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String qnaReplyContents;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private LocalDateTime qnaReplyDate;
 
     public QnaDetailResDto(Qna qna, Product product, User user, QnaReply qnaReply) {
