@@ -1,6 +1,8 @@
 package com.dmarket.repository.user;
 
+import com.dmarket.domain.order.Order;
 import com.dmarket.domain.user.User;
+import com.dmarket.dto.common.ProductDetailListDto;
 import com.dmarket.dto.response.UserHeaderInfoResDto;
 import com.dmarket.dto.response.UserInfoResDto;
 import com.dmarket.dto.response.UserResDto;
@@ -42,4 +44,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User findUserNameByUserId(Long userId);
 
     User findByUserId(Long userId);
+
 }

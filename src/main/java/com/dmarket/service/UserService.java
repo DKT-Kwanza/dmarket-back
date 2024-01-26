@@ -2,16 +2,15 @@ package com.dmarket.service;
 
 import com.dmarket.constant.MileageReqState;
 import com.dmarket.constant.MileageContents;
+import com.dmarket.constant.OrderDetailState;
 import com.dmarket.domain.user.User;
-import com.dmarket.dto.common.ProductDetailListDto;
+import com.dmarket.dto.common.*;
 import com.dmarket.dto.request.UserAddressReqDto;
 import com.dmarket.dto.response.*;
-import com.dmarket.dto.common.WishlistItemDto;
 import com.dmarket.jwt.JWTUtil;
 import com.dmarket.domain.board.Inquiry;
 import com.dmarket.domain.user.Mileage;
 import com.dmarket.domain.user.MileageReq;
-import com.dmarket.dto.common.MileageDto;
 import com.dmarket.domain.user.Cart;
 import com.dmarket.domain.user.Wishlist;
 import com.dmarket.dto.request.JoinReqDto;
@@ -34,7 +33,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.dmarket.domain.order.Order;
-import com.dmarket.dto.common.CartListDto;
 import com.dmarket.repository.order.OrderDetailRepository;
 import com.dmarket.repository.order.OrderRepository;
 import com.dmarket.repository.product.QnaRepository;
@@ -382,4 +380,46 @@ public class UserService {
         User user = userRepository.findByUserId(userId);
         return new OrderDetailListResDto(order, user, productDetailList);
     }
+
+//    // 주문 / 배송 내역 조회
+//    public OrderListResDto getOrderListResByUserId(Long userId){
+//        List<OrderListDto> orderList = new ArrayList<>();
+//        List<Order> orders = userRepository.findOrderByUserId(userId);
+//        for (Order order : orders) {
+//            List<ProductDetailListDto> productDetailListDtos = userRepository.findOrderDetailByUserId(userId);
+//            orderList.add(new OrderListDto(order, productDetailListDtos));
+//        }
+//
+//        return new OrderListResDto(confPaycount, preShipCount, inTransitCount, cmpltDilCount, orderCancelCount, returnCount, orderList);
+//    }
+    public OrderListResDto getOrderListResByUserId(Long userId) {
+        List<OrderListDto> orderList = new ArrayList<>();
+        List<Order> orders = orderRepository.findByUserId(userId);
+
+        Long confPayCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_COMPLETE);
+        Long preShipCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_READY);
+        Long inTransitCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_ING);
+        Long cmpltDilCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_COMPLETE);
+        Long orderCancelCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_CANCEL);
+        Long returnCount = orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_REQUEST) +
+                orderDetailRepository.countOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_COMPLETE);
+
+        for (Order order : orders) {
+            List<ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByUserId(userId);
+            orderList.add(new OrderListDto(order, productDetailListDtos));
+        }
+
+        OrderListResDto orderListResDto = new OrderListResDto();
+
+        orderListResDto.setConfPayCount(confPayCount);
+        orderListResDto.setPreShipCount(preShipCount);
+        orderListResDto.setInTransitCount(inTransitCount);
+        orderListResDto.setCmpltDilCount(cmpltDilCount);
+        orderListResDto.setOrderCancelCount(orderCancelCount);
+        orderListResDto.setReturnCount(returnCount);
+        orderListResDto.setOrderList(orderList);
+
+        return orderListResDto;
+    }
+
 }
