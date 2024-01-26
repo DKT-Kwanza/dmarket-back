@@ -8,6 +8,7 @@ import com.dmarket.domain.user.User;
 import com.dmarket.constant.InquiryType;
 import com.dmarket.domain.product.*;
 import com.dmarket.constant.*;
+import com.dmarket.constant.FaqType;
 import com.dmarket.dto.common.ProductOptionDto;
 import com.dmarket.dto.common.ProductOptionListDto;
 import com.dmarket.dto.request.ChangeRoleReqDto;
@@ -19,6 +20,8 @@ import com.dmarket.repository.product.ProductRepository;
 import com.dmarket.dto.common.QnaDto;
 import com.dmarket.dto.common.ReturnDto;
 import com.dmarket.repository.product.*;
+import com.dmarket.constant.OrderDetailState;
+import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.order.Return;
 import com.dmarket.domain.product.Category;
 import com.dmarket.domain.product.Product;
@@ -28,7 +31,18 @@ import com.dmarket.dto.request.ProductListDto;
 import com.dmarket.repository.order.OrderDetailRepository;
 import com.dmarket.repository.order.RefundRepository;
 import com.dmarket.repository.order.ReturnRepository;
-
+import com.dmarket.repository.product.CategoryRepository;
+import com.dmarket.repository.product.ProductImgsRepository;
+import com.dmarket.repository.product.ProductOptionRepository;
+import com.dmarket.repository.product.ProductRepository;
+import com.dmarket.domain.product.Category;
+import com.dmarket.domain.product.Product;
+import com.dmarket.dto.common.ProductOptionDto;
+import com.dmarket.dto.common.ProductOptionListDto;
+import com.dmarket.repository.product.CategoryRepository;
+import com.dmarket.repository.product.ProductImgsRepository;
+import com.dmarket.repository.product.ProductOptionRepository;
+import com.dmarket.repository.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -340,7 +354,6 @@ public class AdminService {
         returnListResDto.setReturnList(returnDto);
         return returnListResDto;
 
-
     }
 
     // 반품 상태 업데이트
@@ -601,5 +614,11 @@ public class AdminService {
         orderDetailRepository.updateReturnCompleteByReturnId(returnId, OrderDetailState.RETURN_COMPLETE);
         refundRepository.updateRefundCompleteByReturnId(returnId);
         userRepository.updateUserMileageByReturnId(returnId, amount);
+    }
+
+    // 취소 목록 조회
+    @Transactional
+    public List<OrderCancelResDto> orderCancle(){
+        return orderDetailRepository.findOrderCancelResDtosByOrderDetailState(OrderDetailState.ORDER_CANCEL);
     }
 }

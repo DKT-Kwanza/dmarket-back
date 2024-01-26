@@ -5,6 +5,7 @@ import com.dmarket.constant.OrderDetailState;
 import com.dmarket.domain.order.OrderDetail;
 import com.dmarket.dto.common.ProductDetailListDto;
 import com.dmarket.dto.response.OrderDetailListResDto;
+import com.dmarket.dto.response.OrderCancelResDto;
 import com.dmarket.dto.response.OrderDetailResDto;
 import com.dmarket.dto.response.ReviewResDto;
 
@@ -73,6 +74,29 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
                         "and od.orderDetailState = :orderDetailState " +
                         "GROUP BY od.orderDetailState")
         Long countOrderDetailByUserIdAndOrderDetailState(@Param("userId") Long userId, @Param("orderDetailState") OrderDetailState orderDetailState);
+
+        @Query("SELECT new com.dmarket.dto.response.OrderCancelResDto(" +
+                "   prod.productId, " +
+                "   ord.orderId, " +
+                "   prod.productName, " +
+                "   prod.productBrand, " +
+                "   MIN(img.imgAddress), " +
+                "   popt.optionValue, " +
+                "   popt.optionName, " +
+                "   ord.orderDate, " +
+                "   od.orderDetailCount, " +
+                "   od.orderDetailState" + // Enum 값 그대로 조회
+                ") " +
+                "FROM OrderDetail od " +
+                "JOIN Order ord ON od.orderId = ord.orderId " +
+                "JOIN Product prod ON od.productId = prod.productId " +
+                "JOIN ProductOption popt ON od.optionId = popt.optionId " +
+                "JOIN ProductImgs img ON prod.productId = img.productId " +
+                "WHERE od.orderDetailState = :orderCancelState " +
+                "GROUP BY prod.productId, ord.orderId, prod.productName, prod.productBrand, popt.optionValue, popt.optionName, ord.orderDate, od.orderDetailCount, od.orderDetailState")
+        List<OrderCancelResDto> findOrderCancelResDtosByOrderDetailState(@Param("orderCancelState") OrderDetailState orderCancelState);
+
+
 
         // null 값 처리를 위해 메서드 수정
         default Long safeCountOrderDetailByUserIdAndOrderDetailState(Long userId, OrderDetailState orderDetailState) {
