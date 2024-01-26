@@ -54,17 +54,6 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
                         ")")
         List<ProductDetailListDto> findOrderDetailByOrderId(@Param("orderId") Long orderId);
 
-        @Query(value = "select new com.dmarket.dto.common.ProductDetailListDto(od, p, po, pi) " +
-                "from OrderDetail od " +
-                "join Product p on od.productId = p.productId " +
-                "join ProductOption po on od.optionId = po.optionId " +
-                "join ProductImgs pi on p.productId = pi.productId " +
-                "join Order o on od.orderId = o.orderId " +
-                "where o.orderId = :orderId and pi.imgId = (" +
-                "select min(pi2.imgId) from ProductImgs pi2 where pi2.productId = od.productId" +
-                ")")
-        List<ProductDetailListDto> findOrderDetailByUserId(@Param("orderId") Long orderId);
-
         // count (orderDetailState) by userId
         @Query(value = "SELECT COUNT(*) " +
                         "FROM OrderDetail od " +
