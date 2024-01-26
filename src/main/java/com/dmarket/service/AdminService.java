@@ -1,8 +1,8 @@
 package com.dmarket.service;
 
-import com.dmarket.constant.InquiryType;
+import com.dmarket.constant.*;
+import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.InquiryDetailsDto;
-import com.dmarket.constant.FaqType;
 import com.dmarket.domain.product.Category;
 import com.dmarket.domain.product.Product;
 import com.dmarket.dto.common.ProductOptionDto;
@@ -13,8 +13,6 @@ import com.dmarket.repository.product.ProductOptionRepository;
 import com.dmarket.repository.product.ProductRepository;
 import com.dmarket.dto.common.QnaDto;
 import com.dmarket.repository.product.*;
-import com.dmarket.constant.OrderDetailState;
-import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.order.Return;
 import com.dmarket.domain.product.Category;
 import com.dmarket.domain.product.Product;
@@ -431,5 +429,31 @@ public class AdminService {
         }
 
         return result;
+    }
+
+    public TotalAdminResDto getAdminUserDetails() {
+        List<User> allManagers = userRepository.findAllByUserRoleIsNot(Role.ROLE_USER);
+        List<ManagerInfoDto> managerInfoDTOList = new ArrayList<>();
+
+        int gmCount = adminCount(allManagers, Role.ROLE_GM);
+        int smCount = adminCount(allManagers, Role.ROLE_SM);
+        int pmCount = adminCount(allManagers, Role.ROLE_PM);
+
+        for (User manager : allManagers) {
+            ManagerInfoDto managerInfoDto = new ManagerInfoDto(
+                    manager.getUserId(),
+                    manager.getUserName(),
+                    manager.getUserEmail(),
+                    manager.getUserRole(),
+                    manager.getUserJoinDate().atStartOfDay()
+            );
+            managerInfoDTOList.add(managerInfoDto);
+        }
+
+        return new TotalAdminResDto(allManagers.size(), gmCount, smCount, pmCount, managerInfoDTOList);
+    }
+
+    private int adminCount(List<User> users, Role role) {
+        return (int) users.stream().filter(user -> user.getUserRole() == role).count();
     }
 }
