@@ -373,4 +373,9 @@ public class UserService {
 
         mileageReqRepository.save(mileageReq);
     }
+
+    // 사용자 문의 전체 조회
+    public List<UserInquiryAllResDto> getUserInquiryAllbyUserId(Long userId) {
+        return inquiryRepository.findUserInquiryAllByUserId(userId);
+    }
 }
