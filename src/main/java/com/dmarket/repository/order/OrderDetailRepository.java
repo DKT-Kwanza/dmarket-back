@@ -1,7 +1,10 @@
 package com.dmarket.repository.order;
 
 import com.dmarket.constant.OrderDetailState;
+import com.dmarket.domain.order.Order;
 import com.dmarket.domain.order.OrderDetail;
+import com.dmarket.dto.common.ProductDetailListDto;
+import com.dmarket.dto.response.OrderDetailListResDto;
 import com.dmarket.dto.response.OrderDetailResDto;
 import com.dmarket.dto.response.ReviewResDto;
 
@@ -40,4 +43,14 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
         @Query("UPDATE OrderDetail od SET od.orderDetailState = :state WHERE od.orderDetailId = :id")
         void updateOrderDetailState(@Param("id") Long detailId, @Param("state") OrderDetailState orderDetailState);
 
+        // 주문 내역 상세 조회
+        @Query(value = "select new com.dmarket.dto.common.ProductDetailListDto(od, p, po, pi) " +
+                        "from OrderDetail od " +
+                        "join Product p on od.productId = p.productId " +
+                        "join ProductOption po on od.optionId = po.optionId " +
+                        "join ProductImgs pi on p.productId = pi.productId " +
+                        "where od.orderId = :orderId and pi.imgId = (" +
+                        "select min(pi2.imgId) from ProductImgs pi2 where pi2.productId = od.productId" +
+                        ")")
+        List<ProductDetailListDto> findOrderDetailByOrderId(@Param("orderId") Long orderId);
 }

@@ -3,6 +3,7 @@ package com.dmarket.service;
 import com.dmarket.constant.MileageReqState;
 import com.dmarket.constant.MileageContents;
 import com.dmarket.domain.user.User;
+import com.dmarket.dto.common.ProductDetailListDto;
 import com.dmarket.dto.request.UserAddressReqDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.dto.common.WishlistItemDto;
@@ -252,11 +253,6 @@ public class UserService {
         wishlistRepository.deleteById(wishlistId);
     }
 
-
-
-
-
-
     // 문의 작성
     @Transactional
     public Inquiry createInquiry(Inquiry inquiry) {
@@ -377,5 +373,13 @@ public class UserService {
     // 사용자 문의 전체 조회
     public List<UserInquiryAllResDto> getUserInquiryAllbyUserId(Long userId) {
         return inquiryRepository.findUserInquiryAllByUserId(userId);
+    }
+
+    // 사용자 주문 내역 상세 조회
+    public OrderDetailListResDto getOrderDetailListByOrderId(Long orderId,Long userId) {
+        List<ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(orderId);
+        Order order = orderRepository.findByOrderId(orderId);
+        User user = userRepository.findByUserId(userId);
+        return new OrderDetailListResDto(order, user, productDetailList);
     }
 }
