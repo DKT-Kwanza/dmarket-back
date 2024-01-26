@@ -1,6 +1,7 @@
 package com.dmarket.service;
 
 import com.dmarket.domain.product.ProductReview;
+import com.dmarket.dto.common.*;
 import com.dmarket.dto.request.ReviewReqDto;
 import com.dmarket.dto.response.CategoryListResDto;
 import com.dmarket.dto.response.ProductListResDto;
@@ -13,9 +14,6 @@ import com.dmarket.repository.product.QnaRepository;
 import com.dmarket.repository.user.UserRepository;
 import com.dmarket.domain.product.Category;
 import com.dmarket.domain.product.Product;
-import com.dmarket.dto.common.ProductDto;
-import com.dmarket.dto.common.ProductOptionDto;
-import com.dmarket.dto.common.ProductReviewDto;
 import com.dmarket.repository.product.*;
 import com.dmarket.repository.user.WishlistRepository;
 import lombok.RequiredArgsConstructor;
@@ -54,21 +52,21 @@ public class ProductService {
     }
 
     // 카테고리별 상품 목록 필터링 조회
-    public Page<ProductListResDto> getCategoryProducts(Pageable pageable, int pageNo, Long cateId,
+    public ProductListResDto getCategoryProducts(Pageable pageable, int pageNo, Long cateId,
                                                        String sorter, Integer minPrice, Integer maxPrice, Float star) {
         pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
-        Page<ProductListResDto> productList = productRepository.findByCateId(pageable, cateId, minPrice, maxPrice, star);
+        Page<ProductListDto> productList = productRepository.findByCateId(pageable, cateId, minPrice, maxPrice, star);
 
-        return productList;
+        return new ProductListResDto(productList.getTotalPages(), productList.getContent());
     }
 
     // 상품 목록 조건 검색
-    public Page<ProductListResDto> getSearchProducts(Pageable pageable, int pageNo, String query,
+    public ProductListResDto getSearchProducts(Pageable pageable, int pageNo, String query,
                                                      String sorter, Integer minPrice, Integer maxPrice, Float star) {
         pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
-        Page<ProductListResDto> productList = productRepository.findByQuery(pageable, query, minPrice, maxPrice, star);
+        Page<ProductListDto> productList = productRepository.findByQuery(pageable, query, minPrice, maxPrice, star);
 
-        return productList;
+        return new ProductListResDto(productList.getTotalPages(), productList.getContent());
     }
 
     // 최신 상품 조회

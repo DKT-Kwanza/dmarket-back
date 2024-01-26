@@ -49,5 +49,6 @@ public class MileageReq {
 
     public void updateState(MileageReqState mileageReqState){
         this.mileageReqState = mileageReqState;
+        this.mileageReqUpdatedDate = LocalDateTime.now().withNano(0);
     }
 }

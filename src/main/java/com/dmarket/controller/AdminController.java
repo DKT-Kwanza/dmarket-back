@@ -7,6 +7,8 @@ import com.dmarket.service.AdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -208,6 +210,30 @@ public class AdminController {
         }
     }
 
+    //마일리지 충전 요청 내역 조회
+    @GetMapping("/users/mileage-history")
+    public ResponseEntity<?> getMileageRequests(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
+                                                Pageable pageable){
+        try{
+            pageNo = pageNo > 0 ? pageNo-1 : pageNo;
+            MileageReqListResDto requests = adminService.getMileageRequests(pageable, pageNo);
+
+            log.info("데이터 조회 완료");
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("성공").data(requests).build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     //마일리지 충전 요청 거부
     @PutMapping("/users/mileage/refusal/{mileageReqId}")
     public ResponseEntity<?> refusalMileageReq(@PathVariable(name = "mileageReqId") Long mileageReqId){
@@ -229,4 +255,5 @@ public class AdminController {
                     .code(500).msg(e.getMessage()).build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 }

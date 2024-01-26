@@ -3,8 +3,14 @@ package com.dmarket.service;
 import com.dmarket.constant.MileageReqState;
 import com.dmarket.domain.user.MileageReq;
 import com.dmarket.domain.user.User;
+import com.dmarket.dto.common.MileageReqDto;
+import com.dmarket.dto.common.MileageReqListDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +19,7 @@ import com.dmarket.dto.response.*;
 import com.dmarket.repository.board.*;
 import com.dmarket.repository.user.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -23,6 +30,8 @@ public class AdminService {
     private final UserRepository userRepository;
     private final NoticeRepository noticeRepository;
     private final MileageReqRepository mileageReqRepository;
+
+    private static final int ADMIN_PAGE_POST_COUNT = 10;
 
     @Transactional
     public void deleteUserByUserId(Long userId) {
@@ -44,6 +53,18 @@ public class AdminService {
                 .noticeContents(noticeContents)
                 .build();
         noticeRepository.save(notice);
+    }
+
+    // 마일리지 충전 요청 내역
+    @Transactional
+    public MileageReqListResDto getMileageRequests(Pageable pageable, int pageNo){
+        pageable = PageRequest.of(pageNo, ADMIN_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "mileageReqDate"));
+
+        Page<MileageReqDto> dtos = mileageReqRepository.findAllBySelect(pageable);
+        List<MileageReqListDto> mileageRequests = dtos.getContent().stream()
+                .map(MileageReqListDto::new).toList();
+
+        return new MileageReqListResDto(dtos.getTotalPages(), mileageRequests);
     }
 
     // 마일리지 충전 요청 처리
