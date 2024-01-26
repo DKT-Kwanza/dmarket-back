@@ -22,6 +22,16 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     Category findByCategoryName(String categoryName);
 
     // 상품 옵션 조회 status 추가
+
+
+
+
+    // 상품 옵션 조회 status 추가
+//    @Query(value = "select new.com.dmarket.dto.common.ProductOptionListDto(o)" +
+//            " from Category c" +
+//            " join Product p on c.categoryId = p.categoryId" +
+//            " join ProductOption o on p.productId = o.productId" +
+//            " where c.categoryId = :categoryId")
     @Query(value = "select new com.dmarket.dto.common.ProductOptionListDto(o) " +
             "from Category c " +
             "join Product p on c.categoryId = p.categoryId " +

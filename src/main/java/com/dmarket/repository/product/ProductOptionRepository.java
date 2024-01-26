@@ -17,9 +17,10 @@ public interface ProductOptionRepository extends JpaRepository<ProductOption, Lo
             "from ProductOption o where o.productId = :productId")
     List<ProductOptionDto> findOptionsByProductId(Long productId);
 
+    // 상품의 옵션 삭제
+    void deleteByOptionId(@Param("optionId") Long optionId);
+
     void deleteByProductId(@Param("productId") Long productId);
 
 
-    // 상품의 옵션 삭제
-    void deleteByOptionId(@Param("optionId") Long optionId);
 }
