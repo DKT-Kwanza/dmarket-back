@@ -10,6 +10,7 @@ import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
 import com.dmarket.service.AdminService;
 
+import com.dmarket.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -613,13 +614,20 @@ public class AdminController {
         }
     }
 
-    // 그룹별 관리자 조회
+    // if:False -> 그룹별 관리자 조회
+    // if:True -> 사원 검색
     @GetMapping("/admin-users")
-    public ResponseEntity<?> getAdmins() {
+    public ResponseEntity<?> getAdmins(@RequestParam(value = "q", required = false) Integer dktNum) {
         try {
-            TotalAdminResDto adminUserResponse = adminService.getAdminUserDetails();
-            return new ResponseEntity<>(CMResDto.builder()
-                    .code(200).msg("관리자 조회 성공").data(adminUserResponse).build(), HttpStatus.OK);
+            if (dktNum != null){
+                SearchUserResDto searchUserRes = adminService.searchUser(dktNum);
+                return new ResponseEntity<>(CMResDto.builder()
+                        .code(200).msg("사원 검색").data(searchUserRes).build(), HttpStatus.OK);
+            }else {
+                TotalAdminResDto adminUserResponse = adminService.getAdminUserDetails();
+                return new ResponseEntity<>(CMResDto.builder()
+                        .code(200).msg("관리자 조회 성공").data(adminUserResponse).build(), HttpStatus.OK);
+            }
         } catch (RuntimeException e) {
             log.warn(e.getMessage(), e.getCause());
             return new ResponseEntity<>(CMResDto.builder()
@@ -629,4 +637,25 @@ public class AdminController {
                     .code(400).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
         }
     }
+
+    // 권한 부여
+    // 사용힌 ChangeRoleReqDto
+    @PutMapping("/admin-users/{userId}")
+    public ResponseEntity<?> changeRole(@PathVariable Long userId,
+                                        @RequestBody ChangeRoleReqDto newRole){
+        try {
+            adminService.changeRole(userId,newRole);
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("관리자 조회 성공").build(), HttpStatus.OK);
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e.getCause());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+
 }
