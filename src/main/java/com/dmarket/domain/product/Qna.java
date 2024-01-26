@@ -17,6 +17,7 @@ public class Qna {
     private Long qnaId;
 
     private Long userId;
+
     private Long productId;
 
     @Column(nullable = false)

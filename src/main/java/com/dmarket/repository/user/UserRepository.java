@@ -29,5 +29,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
                     "where u.userId = :userId")
     UserHeaderInfoResDto findUserHeaderInfoByUserId(Long userId);
     User findByUserEmail(String userEmail);
+
+
+    User findUserNameByUserId(Long userId);
 }
 
