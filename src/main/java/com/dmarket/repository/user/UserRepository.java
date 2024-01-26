@@ -1,7 +1,9 @@
 package com.dmarket.repository.user;
 
+import com.dmarket.domain.order.Order;
 import com.dmarket.constant.Role;
 import com.dmarket.domain.user.User;
+import com.dmarket.dto.common.ProductDetailListDto;
 import com.dmarket.dto.response.UserHeaderInfoResDto;
 import com.dmarket.dto.response.UserInfoResDto;
 import com.dmarket.dto.response.UserResDto;
@@ -48,4 +50,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // User 별로 사용자 집계
     List<User> findAllByUserRoleIsNot(Role userRole);
+
 }

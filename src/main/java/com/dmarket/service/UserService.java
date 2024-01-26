@@ -2,15 +2,15 @@ package com.dmarket.service;
 
 import com.dmarket.constant.MileageReqState;
 import com.dmarket.constant.MileageContents;
+import com.dmarket.constant.OrderDetailState;
 import com.dmarket.domain.user.User;
+import com.dmarket.dto.common.*;
 import com.dmarket.dto.request.UserAddressReqDto;
 import com.dmarket.dto.response.*;
-import com.dmarket.dto.common.WishlistItemDto;
 import com.dmarket.jwt.JWTUtil;
 import com.dmarket.domain.board.Inquiry;
 import com.dmarket.domain.user.Mileage;
 import com.dmarket.domain.user.MileageReq;
-import com.dmarket.dto.common.MileageDto;
 import com.dmarket.domain.user.Cart;
 import com.dmarket.domain.user.Wishlist;
 import com.dmarket.dto.request.JoinReqDto;
@@ -33,7 +33,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.dmarket.domain.order.Order;
-import com.dmarket.dto.common.CartListDto;
 import com.dmarket.repository.order.OrderDetailRepository;
 import com.dmarket.repository.order.OrderRepository;
 import com.dmarket.repository.product.QnaRepository;
@@ -252,11 +251,6 @@ public class UserService {
         wishlistRepository.deleteById(wishlistId);
     }
 
-
-
-
-
-
     // 문의 작성
     @Transactional
     public Inquiry createInquiry(Inquiry inquiry) {
@@ -373,4 +367,72 @@ public class UserService {
 
         mileageReqRepository.save(mileageReq);
     }
+
+    // 사용자 문의 전체 조회
+    public List<UserInquiryAllResDto> getUserInquiryAllbyUserId(Long userId) {
+        return inquiryRepository.findUserInquiryAllByUserId(userId);
+    }
+
+    // 사용자 주문 내역 상세 조회
+    public OrderDetailListResDto getOrderDetailListByOrderId(Long orderId,Long userId) {
+        List<ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(orderId);
+        Order order = orderRepository.findByOrderId(orderId);
+        User user = userRepository.findByUserId(userId);
+        return new OrderDetailListResDto(order, user, productDetailList);
+    }
+
+    // 주문 / 배송 내역 조회
+    public OrderListResDto getOrderListResByUserId(Long userId) {
+        List<OrderListDto> orderList = new ArrayList<>();
+        List<Order> orders = orderRepository.findByUserId(userId);
+
+        Long confPayCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_COMPLETE);
+        Long preShipCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_READY);
+        Long inTransitCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_ING);
+        Long cmpltDilCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_COMPLETE);
+        Long orderCancelCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_CANCEL);
+        Long returnCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_REQUEST) +
+                orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_COMPLETE);
+        for (Order order : orders) {
+            List<ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
+            orderList.add(new OrderListDto(order, productDetailListDtos));
+        }
+
+        OrderListResDto orderListResDto = new OrderListResDto();
+
+        if (confPayCount == null) {
+            orderListResDto.setConfPayCount(0L);
+        } else {
+            orderListResDto.setConfPayCount(confPayCount);
+        }
+        if (preShipCount == null) {
+            orderListResDto.setPreShipCount(0L);
+        } else {
+            orderListResDto.setPreShipCount(preShipCount);
+        }
+        if(inTransitCount == null) {
+            orderListResDto.setInTransitCount(0L);
+        } else {
+            orderListResDto.setInTransitCount(inTransitCount);
+        }
+        if(cmpltDilCount == null) {
+            orderListResDto.setCmpltDilCount(0L);
+        } else {
+            orderListResDto.setCmpltDilCount(cmpltDilCount);
+        }
+        if(orderCancelCount == null) {
+            orderListResDto.setOrderCancelCount(0L);
+        } else {
+            orderListResDto.setOrderCancelCount(orderCancelCount);
+        }
+        if(returnCount == null) {
+            orderListResDto.setReturnCount(0L);
+        } else {
+            orderListResDto.setReturnCount(returnCount);
+        }
+        orderListResDto.setOrderList(orderList);
+
+        return orderListResDto;
+    }
+
 }
