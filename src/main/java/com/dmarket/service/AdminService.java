@@ -1,10 +1,12 @@
 package com.dmarket.service;
 
+import com.dmarket.dto.common.*;
+import com.dmarket.constant.MileageReqState;
+import com.dmarket.domain.user.MileageReq;
+import com.dmarket.domain.user.User;
 import com.dmarket.constant.InquiryType;
 import com.dmarket.domain.product.*;
 import com.dmarket.constant.*;
-import com.dmarket.domain.user.User;
-import com.dmarket.dto.common.InquiryDetailsDto;
 import com.dmarket.constant.FaqType;
 import com.dmarket.dto.common.ProductOptionDto;
 import com.dmarket.dto.common.ProductOptionListDto;
@@ -63,6 +65,8 @@ public class AdminService {
     // 조회가 아닌 메서드들은 꼭 @Transactional 넣어주세요 (CUD, 입력/수정/삭제)
     private final UserRepository userRepository;
     private final NoticeRepository noticeRepository;
+    private final MileageReqRepository mileageReqRepository;
+
     private final FaqRepository faqRepository;
     private final ProductOptionRepository productOptionRepository;
     private final ProductRepository productRepository;
@@ -78,7 +82,7 @@ public class AdminService {
     private final InquiryReplyRepository inquiryReplyRepository;
     private final OrderDetailRepository orderDetailRepository;
 
-    private static final int PAGE_SIZE = 10;
+    private static final int PAGE_POST_COUNT = 10;
 
     @Transactional
     public void deleteUserByUserId(Long userId) {
@@ -111,11 +115,53 @@ public class AdminService {
                 no.getNoticeCreatedDate()));
     }
 
+    // 마일리지 충전 요청 내역
+    @Transactional
+    public MileageReqListResDto getMileageRequests(Pageable pageable, String status, int pageNo){
+        pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "mileageReqDate"));
+        Page<MileageReqDto> dtos;
+        if(status.equals("PROCESSING")){
+            dtos = mileageReqRepository.findAllByProcessing(pageable);
+        }else if(status.equals("PROCESSED")){
+            dtos = mileageReqRepository.findAllByProcessed(pageable);
+        }else{
+            throw new IllegalArgumentException("올바르지 않은 경로입니다.");
+        }
+        List<MileageReqListDto> mileageRequests = dtos.getContent().stream()
+                .map(MileageReqListDto::new).toList();
+
+        return new MileageReqListResDto(dtos.getTotalPages(), mileageRequests);
+    }
+
+    // 마일리지 충전 요청 처리
+    @Transactional
+    public void approveMileageReq(Long mileageReqId, boolean request){
+        MileageReq mileageReq = findMileageReqById(mileageReqId);
+        if(request){
+            mileageReq.updateState(MileageReqState.APPROVAL);
+            User user = findUserById(mileageReq.getUserId());
+            user.updateMileage(mileageReq.getMileageReqAmount());
+        } else {
+            mileageReq.updateState(MileageReqState.REFUSAL);
+        }
+    }
+
     @Transactional
     public void deleteNoticeByNoticeId(Long noticeId) {
         noticeRepository.deleteByNoticeId(noticeId);
     }
 
+    //사용자 ID로 찾기
+    public User findUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원 입니다."));
+    }
+
+    //사용자 마일리지 요청 찾기
+    public MileageReq findMileageReqById(Long mileageReqId) {
+        return mileageReqRepository.findById(mileageReqId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 마일리지 요청 입니다."));
+    }
     // FAQ 조회
     public Page<Faq> getAllFaqs(FaqType faqType, Pageable pageable) {
         return faqRepository.findFaqType(faqType, pageable);
@@ -234,7 +280,7 @@ public class AdminService {
 
     // 상품 QnA 조회
     public QnaListResDto getQnaList(int pageNo) {
-        Pageable pageable = PageRequest.of(pageNo, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "qnaCreatedDate"));
+        Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "qnaCreatedDate"));
         Page<QnaDto> qnaList = qnaRepository.findAllQna(pageable);
         return new QnaListResDto(qnaList.getTotalPages(), qnaList.getContent());
     }
@@ -265,7 +311,7 @@ public class AdminService {
 
     // 상품 QnA 답변 삭제
     @Transactional
-    public void deleteQnaReply(Long qnaReplyId){
+    public QnaDetailResDto deleteQnaReply(Long qnaReplyId){
         // QnA 번호 가져오기
         Long qnaId = qnaReplyRepository.findQnaIdByQnaReplyId(qnaReplyId);
 
@@ -278,6 +324,8 @@ public class AdminService {
 
         // 답변 상태 변경 -> 답변 대기
         qna.updateState(false);
+
+        return qnaRepository.findQnaAndReply(qnaId);
     }
 
     // 반품 상태 리스트
