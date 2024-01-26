@@ -1,30 +1,36 @@
 package com.dmarket.service;
 
+import com.dmarket.constant.MileageReqState;
+import com.dmarket.constant.MileageContents;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.request.UserAddressReqDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.dto.common.WishlistItemDto;
 import com.dmarket.jwt.JWTUtil;
 import com.dmarket.domain.board.Inquiry;
+import com.dmarket.domain.user.Mileage;
+import com.dmarket.domain.user.MileageReq;
+import com.dmarket.dto.common.MileageDto;
 import com.dmarket.domain.user.Cart;
 import com.dmarket.domain.user.Wishlist;
 import com.dmarket.dto.request.JoinReqDto;
-import com.dmarket.repository.user.UserRepository;
-import com.dmarket.dto.response.CartCountResDto;
-import com.dmarket.dto.response.UserHeaderInfoResDto;
-import com.dmarket.dto.response.UserInfoResDto;
-import com.dmarket.dto.response.WishlistResDto;
+import com.dmarket.repository.user.*;
 import com.dmarket.repository.board.InquiryRepository;
-import com.dmarket.repository.user.CartRepository;
-import com.dmarket.repository.user.WishlistRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.dmarket.domain.order.Order;
 import com.dmarket.dto.common.CartListDto;
@@ -49,7 +55,8 @@ public class UserService {
     private final CartRepository cartRepository;
     private final WishlistRepository wishlistRepository;
     private final UserRepository userRepository;
-    private final InquiryRepository inquiryRepository;
+    private final MileageRepository mileageRepository;
+    private final MileageReqRepository mileageReqRepository;
     private final PasswordEncoder passwordEncoder;
     private final JWTUtil jwtUtil;
     private final MailService mailService;
@@ -154,6 +161,8 @@ public class UserService {
         }
     }
 
+    // 페이지 사이즈
+    private static final int PAGE_SIZE = 10;
 
     public List<CartListDto> getCartsfindByUserId(Long userId) {
         List<CartListDto> originalList = cartRepository.getCartsfindByUserId(userId);
@@ -166,44 +175,47 @@ public class UserService {
 
     }
 
-    public List<QnaResDto> getQnasfindByUserId(Long userId) {
-        return qnaRepository.getQnasfindByUserId(userId);
+    public Page<QnaResDto> getQnasfindByUserId(Long userId, Pageable pageable) {
+        return qnaRepository.getQnasfindByUserId(userId, pageable);
     }
 
-
-    public List<OrderResDto> getOrderDetailsWithoutReviewByUserId(Long userId) {
+    public Page<OrderResDto> getOrderDetailsWithoutReviewByUserId(Long userId, Pageable pageable) {
         List<OrderResDto> orderResDtos = new ArrayList<>();
 
-        List<Order> orders = orderRepository.findByUserId(userId);
-        for (Order order : orders) {
-            List<OrderDetailResDto> orderDetailResDtos = orderDetailRepository.findOrderDetailsWithoutReviewByOrder(order.getOrderId());
+        Page<Order> ordersPage = orderRepository.findByUserIdOrderedByOrderIdDesc(userId, pageable);
+        for (Order order : ordersPage) {
+            List<OrderDetailResDto> orderDetailResDtos = orderDetailRepository
+                    .findOrderDetailsWithoutReviewByOrder(order.getOrderId());
+            if (!orderDetailResDtos.isEmpty()) {
+                orderResDtos.add(new OrderResDto(order, orderDetailResDtos));
+            }
+        }
+        // PageImpl을 사용하여 List를 Page로 변환합니다.
+        return new PageImpl<>(orderResDtos, pageable, ordersPage.getTotalElements());
+    }
+
+    public Page<OrderResDto> getOrderDetailsWithReviewByUserId(Long userId, Pageable pageable) {
+        List<OrderResDto> orderResDtos = new ArrayList<>();
+
+        Page<Order> ordersPage = orderRepository.findByUserIdOrderedByOrderIdDesc(userId, pageable);
+        for (Order order : ordersPage) {
+            List<ReviewResDto> orderDetailResDtos = orderDetailRepository
+                    .findOrderDetailsWithReviewByOrder(order.getOrderId());
             if (!orderDetailResDtos.isEmpty()) {
                 orderResDtos.add(new OrderResDto(order, orderDetailResDtos));
             }
         }
 
-        return orderResDtos;
-    }
-
-
-    public List<OrderResDto> getOrderDetailsWithReviewByUserId(Long userId) {
-        List<OrderResDto> orderResDtos = new ArrayList<>();
-
-        List<Order> orders = orderRepository.findByUserId(userId);
-        for (Order order : orders) {
-            List<ReviewResDto> orderDetailResDtos = orderDetailRepository.findOrderDetailsWithReviewByOrder(order.getOrderId());
-            if (!orderDetailResDtos.isEmpty()) {
-                orderResDtos.add(new OrderResDto(order, orderDetailResDtos));
-            }
-        }
-
-        return orderResDtos;
+        // PageImpl을 사용하여 List를 Page로 변환합니다.
+        return new PageImpl<>(orderResDtos, pageable, ordersPage.getTotalElements());
     }
 
     // 사용자 정보 조회
     public UserInfoResDto getUserInfoByUserId(Long userId) {
         return userRepository.findUserInfoByUserId(userId);
     }
+
+    private final InquiryRepository inquiryRepository;
 
     // 위시리스트 조회
     public WishlistResDto getWishlistByUserId(Long userId) {
@@ -213,13 +225,13 @@ public class UserService {
                 .build();
     }
 
-    //장바구니 상품 개수 조회
-    public CartCountResDto getCartCount(Long userId){
+    // 장바구니 상품 개수 조회
+    public CartCountResDto getCartCount(Long userId) {
         return cartRepository.findCountByUserId(userId);
     }
 
     // 마이페이지 서브헤더 사용자 정보 및 마일리지 조회
-    public UserHeaderInfoResDto getSubHeader(Long userId){
+    public UserHeaderInfoResDto getSubHeader(Long userId) {
         return userRepository.findUserHeaderInfoByUserId(userId);
     }
 
@@ -239,6 +251,11 @@ public class UserService {
     public void deleteWishlistById(Long wishlistId) {
         wishlistRepository.deleteById(wishlistId);
     }
+
+
+
+
+
 
     // 문의 작성
     @Transactional
@@ -327,4 +344,33 @@ public class UserService {
         return userRepository.existsByUserDktNum(userDktNum);
     }
 
+    // 마일리지 사용(충전) 내역 조회
+    public MileageListResDto getMileageUsage(Long userId, int pageNo) {
+        Pageable pageable = PageRequest.of(pageNo, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "mileageDate"));
+        Page<Mileage> mileages = mileageRepository.findByUserId(pageable, userId);
+
+        List<MileageDto> mileageChageList = mileages.getContent().stream().map(
+                (o) -> MileageDto.builder()
+                        .mileageChangeDate(o.getMileageDate())
+                        .mileageContents(o.getMileageInfo())
+                        .changeMileage(o.getChangeMileage())
+                        .remainMileage(o.getRemainMileage())
+                        .build()).collect(Collectors.toList());
+
+        return new MileageListResDto(mileages.getTotalPages(), mileageChageList);
+    }
+
+    // 마일리지 충전 요청
+    @Transactional
+    public void mileageChargeReq(Long userId, Integer mileageCharge) {
+        // 마일리지 요청 사유 CHARGE(충전), 마일리지 요청 처리 상태(처리 중)으로 지정
+        MileageReq mileageReq = MileageReq.builder()
+                .userId(userId)
+                .mileageReqAmount(mileageCharge)
+                .mileageReqReason(MileageContents.CHARGE)
+                .mileageReqState(MileageReqState.PROCESSING)
+                .build();
+
+        mileageReqRepository.save(mileageReq);
+    }
 }

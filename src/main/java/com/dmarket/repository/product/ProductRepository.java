@@ -8,8 +8,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.dmarket.dto.common.ProductDto;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.List;
@@ -76,6 +79,17 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<NewProductResDto> findNewProducts();
 
 
-
-
+        @Modifying
+        @Transactional
+        @Query("UPDATE Product p SET p.categoryId = :categoryId, p.productBrand = :productBrand, " +
+                        "p.productName = :productName, p.productPrice = :productPrice, " +
+                        "p.productSalePrice = :productSalePrice, p.productDescription = :productDescription " +
+                        "WHERE p.productId = :productId")
+        void updateProductDetails(@Param("productId") Long productId,
+                        @Param("categoryId") Long categoryId,
+                        @Param("productBrand") String productBrand,
+                        @Param("productName") String productName,
+                        @Param("productPrice") Integer productPrice,
+                        @Param("productSalePrice") Integer productSalePrice,
+                        @Param("productDescription") String productDescription);
 }

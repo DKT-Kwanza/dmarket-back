@@ -1,5 +1,6 @@
 package com.dmarket.domain.user;
 
+import com.dmarket.constant.MileageContents;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -27,7 +28,8 @@ public class Mileage {
     private Integer changeMileage;
 
     @Column(nullable = false)
-    private String mileageInfo;
+    @Enumerated(EnumType.STRING)
+    private MileageContents mileageInfo;
 
     @CreatedDate
     @Column(nullable = false)
