@@ -10,15 +10,18 @@ import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
 import com.dmarket.service.AdminService;
 
+import com.dmarket.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.security.core.AuthenticationException;
@@ -560,6 +563,7 @@ public class AdminController {
         }
     }
 
+
     // 문의 삭제
     @DeleteMapping("/board/inquiry/{inquiryId}")
     public ResponseEntity<?> deleteInquiry(@PathVariable Long inquiryId) {
@@ -582,6 +586,7 @@ public class AdminController {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     // 문의 답변 등록
     @PostMapping("/board/inquiry/reply/{inquiryId}")
@@ -632,6 +637,16 @@ public class AdminController {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+
+
+
+
+
+
+
+
 
     // 배송 상태 변경
     @PutMapping("/orders/{detailId}")
@@ -711,13 +726,39 @@ public class AdminController {
         }
     }
 
-    // 그룹별 관리자 조회
+    // if:False -> 그룹별 관리자 조회
+    // if:True -> 사원 검색
     @GetMapping("/admin-users")
-    public ResponseEntity<?> getAdmins() {
+    public ResponseEntity<?> getAdmins(@RequestParam(value = "q", required = false) Integer dktNum) {
         try {
-            TotalAdminResDto adminUserResponse = adminService.getAdminUserDetails();
+            if (dktNum != null){
+                SearchUserResDto searchUserRes = adminService.searchUser(dktNum);
+                return new ResponseEntity<>(CMResDto.builder()
+                        .code(200).msg("사원 검색").data(searchUserRes).build(), HttpStatus.OK);
+            }else {
+                TotalAdminResDto adminUserResponse = adminService.getAdminUserDetails();
+                return new ResponseEntity<>(CMResDto.builder()
+                        .code(200).msg("관리자 조회 성공").data(adminUserResponse).build(), HttpStatus.OK);
+            }
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e.getCause());
             return new ResponseEntity<>(CMResDto.builder()
-                    .code(200).msg("관리자 조회 성공").data(adminUserResponse).build(), HttpStatus.OK);
+                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 권한 부여
+    // 사용힌 ChangeRoleReqDto
+    @PutMapping("/admin-users/{userId}")
+    public ResponseEntity<?> changeRole(@PathVariable Long userId,
+                                        @RequestBody ChangeRoleReqDto newRole){
+        try {
+            adminService.changeRole(userId,newRole);
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("관리자 조회 성공").build(), HttpStatus.OK);
         } catch (RuntimeException e) {
             log.warn(e.getMessage(), e.getCause());
             return new ResponseEntity<>(CMResDto.builder()

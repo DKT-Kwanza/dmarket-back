@@ -10,15 +10,36 @@ import com.dmarket.constant.*;
 import com.dmarket.constant.FaqType;
 import com.dmarket.dto.common.ProductOptionDto;
 import com.dmarket.dto.common.ProductOptionListDto;
+import com.dmarket.dto.request.ChangeRoleReqDto;
+import com.dmarket.repository.product.CategoryRepository;
+import com.dmarket.repository.product.ProductImgsRepository;
+import com.dmarket.repository.product.ProductOptionRepository;
+import com.dmarket.repository.product.ProductRepository;
 import com.dmarket.dto.common.QnaDto;
 import com.dmarket.dto.common.ReturnDto;
 import com.dmarket.repository.product.*;
 import com.dmarket.constant.OrderDetailState;
 import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.order.Return;
+import com.dmarket.domain.product.Category;
+import com.dmarket.domain.product.Product;
+import com.dmarket.domain.product.ProductImgs;
+import com.dmarket.domain.product.ProductOption;
 import com.dmarket.dto.request.ProductListDto;
 import com.dmarket.repository.order.OrderDetailRepository;
 import com.dmarket.repository.order.ReturnRepository;
+import com.dmarket.repository.product.CategoryRepository;
+import com.dmarket.repository.product.ProductImgsRepository;
+import com.dmarket.repository.product.ProductOptionRepository;
+import com.dmarket.repository.product.ProductRepository;
+import com.dmarket.domain.product.Category;
+import com.dmarket.domain.product.Product;
+import com.dmarket.dto.common.ProductOptionDto;
+import com.dmarket.dto.common.ProductOptionListDto;
+import com.dmarket.repository.product.CategoryRepository;
+import com.dmarket.repository.product.ProductImgsRepository;
+import com.dmarket.repository.product.ProductOptionRepository;
+import com.dmarket.repository.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -327,7 +348,7 @@ public class AdminService {
         ReturnListResDto returnListResDto = returnRepository.getReturnsCount();
         returnListResDto.setReturnList(returnDto);
         return returnListResDto;
-        
+
     }
 
     // 반품 상태 업데이트
@@ -542,7 +563,31 @@ public class AdminService {
         return new TotalAdminResDto(allManagers.size(), gmCount, smCount, pmCount, managerInfoDTOList);
     }
 
+    // 관리자 권한 별 관리자 수 집계
     private int adminCount(List<User> users, Role role) {
         return (int) users.stream().filter(user -> user.getUserRole() == role).count();
+    }
+
+    // 권한 변경
+    @Transactional
+    public void changeRole(Long userId, ChangeRoleReqDto newRole){
+        User user = userRepository.findByUserId(userId);
+
+        // String -> Enum 으로 형변환
+        Role role = Role.valueOf(newRole.getNewRole().toUpperCase());
+
+        user.changeRole(role);
+
+        userRepository.save(user); // 변경된 역할을 저장
+    }
+
+    // 사용자 검색
+    @Transactional
+    public SearchUserResDto searchUser(Integer dktNum){
+        User userdata = userRepository.findByUserDktNum(dktNum);
+
+        SearchUserResDto searchUserResDto = userdata.toUserInfoRes();
+
+        return searchUserResDto ;
     }
 }

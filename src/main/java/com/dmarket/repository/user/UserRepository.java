@@ -39,8 +39,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     User findByUserEmail(String userEmail);
 
-
     User findUserNameByUserId(Long userId);
+
+    User findByUserId(Long userId);
+
+    // 사원 번호로 user 검색
+    User findByUserDktNum(Integer userDktNum);
 
     // User 별로 사용자 집계
     List<User> findAllByUserRoleIsNot(Role userRole);
