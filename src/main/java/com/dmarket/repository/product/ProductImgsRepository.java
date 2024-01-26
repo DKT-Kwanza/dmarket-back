@@ -12,4 +12,5 @@ public interface ProductImgsRepository extends JpaRepository<ProductImgs, Long> 
     // 상품의 이미지 목록 조회
     @Query("select pi.imgAddress from ProductImgs pi where pi.productId = :productId")
     List<String> findAllByProductId(Long productId);
+
 }

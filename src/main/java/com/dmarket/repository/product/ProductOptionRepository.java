@@ -4,6 +4,7 @@ import com.dmarket.domain.product.ProductOption;
 import com.dmarket.dto.common.ProductOptionDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,4 +16,7 @@ public interface ProductOptionRepository extends JpaRepository<ProductOption, Lo
             "(o.optionId, o.optionName, o.optionValue, o.optionQuantity) " +
             "from ProductOption o where o.productId = :productId")
     List<ProductOptionDto> findOptionsByProductId(Long productId);
+
+    // 상품의 옵션 삭제
+    void deleteByOptionId(@Param("optionId") Long optionId);
 }

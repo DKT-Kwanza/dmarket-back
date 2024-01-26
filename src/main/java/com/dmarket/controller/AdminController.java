@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.security.core.AuthenticationException;
@@ -270,4 +271,56 @@ public class AdminController {
         }
     }
 
+    // 상품 옵션 삭제
+    @DeleteMapping("/products/{productId}/{optionId}")
+    public ResponseEntity<?> deleteOption(@PathVariable(name="productId") Long productId, @PathVariable(name="optionId") Long optionId) {
+        try {
+            adminService.deleteOptionByOptionId(optionId);
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("상품 옵션 삭제 완료").build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+
+        } catch (AuthenticationException e) {
+            // 인증 오류에 대한 예외 처리
+            log.warn("유효하지 않은 인증" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
+
+        } catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    // 상품 목록 조회
+    @GetMapping("/products/categories/{categoryId}")
+    public ResponseEntity<?> getProductsListAdmin(@PathVariable(name="categoryId") Long categoryId){
+        try {
+            List<ProductListAdminResDto> productListAdminResDto = adminService.getProductListByCateogryId(categoryId);
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(200).msg("관리자 상품 목록 조회 완료").data(productListAdminResDto).build(), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            // 잘못된 요청에 대한 예외 처리
+            log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+
+        } catch (AuthenticationException e) {
+            // 인증 오류에 대한 예외 처리
+            log.warn("유효하지 않은 인증" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
+
+        } catch (Exception e) {
+            // 기타 예외에 대한 예외 처리
+            log.error("서버 내부 오류: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
