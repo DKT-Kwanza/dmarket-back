@@ -1,12 +1,9 @@
 package com.dmarket.service;
 
-import com.dmarket.domain.product.Qna;
+import com.dmarket.domain.product.*;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.response.*;
 import com.dmarket.repository.user.UserRepository;
-import com.dmarket.domain.product.Category;
-import com.dmarket.domain.product.Product;
-import com.dmarket.domain.product.ProductReview;
 import com.dmarket.dto.common.ProductDto;
 import com.dmarket.dto.common.ProductOptionDto;
 import com.dmarket.dto.common.ProductReviewDto;
@@ -171,5 +168,15 @@ public class ProductService {
                 .reviewImg(reviewReqDto.getReviewImg())
                 .build();
         productReviewRepository.save(productReview);
+    }
+
+    public Product findByProductId(Long productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
+    }
+
+    public ProductOption findOptionByOptionId(Long productOptionId) {
+        return productOptionRepository.findById(productOptionId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 옵션입니다."));
     }
 }

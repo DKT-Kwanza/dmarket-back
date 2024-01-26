@@ -12,6 +12,7 @@ import java.util.List;
 
 @Repository
 public interface ProductOptionRepository extends JpaRepository<ProductOption, Long> {
+
     // 상품의 옵션 목록 조회
     @Query("select new com.dmarket.dto.common.ProductOptionDto(o) " +
             "from ProductOption o where o.productId = :productId")
