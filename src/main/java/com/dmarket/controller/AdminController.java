@@ -502,7 +502,6 @@ public class AdminController {
         try {
             adminService.addProductStock(stockReqDto);
 
-            // Retrieve and return updated product information
             Long productId = stockReqDto.getProductId();
             ProductInfoOptionResDto productInfoOptionResDto = adminService.getProductInfoWithOption(productId);
 
@@ -525,7 +524,7 @@ public class AdminController {
 
     // 배송 목록 조회
     @GetMapping("/api/admin/orders")
-    public ResponseEntity<Map<String, Object>> getOrdersByStatus(@RequestParam String status) {
+    public ResponseEntity<CMResDto<Map<String, Object>>> getOrdersByStatus(@RequestParam String status) {
         try {
             OrderDetailStateCountsDto statusCounts = adminService.getOrderDetailStateCounts();
             List<OrderListResDto> orderList = adminService.getOrdersByStatus(status);
@@ -537,20 +536,22 @@ public class AdminController {
             responseData.put("delivCompCount", statusCounts.getDeliveryCompleteCount());
             responseData.put("orderList", orderList);
 
-            return ResponseEntity.ok(responseData);
+            return ResponseEntity.ok(CMResDto.<Map<String, Object>>builder()
+                    .code(200)
+                    .msg("배송 조회 완료")
+                    .data(responseData)
+                    .build());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(CMResDto.<Map<String, Object>>builder()
+                    .code(400)
+                    .msg("유효하지 않은 요청 메시지")
+                    .build());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CMResDto.<Map<String, Object>>builder()
+                    .code(500)
+                    .msg("서버 내부 오류")
+                    .build());
         }
-    }
-
-    private Map<OrderDetailState, Long> calculateStatusCounts(List<OrderListResDto> orderList) {
-        return orderList.stream()
-                .collect(Collectors.groupingBy(
-                        orderDto -> OrderDetailState.valueOf(orderDto.getOrderStatus()),
-                        Collectors.counting()
-                ));
     }
     // ---배송 목록 조회---
 

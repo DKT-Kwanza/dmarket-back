@@ -496,7 +496,7 @@ public Long postFaq(FaqType faqType, String faqQuestion, String faqAnswer) {
                 .findFirst()
                 .orElse(null);
     }
-
+    // ---배송 목록 조회 ---
 
 
 
