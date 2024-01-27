@@ -1,24 +1,29 @@
 package com.dmarket.service;
 
-import com.dmarket.constant.InquiryType;
-import com.dmarket.domain.product.*;
-import com.dmarket.constant.*;
+import com.dmarket.domain.order.Refund;
+import com.dmarket.domain.user.MileageReq;
 import com.dmarket.domain.user.User;
-import com.dmarket.dto.common.InquiryDetailsDto;
-import com.dmarket.constant.FaqType;
-import com.dmarket.dto.common.ProductOptionDto;
-import com.dmarket.dto.common.ProductOptionListDto;
-import com.dmarket.dto.common.QnaDto;
-import com.dmarket.dto.common.ReturnDto;
-import com.dmarket.repository.product.*;
-import com.dmarket.constant.OrderDetailState;
-import com.dmarket.constant.ReturnState;
+import com.dmarket.domain.product.*;
 import com.dmarket.domain.order.Return;
+import com.dmarket.domain.board.*;
+import com.dmarket.constant.*;
+import com.dmarket.dto.common.*;
+import com.dmarket.dto.request.ChangeRoleReqDto;
 import com.dmarket.dto.request.ProductListDto;
+import com.dmarket.dto.request.OptionReqDto;
+import com.dmarket.dto.request.ProductReqDto;
+import com.dmarket.dto.request.RefundReqDto;
+import com.dmarket.dto.response.*;
+import com.dmarket.repository.product.*;
+import com.dmarket.repository.board.*;
+import com.dmarket.repository.user.*;
+import com.dmarket.repository.order.RefundRepository;
 import com.dmarket.repository.order.OrderDetailRepository;
 import com.dmarket.repository.order.ReturnRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,12 +31,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.dmarket.domain.board.*;
-import com.dmarket.dto.request.OptionReqDto;
-import com.dmarket.dto.request.ProductReqDto;
-import com.dmarket.dto.response.*;
-import com.dmarket.repository.board.*;
-import com.dmarket.repository.user.*;
 import java.util.*;
 
 @Slf4j
@@ -39,9 +38,12 @@ import java.util.*;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AdminService {
+
     // 조회가 아닌 메서드들은 꼭 @Transactional 넣어주세요 (CUD, 입력/수정/삭제)
     private final UserRepository userRepository;
     private final NoticeRepository noticeRepository;
+    private final MileageReqRepository mileageReqRepository;
+
     private final FaqRepository faqRepository;
     private final ProductOptionRepository productOptionRepository;
     private final ProductRepository productRepository;
@@ -56,8 +58,9 @@ public class AdminService {
     private final InquiryRepository inquiryRepository;
     private final InquiryReplyRepository inquiryReplyRepository;
     private final OrderDetailRepository orderDetailRepository;
+    private final RefundRepository refundRepository;
 
-    private static final int PAGE_SIZE = 10;
+    private static final int PAGE_POST_COUNT = 10;
 
     @Transactional
     public void deleteUserByUserId(Long userId) {
@@ -73,7 +76,7 @@ public class AdminService {
     }
 
     @Transactional
-    public Page<NoticeListResDto> postNotice(Long userId, String noticeTitle, String noticeContents,
+    public Page<NoticeResDto> postNotice(Long userId, String noticeTitle, String noticeContents,
             Pageable pageable) {
         Notice notice = Notice.builder()
                 .userId(userId)
@@ -83,11 +86,38 @@ public class AdminService {
         noticeRepository.save(notice);
 
         Page<Notice> noticesPage = noticeRepository.findAll(pageable);
-        return noticesPage.map(no -> new NoticeListResDto(
-                no.getNoticeId(),
-                no.getNoticeTitle(),
-                no.getNoticeContents(),
-                no.getNoticeCreatedDate()));
+        return noticesPage.map(no -> new NoticeResDto(no));
+    }
+
+    // 마일리지 충전 요청 내역
+    @Transactional
+    public MileageReqListResDto getMileageRequests(Pageable pageable, String status, int pageNo){
+        pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "mileageReqDate"));
+        Page<MileageReqDto> dtos;
+        if(status.equals("PROCESSING")){
+            dtos = mileageReqRepository.findAllByProcessing(pageable);
+        }else if(status.equals("PROCESSED")){
+            dtos = mileageReqRepository.findAllByProcessed(pageable);
+        }else{
+            throw new IllegalArgumentException("올바르지 않은 경로입니다.");
+        }
+        List<MileageReqListDto> mileageRequests = dtos.getContent().stream()
+                .map(MileageReqListDto::new).toList();
+
+        return new MileageReqListResDto(dtos.getTotalPages(), mileageRequests);
+    }
+
+    // 마일리지 충전 요청 처리
+    @Transactional
+    public void approveMileageReq(Long mileageReqId, boolean request){
+        MileageReq mileageReq = findMileageReqById(mileageReqId);
+        if(request){
+            mileageReq.updateState(MileageReqState.APPROVAL);
+            User user = findUserById(mileageReq.getUserId());
+            user.updateMileage(mileageReq.getMileageReqAmount());
+        } else {
+            mileageReq.updateState(MileageReqState.REFUSAL);
+        }
     }
 
     @Transactional
@@ -95,6 +125,17 @@ public class AdminService {
         noticeRepository.deleteByNoticeId(noticeId);
     }
 
+    //사용자 ID로 찾기
+    public User findUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원 입니다."));
+    }
+
+    //사용자 마일리지 요청 찾기
+    public MileageReq findMileageReqById(Long mileageReqId) {
+        return mileageReqRepository.findById(mileageReqId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 마일리지 요청 입니다."));
+    }
     // FAQ 조회
     public Page<Faq> getAllFaqs(FaqType faqType, Pageable pageable) {
         return faqRepository.findFaqType(faqType, pageable);
@@ -213,7 +254,7 @@ public class AdminService {
 
     // 상품 QnA 조회
     public QnaListResDto getQnaList(int pageNo) {
-        Pageable pageable = PageRequest.of(pageNo, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "qnaCreatedDate"));
+        Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "qnaCreatedDate"));
         Page<QnaDto> qnaList = qnaRepository.findAllQna(pageable);
         return new QnaListResDto(qnaList.getTotalPages(), qnaList.getContent());
     }
@@ -225,9 +266,9 @@ public class AdminService {
 
     // 상품 QnA 답변 작성
     @Transactional
-    public QnaDetailResDto createQnaReply(Long qnaId, String qnaReplyContents){
+    public QnaDetailResDto createQnaReply(Long qnaId, String qnaReplyContents) {
         // QnA 존재 확인
-        Qna qna = qnaRepository.findById(qnaId).orElseThrow(()->new IllegalArgumentException("존재하지 않는 Qna"));
+        Qna qna = qnaRepository.findById(qnaId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Qna"));
 
         // 답변 저장
         QnaReply qnaReply = QnaReply.builder()
@@ -244,19 +285,21 @@ public class AdminService {
 
     // 상품 QnA 답변 삭제
     @Transactional
-    public void deleteQnaReply(Long qnaReplyId){
+    public QnaDetailResDto deleteQnaReply(Long qnaReplyId){
         // QnA 번호 가져오기
         Long qnaId = qnaReplyRepository.findQnaIdByQnaReplyId(qnaReplyId);
 
         // QnA 존재 확인
         Qna qna = qnaRepository.findById(qnaId)
-                .orElseThrow(()->new IllegalArgumentException("존재하지 않는 Qna"));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Qna"));
 
         // QnA 답변 삭제
         qnaReplyRepository.deleteById(qnaReplyId);
 
         // 답변 상태 변경 -> 답변 대기
         qna.updateState(false);
+
+        return qnaRepository.findQnaAndReply(qnaId);
     }
 
     // 반품 상태 리스트
@@ -279,23 +322,29 @@ public class AdminService {
         ReturnListResDto returnListResDto = returnRepository.getReturnsCount();
         returnListResDto.setReturnList(returnDto);
         return returnListResDto;
-        
+
     }
 
     // 반품 상태 업데이트
     @Transactional
-    public void updateReturnState(Long returnId, ReturnState returnState) {
+    public void updateReturnState(Long returnId, String returnState) {
         Return returnEntity = returnRepository.findById(returnId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 returnId가 존재하지 않습니다. returnId: " + returnId));
-        returnEntity.updateReturnState(returnState);
+
+        // returnState 가 " 완료" 상태인 경우 환불 테이블에 state = 0으로 추가
+        if(returnState == ReturnState.COLLECT_COMPLETE.label){
+            Refund refund = new Refund(returnId, false); // 초기 refundState는 false로 설정
+            refundRepository.save(refund);
+        }
+        ReturnState state = ReturnState.fromLabel(returnState);
+
+        returnEntity.updateReturnState(state);
     }
 
     // 신상품 등록
     @Transactional
     public void saveProductList(List<ProductListDto> productList) {
-        System.out.println("1.");
         for (ProductListDto productitem : productList) {
-            System.out.println("********");
             // CategoryId 가져오기
             Long categoryId = getCategoryByCategoryName(productitem.getCategoryName());
 
@@ -312,7 +361,6 @@ public class AdminService {
 
     @Transactional
     public Long getCategoryByCategoryName(String categoryName) {
-        System.out.println("2.");
         Category category = categoryRepository.findByCategoryName(categoryName);
         if (category != null) {
             return category.getCategoryId();
@@ -322,7 +370,6 @@ public class AdminService {
 
     @Transactional
     public Product saveProduct(ProductListDto productitem, Long categoryId) {
-        System.out.println("3.");
         Product newProduct = Product.builder()
                 .categoryId(categoryId)
                 .productBrand(productitem.getBrand())
@@ -337,7 +384,6 @@ public class AdminService {
 
     @Transactional
     public void saveProductOptions(Long productId, List<ProductListDto.Option> optionList) {
-        System.out.println("4.");
         for (ProductListDto.Option option : optionList) {
             ProductOption newOption = ProductOption.builder()
                     .productId(productId)
@@ -352,7 +398,6 @@ public class AdminService {
 
     @Transactional
     public void saveProductImgs(Long productId, List<String> imgAddresses) {
-        System.out.println("5.");
         for (String imgAddress : imgAddresses) {
             ProductImgs productImgs = ProductImgs.builder()
                     .productId(productId)
@@ -472,6 +517,7 @@ public class AdminService {
         return result;
     }
 
+    // 관리자 전체 조회
     public TotalAdminResDto getAdminUserDetails() {
         List<User> allManagers = userRepository.findAllByUserRoleIsNot(Role.ROLE_USER);
         List<ManagerInfoDto> managerInfoDTOList = new ArrayList<>();
@@ -486,15 +532,57 @@ public class AdminService {
                     manager.getUserName(),
                     manager.getUserEmail(),
                     manager.getUserRole(),
-                    manager.getUserJoinDate().atStartOfDay()
-            );
+                    manager.getUserJoinDate().atStartOfDay());
             managerInfoDTOList.add(managerInfoDto);
         }
 
         return new TotalAdminResDto(allManagers.size(), gmCount, smCount, pmCount, managerInfoDTOList);
     }
 
+    // 관리자 권한 별 관리자 수 집계
     private int adminCount(List<User> users, Role role) {
         return (int) users.stream().filter(user -> user.getUserRole() == role).count();
+    }
+
+    // 권한 변경
+    @Transactional
+    public void changeRole(Long userId, ChangeRoleReqDto newRole){
+        User user = userRepository.findByUserId(userId);
+
+        // String -> Enum 으로 형변환
+        Role role = Role.valueOf(newRole.getNewRole().toUpperCase());
+
+        user.changeRole(role);
+
+        userRepository.save(user); // 변경된 역할을 저장
+    }
+
+
+    // 사용자 검색
+    @Transactional
+    public SearchUserResDto searchUser(Integer dktNum){
+        User userdata = userRepository.findByUserDktNum(dktNum);
+
+        SearchUserResDto searchUserResDto = userdata.toUserInfoRes();
+
+        return searchUserResDto ;
+    }
+
+    // 마일리지 환불
+    @Transactional
+    public void putRefund(RefundReqDto refundReqDto) {
+        Integer percent = refundReqDto.getRefundPercent();
+        Long returnId = refundReqDto.getReturnId();
+        Integer price = orderDetailRepository.getOrderDetailSalePriceFindByReturnId(returnId);
+        Integer amount = (int) (price * percent /100);
+        orderDetailRepository.updateReturnCompleteByReturnId(returnId, OrderDetailState.RETURN_COMPLETE);
+        refundRepository.updateRefundCompleteByReturnId(returnId);
+        userRepository.updateUserMileageByReturnId(returnId, amount);
+    }
+
+    // 취소 목록 조회
+    @Transactional
+    public List<OrderCancelResDto> orderCancle(){
+        return orderDetailRepository.findOrderCancelResDtosByOrderDetailState(OrderDetailState.ORDER_CANCEL);
     }
 }

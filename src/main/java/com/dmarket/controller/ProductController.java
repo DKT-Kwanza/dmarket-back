@@ -8,10 +8,12 @@ import com.dmarket.dto.response.CategoryListResDto;
 import com.dmarket.dto.response.ProductListResDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.service.ProductService;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.data.domain.Page;
@@ -22,10 +24,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.springframework.security.core.AuthenticationException;
 
 @Slf4j
@@ -71,11 +69,11 @@ public class ProductController {
                                                  @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo, Pageable pageable){
         try{
             pageNo = pageNo > 0 ? pageNo-1 : pageNo;
-            Page<ProductListResDto> products = productService.getCategoryProducts(pageable, pageNo , cateId,
+            ProductListResDto products = productService.getCategoryProducts(pageable, pageNo , cateId,
                     sorter, minPrice, maxPrice, star);
             log.info("데이터 조회 완료");
             return new ResponseEntity<>(CMResDto.builder()
-                    .code(200).msg("카테고리별 상품 목록 조회 완료").data(products).build(), HttpStatus.OK);
+                    .code(200).msg("성공").data(products).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             // 잘못된 요청에 대한 예외 처리
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
@@ -91,20 +89,20 @@ public class ProductController {
 
     // 상품 목록 조건 검색 api
     @GetMapping("/search")
-    public ResponseEntity<?> getSearchProducts(@RequestParam(required = true, value = "q") String query,
+    public ResponseEntity<?> getSearchProducts(@RequestParam(required = true, value = "q", defaultValue = "") String query,
                                                @RequestParam(required = false, value = "sorter", defaultValue = "reviewCnt") String sorter,
                                                @RequestParam(required = false, value = "min-price", defaultValue = "0") Integer minPrice,
                                                @RequestParam(required = false, value = "max-price", defaultValue = "9999999") Integer maxPrice,
-                                               @RequestParam(required = false, value = "star", defaultValue = "0.0F") Float star,
+                                               @RequestParam(required = false, value = "star", defaultValue = "0") Float star,
                                                @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
                                                Pageable pageable){
         try{
             pageNo = pageNo > 0 ? pageNo-1 : pageNo;
-            Page<ProductListResDto> products = productService.getSearchProducts(pageable, pageNo , query,
+            ProductListResDto products = productService.getSearchProducts(pageable, pageNo , query,
                     sorter, minPrice, maxPrice, star);
             log.info("데이터 조회 완료");
             return new ResponseEntity<>(CMResDto.builder()
-                    .code(200).msg("검색 상품 목록 조회 완료").data(products).build(), HttpStatus.OK);
+                    .code(200).msg("성공").data(products).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             // 잘못된 요청에 대한 예외 처리
             log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
