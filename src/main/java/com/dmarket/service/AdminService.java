@@ -1,50 +1,29 @@
 package com.dmarket.service;
 
 import com.dmarket.domain.order.Refund;
-import com.dmarket.dto.common.*;
-import com.dmarket.constant.MileageReqState;
 import com.dmarket.domain.user.MileageReq;
 import com.dmarket.domain.user.User;
-import com.dmarket.constant.InquiryType;
 import com.dmarket.domain.product.*;
-import com.dmarket.constant.*;
-import com.dmarket.constant.FaqType;
-import com.dmarket.dto.common.ProductOptionDto;
-import com.dmarket.dto.common.ProductOptionListDto;
-import com.dmarket.dto.request.ChangeRoleReqDto;
-import com.dmarket.repository.order.RefundRepository;
-import com.dmarket.repository.product.CategoryRepository;
-import com.dmarket.repository.product.ProductImgsRepository;
-import com.dmarket.repository.product.ProductOptionRepository;
-import com.dmarket.repository.product.ProductRepository;
-import com.dmarket.dto.common.QnaDto;
-import com.dmarket.dto.common.ReturnDto;
-import com.dmarket.repository.product.*;
-import com.dmarket.constant.OrderDetailState;
-import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.order.Return;
-import com.dmarket.domain.product.Category;
-import com.dmarket.domain.product.Product;
-import com.dmarket.domain.product.ProductImgs;
-import com.dmarket.domain.product.ProductOption;
+import com.dmarket.domain.board.*;
+import com.dmarket.constant.*;
+import com.dmarket.dto.common.*;
+import com.dmarket.dto.request.ChangeRoleReqDto;
 import com.dmarket.dto.request.ProductListDto;
-import com.dmarket.repository.order.OrderDetailRepository;
+import com.dmarket.dto.request.OptionReqDto;
+import com.dmarket.dto.request.ProductReqDto;
+import com.dmarket.dto.request.RefundReqDto;
+import com.dmarket.dto.response.*;
+import com.dmarket.repository.product.*;
+import com.dmarket.repository.board.*;
+import com.dmarket.repository.user.*;
 import com.dmarket.repository.order.RefundRepository;
+import com.dmarket.repository.order.OrderDetailRepository;
 import com.dmarket.repository.order.ReturnRepository;
-import com.dmarket.repository.product.CategoryRepository;
-import com.dmarket.repository.product.ProductImgsRepository;
-import com.dmarket.repository.product.ProductOptionRepository;
-import com.dmarket.repository.product.ProductRepository;
-import com.dmarket.domain.product.Category;
-import com.dmarket.domain.product.Product;
-import com.dmarket.dto.common.ProductOptionDto;
-import com.dmarket.dto.common.ProductOptionListDto;
-import com.dmarket.repository.product.CategoryRepository;
-import com.dmarket.repository.product.ProductImgsRepository;
-import com.dmarket.repository.product.ProductOptionRepository;
-import com.dmarket.repository.product.ProductRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -52,13 +31,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.dmarket.domain.board.*;
-import com.dmarket.dto.request.OptionReqDto;
-import com.dmarket.dto.request.ProductReqDto;
-import com.dmarket.dto.request.RefundReqDto;
-import com.dmarket.dto.response.*;
-import com.dmarket.repository.board.*;
-import com.dmarket.repository.user.*;
 import java.util.*;
 
 @Slf4j
@@ -66,6 +38,7 @@ import java.util.*;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AdminService {
+
     // 조회가 아닌 메서드들은 꼭 @Transactional 넣어주세요 (CUD, 입력/수정/삭제)
     private final UserRepository userRepository;
     private final NoticeRepository noticeRepository;
