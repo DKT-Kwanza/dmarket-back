@@ -451,7 +451,7 @@ public class AdminController {
 
     // 문의 답변 등록
     @PostMapping("/board/inquiry/reply/{inquiryId}")
-    public ResponseEntity<?> postInquiryReply(
+    public ResponseEntity<CMResDto<InquiryDetailsDto>> postInquiryReply(
             @PathVariable Long inquiryId,
             @RequestBody InquiryReplyRequestDto inquiryReplyRequestDto) {
         try {
@@ -464,16 +464,29 @@ public class AdminController {
 
             InquiryDetailsDto inquiryDetails = adminService.getInquiryDetails(inquiryId);
 
-            return ResponseEntity.ok(CMResDto.builder()
-                    .code(HttpStatus.OK.value())
+            return ResponseEntity.ok(CMResDto.<InquiryDetailsDto>builder()
+                    .code(200)
                     .msg("답변 작성 완료")
                     .data(inquiryDetails)
                     .build());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(CMResDto.<InquiryDetailsDto>builder()
+                    .code(400)
+                    .msg("유효하지 않은 요청 메시지")
+                    .build());
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CMResDto.<InquiryDetailsDto>builder()
+                    .code(401)
+                    .msg("유효하지 않은 인증")
+                    .build());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error while processing the request.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CMResDto.<InquiryDetailsDto>builder()
+                    .code(500)
+                    .msg("서버 내부 오류")
+                    .build());
         }
     }
+
 
 
     //문의 답변 삭제
