@@ -28,7 +28,7 @@ public class InquiryListResDto {
         this.inquiryId = inquiryId;
         this.inquiryTitle = inquiryTitle;
         this.inquiryContents = inquiryContents;
-        this.inquiryType = inquiryType; // Use the enum directly
+        this.inquiryType = inquiryType;
         this.inquiryStatus = inquiryStatus;
         this.inquiryImg = inquiryImg;
         this.inquiryCreateDate = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(inquiryCreateDate);
