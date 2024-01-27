@@ -4,7 +4,7 @@ import com.dmarket.domain.board.Faq;
 import com.dmarket.domain.board.Notice;
 import com.dmarket.dto.response.CMResDto;
 import com.dmarket.dto.response.FaqListResDto;
-import com.dmarket.dto.response.NoticeListResDto;
+import com.dmarket.dto.response.NoticeResDto;
 import com.dmarket.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,9 +33,9 @@ public class BoardController {
             }
 
             Page<Notice> noticesPage = boardService.getAllNotices(PageRequest.of(pageNo, pageSize));
-            Page<NoticeListResDto> mappedNotices = boardService.mapToNoticeListResDto(noticesPage);
+            Page<NoticeResDto> mappedNotices = boardService.mapToNoticeResDto(noticesPage);
 
-            CMResDto<Page<NoticeListResDto>> response = CMResDto.<Page<NoticeListResDto>>builder().code(200).msg("공지사항 목록 불러오기 완료").data(mappedNotices).build();
+            CMResDto<Page<NoticeResDto>> response = CMResDto.<Page<NoticeResDto>>builder().code(200).msg("공지사항 목록 불러오기 완료").data(mappedNotices).build();
 
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
