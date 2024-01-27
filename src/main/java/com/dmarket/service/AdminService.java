@@ -433,6 +433,12 @@ public class AdminService {
     // 문의 답변 등록
     @Transactional
     public InquiryReply createInquiryReply(InquiryReply inquiryReply) {
+        // 문의 아이디와 일치하지 않으면 등록하지 않음
+        Inquiry inquiry = inquiryRepository.findById(inquiryReply.getInquiryId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid inquiry ID: " + inquiryReply.getInquiryId()));
+
+        inquiry.updateStatus(true);  // 문의 상태를 1 (답변 완료)로 변경
+
         return inquiryReplyRepository.save(inquiryReply);
     }
     // 문의 답변 등록 - response
