@@ -6,9 +6,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+
 public class ProductOptionDto {
     private Long optionId;
     private String optionName;
@@ -23,4 +25,7 @@ public class ProductOptionDto {
         this.optionQuantity = productOption.getOptionQuantity();
         this.optionStatus = productOption.getOptionQuantity() == 0 ? "품절" : "판매중";
     }
+
+
+
 }
