@@ -1,6 +1,9 @@
 package com.dmarket.service;
 
 import com.dmarket.constant.InquiryType;
+import com.dmarket.constant.OrderDetailState;
+import com.dmarket.domain.order.Order;
+import com.dmarket.domain.order.OrderDetail;
 import com.dmarket.dto.common.InquiryDetailsDto;
 import com.dmarket.constant.FaqType;
 import com.dmarket.constant.ReturnState;
@@ -9,7 +12,11 @@ import com.dmarket.domain.product.Category;
 import com.dmarket.domain.product.Product;
 import com.dmarket.domain.product.ProductImgs;
 import com.dmarket.domain.product.ProductOption;
+import com.dmarket.dto.common.OrderDetailStateCountsDto;
 import com.dmarket.dto.request.ProductListDto;
+import com.dmarket.dto.request.StockReqDto;
+import com.dmarket.repository.order.OrderDetailRepository;
+import com.dmarket.repository.order.OrderRepository;
 import com.dmarket.repository.order.ReturnRepository;
 import com.dmarket.repository.product.CategoryRepository;
 import com.dmarket.repository.product.ProductImgsRepository;
@@ -23,21 +30,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dmarket.domain.board.*;
-import com.dmarket.domain.product.*;
-import com.dmarket.domain.user.*;
 import com.dmarket.dto.common.ProductOptionDto;
 import com.dmarket.dto.request.OptionReqDto;
 import com.dmarket.dto.request.ProductReqDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.repository.board.*;
-import com.dmarket.repository.product.CategoryRepository;
-import com.dmarket.repository.product.ProductImgsRepository;
-import com.dmarket.repository.product.ProductOptionRepository;
-import com.dmarket.repository.product.ProductRepository;
 import com.dmarket.repository.product.ProductReviewRepository;
 import com.dmarket.repository.user.*;
 import java.util.*;
-import java.time.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -57,6 +58,8 @@ public class AdminService {
     private final WishlistRepository wishlistRepository;
     private final InquiryRepository inquiryRepository;
     private final InquiryReplyRepository inquiryReplyRepository;
+    private final OrderDetailRepository orderDetailRepository;
+    private final OrderRepository orderRepository;
 
     @Transactional
     public void deleteUserByUserId(Long userId) {
@@ -338,5 +341,169 @@ public Long postFaq(FaqType faqType, String faqQuestion, String faqAnswer) {
             return false; // 삭제 대상이 없을 때
         }
     }
+
+
+    // 상품 재고 추가
+    @Transactional
+    public void addProductStock(StockReqDto stockReqDto) {
+        try {
+            Long productId = stockReqDto.getProductId();
+            Long optionId = stockReqDto.getOptionId();
+            Integer addCount = stockReqDto.getAddCount();
+
+            if (productId == null || optionId == null || addCount == null || addCount <= 0) {
+                throw new IllegalArgumentException("상품 정보 및 추가 수량을 확인하세요.");
+            }
+
+            Optional<ProductOption> optionalProductOption = productOptionRepository.findById(optionId);
+
+            if (optionalProductOption.isPresent()) {
+                ProductOption productOption = optionalProductOption.get();
+
+                productOption.setOptionQuantity(productOption.getOptionQuantity() + addCount);
+                productOptionRepository.save(productOption);
+            } else {
+                throw new IllegalArgumentException("상품 옵션을 찾을 수 없습니다.");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("상품 재고 추가 중 오류 발생", e);
+        }
+    }
+
+    public ProductInfoOptionResDto getProductInfoWithOption(Long productId) {
+        try {
+            Optional<Product> optionalProduct = productRepository.findById(productId);
+
+            if (optionalProduct.isPresent()) {
+                Product product = optionalProduct.get();
+
+                return ProductInfoOptionResDto.builder()
+                        .productId(productId)
+                        .productBrand(product.getProductBrand())
+                        .productName(product.getProductName())
+                        .optionId(1L)
+                        .optionValue("SampleValue")
+                        .optionName("SampleOption")
+                        .productImg("https://example.com/sample.png")
+                        .optionQuantity(42)
+                        .build();
+            } else {
+                throw new IllegalArgumentException("상품을 찾을 수 없습니다.");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("상품 정보 조회 중 오류 발생", e);
+        }
+    }
+    // -------------- 위 부분도 나중에 수정할게요 ------------------
+
+
+
+    // 배송 목록 조회
+    public OrderDetailStateCountsDto getOrderDetailStateCounts() {
+        return orderRepository.getOrderDetailStateCounts();
+    }
+
+    public List<OrderListResDto> getOrdersByStatus(String status) {
+        try {
+            OrderDetailState orderStatus = OrderDetailState.valueOf(status);
+            List<OrderDetail> orderDetails = orderDetailRepository
+                    .findByOrderDetailStateOrderByOrderDetailUpdatedDateDesc(orderStatus);
+
+            List<Long> productIds = orderDetails.stream()
+                    .map(OrderDetail::getProductId)
+                    .collect(Collectors.toList());
+
+            List<Product> products = productRepository.findAllById(productIds);
+            List<ProductOption> productOptions = productOptionRepository.findOptionsByProductIdIn(productIds);
+            List<ProductImgs> productImgs = productImgsRepository.findAllByProductIdIn(productIds);
+
+            List<Order> orders = orderDetails.stream()
+                    .map(orderDetail -> orderRepository.findByOrderId(orderDetail.getOrderId())
+                            .orElseThrow(() -> new RuntimeException("Order not found for OrderDetailId: " + orderDetail.getOrderDetailId())))
+                    .collect(Collectors.toList());
+
+            return mapOrderDetailsToDto(orderDetails, products, productOptions, productImgs, orders);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("유효하지 않은 주문 상태: " + status);
+        } catch (Exception e) {
+            throw new RuntimeException("주문 목록 조회 중 오류 발생", e);
+        }
+    }
+
+
+    private List<OrderListResDto> mapOrderDetailsToDto(List<OrderDetail> orderDetails,
+                                                       List<Product> products,
+                                                       List<ProductOption> productOptions,
+                                                       List<ProductImgs> productImgs,
+                                                       List<Order> orders) {
+        Map<Long, List<ProductOption>> optionsByProductId = productOptions.stream()
+                .collect(Collectors.groupingBy(ProductOption::getProductId));
+
+        Map<Long, List<ProductImgs>> productImgsByProductId = productImgs.stream()
+                .collect(Collectors.groupingBy(ProductImgs::getProductId));
+
+        return orderDetails.stream()
+                .map(orderDetail -> {
+                    Product product = getProductById(products, orderDetail.getProductId());
+                    List<ProductOption> options = optionsByProductId.get(orderDetail.getProductId());
+                    List<ProductImgs> imgs = productImgsByProductId.get(orderDetail.getProductId());
+
+                    if (product != null) {
+                        String optionName = "SampleOptionName";
+                        String optionValue = "SampleOptionValue";
+                        String imgAddress = "https://sample-image.com/sample.png";
+
+                        if (options != null && !options.isEmpty()) {
+                            ProductOption productOption = options.get(0);
+                            optionName = productOption.getOptionName();
+                            optionValue = productOption.getOptionValue();
+                        }
+
+                        if (imgs != null && !imgs.isEmpty()) {
+                            imgAddress = imgs.get(0).getImgAddress();
+                        }
+
+                        // Find the corresponding order for the current orderDetail
+                        Order order = orders.stream()
+                                .filter(o -> o.getOrderId().equals(orderDetail.getOrderId()))
+                                .findFirst()
+                                .orElse(null);
+
+
+                        return new OrderListResDto(
+                                orderDetail.getOrderId(),
+                                order != null ? order.getOrderDate() : null,
+                                orderDetail.getOrderDetailId(),
+                                orderDetail.getProductId(),
+                                orderDetail.getOptionId(),
+                                optionName,
+                                optionValue,
+                                product.getProductBrand(),
+                                product.getProductName(),
+                                imgAddress,
+                                orderDetail.getOrderDetailCount(),
+                                orderDetail.getOrderDetailState().toString());
+                    } else {
+                        return new OrderListResDto();
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+    private Product getProductById(List<Product> products, Long productId) {
+        return products.stream()
+                .filter(product -> product.getProductId().equals(productId))
+                .findFirst()
+                .orElse(null);
+    }
+
+
+
+
+
+
+
+
+
 
 }

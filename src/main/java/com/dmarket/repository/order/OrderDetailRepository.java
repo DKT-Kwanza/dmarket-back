@@ -1,6 +1,8 @@
 package com.dmarket.repository.order;
 
+import com.dmarket.constant.OrderDetailState;
 import com.dmarket.domain.order.OrderDetail;
+import com.dmarket.dto.common.OrderDetailStateCountsDto;
 import com.dmarket.dto.response.OrderDetailResDto;
 import com.dmarket.dto.response.ReviewResDto;
 
@@ -33,4 +35,11 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
             "SELECT MIN(pi2.imgId) FROM ProductImgs pi2 WHERE pi2.productId = od.productId" +
             ")")
     List<ReviewResDto> findOrderDetailsWithReviewByOrder(@Param("orderId") Long orderId);
+
+
+    //배송 목록 조회
+    List<OrderDetail> findByOrderDetailStateOrderByOrderDetailUpdatedDateDesc(OrderDetailState orderDetailState);
+
+
+
 }

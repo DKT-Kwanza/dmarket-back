@@ -1,13 +1,13 @@
 package com.dmarket.controller;
 
 import com.dmarket.constant.InquiryType;
-import com.dmarket.domain.board.Inquiry;
+import com.dmarket.constant.OrderDetailState;
 import com.dmarket.domain.board.InquiryReply;
 import com.dmarket.dto.common.InquiryDetailsDto;
 import com.dmarket.constant.FaqType;
 import com.dmarket.domain.board.Faq;
 import com.dmarket.constant.ReturnState;
-import com.dmarket.domain.product.Product;
+import com.dmarket.dto.common.OrderDetailStateCountsDto;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
 import com.dmarket.service.AdminService;
@@ -18,20 +18,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import java.time.*;
+
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -499,13 +496,63 @@ public class AdminController {
         }
     }
 
+    //재고 추가
+    @PutMapping("/products/stock")
+    public ResponseEntity<?> addProductStock(@RequestBody StockReqDto stockReqDto) {
+        try {
+            adminService.addProductStock(stockReqDto);
+
+            // Retrieve and return updated product information
+            Long productId = stockReqDto.getProductId();
+            ProductInfoOptionResDto productInfoOptionResDto = adminService.getProductInfoWithOption(productId);
+
+            return ResponseEntity.ok(CMResDto.builder()
+                    .code(200)
+                    .msg("상품 재고 추가 완료")
+                    .data(Collections.singletonList(productInfoOptionResDto))
+                    .build());
+        }
+        catch (IllegalArgumentException e) {
+            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Error deleting Inquiry Reply: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 
 
+    // 배송 목록 조회
+    @GetMapping("/api/admin/orders")
+    public ResponseEntity<Map<String, Object>> getOrdersByStatus(@RequestParam String status) {
+        try {
+            OrderDetailStateCountsDto statusCounts = adminService.getOrderDetailStateCounts();
+            List<OrderListResDto> orderList = adminService.getOrdersByStatus(status);
 
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("confPayCount", statusCounts.getOrderCompleteCount());
+            responseData.put("preShipCount", statusCounts.getDeliveryReadyCount());
+            responseData.put("InTransitCount", statusCounts.getDeliveryIngCount());
+            responseData.put("delivCompCount", statusCounts.getDeliveryCompleteCount());
+            responseData.put("orderList", orderList);
 
+            return ResponseEntity.ok(responseData);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
-
+    private Map<OrderDetailState, Long> calculateStatusCounts(List<OrderListResDto> orderList) {
+        return orderList.stream()
+                .collect(Collectors.groupingBy(
+                        orderDto -> OrderDetailState.valueOf(orderDto.getOrderStatus()),
+                        Collectors.counting()
+                ));
+    }
+    // ---배송 목록 조회---
 
 
 }
