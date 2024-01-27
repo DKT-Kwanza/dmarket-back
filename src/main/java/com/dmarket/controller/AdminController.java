@@ -603,14 +603,26 @@ public class AdminController {
 
             InquiryDetailsDto inquiryDetails = adminService.getInquiryDetails(inquiryId);
 
-            return ResponseEntity.ok(CMResDto.builder()
-                    .code(HttpStatus.OK.value())
+            return ResponseEntity.ok(CMResDto.<InquiryDetailsDto>builder()
+                    .code(200)
                     .msg("답변 작성 완료")
                     .data(inquiryDetails)
                     .build());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(CMResDto.<InquiryDetailsDto>builder()
+                    .code(400)
+                    .msg("유효하지 않은 요청 메시지")
+                    .build());
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CMResDto.<InquiryDetailsDto>builder()
+                    .code(401)
+                    .msg("유효하지 않은 인증")
+                    .build());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error while processing the request.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CMResDto.<InquiryDetailsDto>builder()
+                    .code(500)
+                    .msg("서버 내부 오류")
+                    .build());
         }
     }
 
@@ -892,11 +904,10 @@ public class AdminController {
 
     // 배송 목록 조회
     @GetMapping("/api/admin/orders")
-    public ResponseEntity<Map<String, Object>> getOrdersByStatus(@RequestParam String status) {
+    public ResponseEntity<CMResDto<Map<String, Object>>> getOrdersByStatus(@RequestParam String status) {
         try {
             OrderDetailStateCountsDto statusCounts = adminService.getOrderDetailStateCounts();
             List<OrderListAdminResDto> orderList = adminService.getOrdersByStatus(status);
-
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("confPayCount", statusCounts.getOrderCompleteCount());
             responseData.put("preShipCount", statusCounts.getDeliveryReadyCount());
@@ -904,23 +915,24 @@ public class AdminController {
             responseData.put("delivCompCount", statusCounts.getDeliveryCompleteCount());
             responseData.put("orderList", orderList);
 
-            return ResponseEntity.ok(responseData);
+            return ResponseEntity.ok(CMResDto.<Map<String, Object>>builder()
+                    .code(200)
+                    .msg("배송 조회 완료")
+                    .data(responseData)
+                    .build());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(CMResDto.<Map<String, Object>>builder()
+                    .code(400)
+                    .msg("유효하지 않은 요청 메시지")
+                    .build());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CMResDto.<Map<String, Object>>builder()
+                    .code(500)
+                    .msg("서버 내부 오류")
+                    .build());
         }
     }
-
-    private Map<OrderDetailState, Long> calculateStatusCounts(List<OrderListAdminResDto> orderList) {
-        return orderList.stream()
-                .collect(Collectors.groupingBy(
-                        orderDto -> OrderDetailState.valueOf(orderDto.getOrderStatus()),
-                        Collectors.counting()
-                ));
-    }
     // ---배송 목록 조회---
-
 
 
 }
