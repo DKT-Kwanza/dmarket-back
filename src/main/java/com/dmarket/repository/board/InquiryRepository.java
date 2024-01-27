@@ -2,6 +2,7 @@ package com.dmarket.repository.board;
 
 import com.dmarket.constant.InquiryType;
 import com.dmarket.domain.board.Inquiry;
+import com.dmarket.dto.common.InquiryDetailsDto;
 import com.dmarket.dto.response.InquiryListResDto;
 import com.dmarket.dto.response.UserInquiryAllResDto;
 import org.springframework.data.domain.Page;
@@ -20,7 +21,7 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
             "i.inquiryId, i.inquiryTitle, i.inquiryContents, i.inquiryType, i.inquiryState, i.inquiryImg, i.inquiryCreatedDate, u.userName) " +
             "FROM Inquiry i " +
             "LEFT JOIN User u ON i.userId = u.userId " +
-            "WHERE (:inquiryType is null OR i.inquiryType = :inquiryType) " +
+            "WHERE (:inquiryType is null OR i.inquiryType = :inquiryType) " + // inquiryType이 null인 경우(inquiryType 파라미터가 제공되지 않은 경우) 조건 항상 true로 설정
             "ORDER BY i.inquiryCreatedDate DESC")
     Page<InquiryListResDto> findByInquiryType(@Param("inquiryType") InquiryType inquiryType, Pageable pageable);
 
@@ -33,4 +34,14 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
             " left join InquiryReply ir on ir.inquiryId = i.inquiryId" +
             " where i.userId = :userId")
     List<UserInquiryAllResDto> findUserInquiryAllByUserId(@Param("userId") Long userId);
+
+    //문의 답변 등록
+    @Query("SELECT NEW com.dmarket.dto.common.InquiryDetailsDto(" +
+            "i.inquiryId, i.inquiryTitle, i.inquiryContents, i.inquiryType, i.inquiryState, u.userName, i.inquiryImg, i.inquiryCreatedDate, ir.inquiryReplyContents " +
+            ") " +
+            "FROM Inquiry i " +
+            "LEFT JOIN InquiryReply ir ON i.inquiryId = ir.inquiryId " +
+            "LEFT JOIN User u ON i.userId = u.userId " +
+            "WHERE ir.inquiryReplyId = :inquiryReplyId")
+    InquiryDetailsDto findInquiryDetailsByInquiryReplyId(@Param("inquiryReplyId") Long inquiryReplyId);
 }

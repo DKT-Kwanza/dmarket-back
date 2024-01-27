@@ -3,6 +3,7 @@ package com.dmarket.repository.product;
 import com.dmarket.domain.product.Product;
 import com.dmarket.dto.common.ProductListDto;
 import com.dmarket.dto.response.NewProductResDto;
+import com.dmarket.dto.response.ProductInfoOptionResDto;
 import com.dmarket.dto.response.RecommendProductResDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -92,4 +93,22 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                         @Param("productPrice") Integer productPrice,
                         @Param("productSalePrice") Integer productSalePrice,
                         @Param("productDescription") String productDescription);
+
+
+    //상품 재고 추가
+    @Query("SELECT NEW com.dmarket.dto.response.ProductInfoOptionResDto(" +
+            "p.productId, p.productBrand, p.productName, po.optionId, po.optionValue,  po.optionName, MIN(pi.imgAddress), po.optionQuantity " +
+            ") " +
+            "FROM Product p " +
+            "LEFT JOIN ProductImgs pi ON p.productId = pi.productId " +
+            "LEFT JOIN ProductOption po ON p.productId = po.productId " +
+            "WHERE p.productId = :productId " +  // 특정 productId에 대한 정보만 가져옴
+            "GROUP BY p.productId, po.optionId " +
+            "ORDER BY p.productCreatedDate DESC")
+    List<ProductInfoOptionResDto> findProductDetails(@Param("productId") Long productId);
+
+
+
+
+
 }
