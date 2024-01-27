@@ -369,23 +369,23 @@ public Long postFaq(FaqType faqType, String faqQuestion, String faqAnswer) {
             throw new RuntimeException("상품 재고 추가 중 오류 발생", e);
         }
     }
-
+    // 상품 재고 추가 RESPONSE
     public ProductInfoOptionResDto getProductInfoWithOption(Long productId) {
         try {
-            Optional<Product> optionalProduct = productRepository.findById(productId);
+            List<ProductInfoOptionResDto> productDetails = productRepository.findProductDetails(productId);
 
-            if (optionalProduct.isPresent()) {
-                Product product = optionalProduct.get();
+            if (!productDetails.isEmpty()) {
+                ProductInfoOptionResDto productDetail = productDetails.get(0);
 
                 return ProductInfoOptionResDto.builder()
-                        .productId(productId)
-                        .productBrand(product.getProductBrand())
-                        .productName(product.getProductName())
-                        .optionId(1L)
-                        .optionValue("SampleValue")
-                        .optionName("SampleOption")
-                        .productImg("https://example.com/sample.png")
-                        .optionQuantity(42)
+                        .productId(productDetail.getProductId())
+                        .productBrand(productDetail.getProductBrand())
+                        .productName(productDetail.getProductName())
+                        .optionId(productDetail.getOptionId())
+                        .optionValue(productDetail.getOptionValue())
+                        .optionName(productDetail.getOptionName())
+                        .productImg(productDetail.getProductImg())
+                        .optionQuantity(productDetail.getOptionQuantity())
                         .build();
             } else {
                 throw new IllegalArgumentException("상품을 찾을 수 없습니다.");
@@ -394,8 +394,6 @@ public Long postFaq(FaqType faqType, String faqQuestion, String faqAnswer) {
             throw new RuntimeException("상품 정보 조회 중 오류 발생", e);
         }
     }
-    // -------------- 위 부분도 나중에 수정할게요 ------------------
-
 
 
     // 배송 목록 조회

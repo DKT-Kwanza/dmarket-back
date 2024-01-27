@@ -460,8 +460,7 @@ public class AdminController {
                     .inquiryReplyContents(inquiryReplyRequestDto.getInquiryReplyContents())
                     .build();
 
-            InquiryReply createdInquiryReply = adminService.createInquiryReply(inquiryReply);
-
+            adminService.createInquiryReply(inquiryReply);
             InquiryDetailsDto inquiryDetails = adminService.getInquiryDetails(inquiryId);
 
             return ResponseEntity.ok(CMResDto.<InquiryDetailsDto>builder()
