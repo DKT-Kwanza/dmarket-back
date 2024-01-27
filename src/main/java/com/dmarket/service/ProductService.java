@@ -1,20 +1,20 @@
 package com.dmarket.service;
 
-import com.dmarket.domain.product.ProductReview;
-import com.dmarket.dto.request.ReviewReqDto;
-import com.dmarket.dto.response.CategoryListResDto;
-import com.dmarket.dto.response.ProductListResDto;
-import com.dmarket.domain.product.Qna;
-import com.dmarket.domain.user.User;
-import com.dmarket.dto.response.*;
-import com.dmarket.repository.user.UserRepository;
 import com.dmarket.domain.product.Category;
 import com.dmarket.domain.product.Product;
+import com.dmarket.domain.product.ProductReview;
+import com.dmarket.domain.product.Qna;
+import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.ProductDto;
+import com.dmarket.dto.common.ProductListDto;
 import com.dmarket.dto.common.ProductOptionDto;
 import com.dmarket.dto.common.ProductReviewDto;
-import com.dmarket.dto.common.ProductListDto;
+import com.dmarket.dto.request.ReviewReqDto;
+import com.dmarket.dto.response.*;
+import com.dmarket.exception.BadRequestException;
+import com.dmarket.exception.ErrorCode;
 import com.dmarket.repository.product.*;
+import com.dmarket.repository.user.UserRepository;
 import com.dmarket.repository.user.WishlistRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -92,7 +92,7 @@ public class ProductService {
     public ProductInfoResDto getProductInfo(Long productId, Long userId) {
         // 싱품 정보 조회
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
+                .orElseThrow(() -> new BadRequestException(ErrorCode.PRODUCT_NOT_FOUND));
         // 상품의 카테고리 depth 1, depth2 조회 후 합치기
         Category category = categoryRepository.findByCategoryId(product.getCategoryId());
         String productCategory = category.getParent().getCategoryName() + " / " + category.getCategoryName();

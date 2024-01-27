@@ -1,45 +1,39 @@
 package com.dmarket.service;
 
-import com.dmarket.constant.MileageReqState;
 import com.dmarket.constant.MileageContents;
+import com.dmarket.constant.MileageReqState;
 import com.dmarket.constant.OrderDetailState;
-import com.dmarket.domain.user.User;
+import com.dmarket.domain.board.Inquiry;
+import com.dmarket.domain.order.Order;
+import com.dmarket.domain.user.*;
 import com.dmarket.dto.common.*;
+import com.dmarket.dto.request.JoinReqDto;
 import com.dmarket.dto.request.UserAddressReqDto;
 import com.dmarket.dto.response.*;
+import com.dmarket.exception.BadRequestException;
+import com.dmarket.exception.ConflictException;
+import com.dmarket.exception.ErrorCode;
 import com.dmarket.jwt.JWTUtil;
-import com.dmarket.domain.board.Inquiry;
-import com.dmarket.domain.user.Mileage;
-import com.dmarket.domain.user.MileageReq;
-import com.dmarket.domain.user.Cart;
-import com.dmarket.domain.user.Wishlist;
-import com.dmarket.dto.request.JoinReqDto;
-import com.dmarket.repository.user.*;
 import com.dmarket.repository.board.InquiryRepository;
+import com.dmarket.repository.order.OrderDetailRepository;
+import com.dmarket.repository.order.OrderRepository;
+import com.dmarket.repository.product.QnaRepository;
+import com.dmarket.repository.user.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-
-import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import com.dmarket.domain.order.Order;
-import com.dmarket.repository.order.OrderDetailRepository;
-import com.dmarket.repository.order.OrderRepository;
-import com.dmarket.repository.product.QnaRepository;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -237,6 +231,11 @@ public class UserService {
     // 위시리스트 추가
     @Transactional
     public void addWish(Long userId, Long productId) {
+        // 위시리스트에 있는지 확인 -> 있으면 에러 처리
+        Boolean isWish = wishlistRepository.existsByUserIdAndProductId(userId, productId);
+        if(isWish){
+            throw new ConflictException(ErrorCode.ALREADY_SAVED_WISH);
+        }
         // 위시리스트 저장
         Wishlist wishlist = Wishlist.builder()
                 .userId(userId)

@@ -1,46 +1,28 @@
 package com.dmarket.controller;
 
+import com.dmarket.domain.board.Inquiry;
+import com.dmarket.dto.common.CartListDto;
 import com.dmarket.dto.common.InquiryRequestDto;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
-import com.dmarket.dto.response.CMResDto;
-import com.dmarket.dto.response.UserInfoResDto;
-import com.dmarket.dto.response.WishlistResDto;
-import com.dmarket.domain.board.Inquiry;
-
-import com.dmarket.dto.response.*;
-import com.dmarket.dto.request.*;
-
-import com.dmarket.dto.common.CartListDto;
-
 import com.dmarket.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
-
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
-import java.util.*;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.bind.annotation.*;
 
-import com.dmarket.dto.common.CartListDto;
-import com.dmarket.domain.board.Inquiry;
-import org.springframework.web.bind.annotation.PostMapping;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -133,24 +115,12 @@ public class UserController {
 
     // 위시리스트 추가 api
     @PostMapping("/{userId}/wish")
-    public ResponseEntity<?> addWish(@PathVariable Long userId, @Valid @RequestBody AddWishReqDto addWishReqDto,
-            BindingResult bindingResult) {
-        try {
-            // request body 유효성 확인
-            bindingResultErrorsCheck(bindingResult);
+    public ResponseEntity<?> addWish(@PathVariable Long userId, @Valid @RequestBody AddWishReqDto addWishReqDto) {
+        // 위시리스트 추가
+        Long productId = addWishReqDto.getProductId();
+        userService.addWish(userId, productId);
 
-            // 위시리스트 추가
-            Long productId = addWishReqDto.getProductId();
-            userService.addWish(userId, productId);
-
-            return new ResponseEntity<>(CMResDto.builder().code(200).msg("위시리스트 등록 성공").build(), HttpStatus.OK);
-        } catch (RuntimeException e) {
-            log.warn(e.getMessage(), e.getCause());
-            return new ResponseEntity<>(CMResDto.builder()
-                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
-        }
+        return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
 
     @GetMapping("/user")

@@ -208,18 +208,9 @@ public class ProductController {
     // 상품 상세 조회 api
     @GetMapping("/{productId}")
     public ResponseEntity<?> getProductInfo(@PathVariable Long productId){
-        try {
-            Long userId = 1L;
-            ProductInfoResDto res = productService.getProductInfo(productId, userId);
-            return new ResponseEntity<>(CMResDto.builder()
-                    .code(200).msg("상품 상세 조회 성공").data(res).build(), HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(CMResDto.builder().
-                    code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            return new ResponseEntity<>(CMResDto.builder().
-                    code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        Long userId = 1L;
+        ProductInfoResDto res = productService.getProductInfo(productId, userId);
+        return new ResponseEntity<>(CMResDto.successDataRes(res), HttpStatus.OK);
     }
 
     // 상품별 사용자 리뷰 조회 api
