@@ -435,22 +435,9 @@ public class AdminService {
     public InquiryReply createInquiryReply(InquiryReply inquiryReply) {
         return inquiryReplyRepository.save(inquiryReply);
     }
-
-    public InquiryDetailsDto getInquiryDetails(Long inquiryId) {
-        InquiryDetailsDto inquiryDetailsDto = InquiryDetailsDto.builder()
-                .inquiryId(inquiryId)
-                .inquiryTitle("Sample Title")
-                .inquiryContents("Sample Contents")
-                .inquiryType("Sample Type")
-                .inquiryStatus(false)
-                .inquiryWriter("Sample Writer")
-                .inquiryImg("www.example.com/sample.png")
-                .inquiryCreateDate("2024-01-07 13:48:00")
-                .inquiryReplyContents("Sample Reply Contents")
-                .build();
-
-        return inquiryDetailsDto;
-        // 나중에 수정할게요..
+    // 문의 답변 등록 - response
+    public InquiryDetailsDto getInquiryDetails(Long inquiryReplyId) {
+        return inquiryRepository.findInquiryDetailsByInquiryReplyId(inquiryReplyId);
     }
 
     // 문의 답변 삭제
