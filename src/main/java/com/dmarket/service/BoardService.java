@@ -3,7 +3,7 @@ package com.dmarket.service;
 import com.dmarket.domain.board.Faq;
 import com.dmarket.domain.board.Notice;
 import com.dmarket.dto.response.FaqListResDto;
-import com.dmarket.dto.response.NoticeListResDto;
+import com.dmarket.dto.response.NoticeResDto;
 import com.dmarket.repository.board.FaqRepository;
 import com.dmarket.repository.board.NoticeRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,13 +27,8 @@ public class BoardService {
     public Page<Notice> getAllNotices(Pageable pageable) {
         return noticeRepository.findAll(pageable);
     }
-    public Page<NoticeListResDto> mapToNoticeListResDto(Page<Notice> noticesPage) {
-        return noticesPage.map(notice -> new NoticeListResDto(
-                notice.getNoticeId(),
-                notice.getNoticeTitle(),
-                notice.getNoticeContents(),
-                notice.getNoticeCreatedDate()
-        ));
+    public Page<NoticeResDto> mapToNoticeResDto(Page<Notice> noticesPage) {
+        return noticesPage.map(no -> new NoticeResDto(no));
     }
 
 

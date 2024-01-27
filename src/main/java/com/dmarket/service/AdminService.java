@@ -103,7 +103,7 @@ public class AdminService {
     }
 
     @Transactional
-    public Page<NoticeListResDto> postNotice(Long userId, String noticeTitle, String noticeContents,
+    public Page<NoticeResDto> postNotice(Long userId, String noticeTitle, String noticeContents,
             Pageable pageable) {
         Notice notice = Notice.builder()
                 .userId(userId)
@@ -113,11 +113,7 @@ public class AdminService {
         noticeRepository.save(notice);
 
         Page<Notice> noticesPage = noticeRepository.findAll(pageable);
-        return noticesPage.map(no -> new NoticeListResDto(
-                no.getNoticeId(),
-                no.getNoticeTitle(),
-                no.getNoticeContents(),
-                no.getNoticeCreatedDate()));
+        return noticesPage.map(no -> new NoticeResDto(no));
     }
 
     // 마일리지 충전 요청 내역
