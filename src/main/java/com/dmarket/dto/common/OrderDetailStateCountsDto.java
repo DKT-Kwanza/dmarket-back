@@ -12,4 +12,7 @@ public class OrderDetailStateCountsDto {
     private Long deliveryReadyCount;
     private Long deliveryIngCount;
     private Long deliveryCompleteCount;
+    private Long orderCancelCount;
+    private Long returnRequestCount;
+    private Long returnCompleteCount;
 }
