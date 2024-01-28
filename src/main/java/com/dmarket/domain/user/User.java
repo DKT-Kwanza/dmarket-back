@@ -1,8 +1,9 @@
 package com.dmarket.domain.user;
 
 import com.dmarket.constant.Role;
-import com.dmarket.dto.request.UserAddressReqDto;
-import com.dmarket.dto.response.SearchUserResDto;
+import com.dmarket.dto.request.UserReqDto;
+import com.dmarket.dto.response.UserResDto;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -54,10 +55,10 @@ public class User {
         this.userPassword = password;
     }
 
-    public void updateAddress(UserAddressReqDto userAddressReqDto) {
-        this.userPostalCode = userAddressReqDto.getUserPostalCode();
-        this.userAddress = userAddressReqDto.getUserAddress();
-        this.userAddressDetail = userAddressReqDto.getUserDetailedAddress();
+    public void updateAddress(UserReqDto.UserAddress userAddressDto) {
+        this.userPostalCode = userAddressDto.getUserPostalCode();
+        this.userAddress = userAddressDto.getUserAddress();
+        this.userAddressDetail = userAddressDto.getUserDetailedAddress();
     }
 
     // user의 권한을 변경
@@ -65,8 +66,8 @@ public class User {
         this.userRole = newRole;
     }
 
-    public SearchUserResDto toUserInfoRes(){
-        return SearchUserResDto.builder()
+    public UserResDto.SearchUser toUserInfoRes(){
+        return UserResDto.SearchUser.builder()
                 .userId(this.userId)
                 .userName(this.userName)
                 .userEmail(this.userEmail)
