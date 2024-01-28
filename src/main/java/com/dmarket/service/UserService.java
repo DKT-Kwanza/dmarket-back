@@ -5,7 +5,6 @@ import com.dmarket.constant.MileageContents;
 import com.dmarket.constant.OrderDetailState;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.*;
-import com.dmarket.dto.request.UserAddressReqDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.jwt.JWTUtil;
 import com.dmarket.domain.board.Inquiry;
@@ -13,7 +12,7 @@ import com.dmarket.domain.user.Mileage;
 import com.dmarket.domain.user.MileageReq;
 import com.dmarket.domain.user.Cart;
 import com.dmarket.domain.user.Wishlist;
-import com.dmarket.dto.request.JoinReqDto;
+import com.dmarket.dto.request.UserReqDto;
 import com.dmarket.repository.user.*;
 import com.dmarket.repository.board.InquiryRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -70,7 +69,7 @@ public class UserService {
      * @Return userId
      */
     @Transactional
-    public Long join(JoinReqDto dto) {
+    public Long join(UserReqDto.Join dto) {
 
         User user = User.builder()
                 .userEmail(dto.getUserEmail())
@@ -90,7 +89,7 @@ public class UserService {
     }
 
     //회원가입 유효성 확인
-    public void verifyJoin(JoinReqDto dto) {
+    public void verifyJoin(UserReqDto.Join dto) {
 
         String regExp = "^(?=.*[a-zA-Z])(?=.*[!@#$%^])(?=.*[0-9]).{8,25}$";
         String userEmail = dto.getUserEmail();
@@ -210,7 +209,7 @@ public class UserService {
     }
 
     // 사용자 정보 조회
-    public UserInfoResDto getUserInfoByUserId(Long userId) {
+    public UserResDto.UserInfo getUserInfoByUserId(Long userId) {
         return userRepository.findUserInfoByUserId(userId);
     }
 
@@ -230,7 +229,7 @@ public class UserService {
     }
 
     // 마이페이지 서브헤더 사용자 정보 및 마일리지 조회
-    public UserHeaderInfoResDto getSubHeader(Long userId) {
+    public UserResDto.UserHeaderInfo getSubHeader(Long userId) {
         return userRepository.findUserHeaderInfoByUserId(userId);
     }
 
@@ -277,8 +276,8 @@ public class UserService {
 
     //사용자 배송지 변경
     @Transactional
-    public UserAddressResDto updateAddress(HttpServletRequest request,
-                              Long userId, UserAddressReqDto userAddressReqDto){
+    public UserResDto.UserAddress updateAddress(HttpServletRequest request,
+                              Long userId, UserReqDto.UserAddress userAddressDto){
         String header = jwtUtil.getAuthHeader(request);
         String token = jwtUtil.getToken(header);
         if (token == null || !jwtUtil.isTokenValid(token)) {
@@ -286,8 +285,8 @@ public class UserService {
         }
         String email = jwtUtil.getEmail(token);
         User user = userRepository.findByUserEmail(email);
-        user.updateAddress(userAddressReqDto);
-        return new UserAddressResDto(user);
+        user.updateAddress(userAddressDto);
+        return new UserResDto.UserAddress(user);
     }
 
     //사용자 비밀번호 확인

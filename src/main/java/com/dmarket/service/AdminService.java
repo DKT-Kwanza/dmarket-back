@@ -2,47 +2,18 @@ package com.dmarket.service;
 
 import com.dmarket.domain.order.Refund;
 import com.dmarket.dto.common.*;
-import com.dmarket.constant.MileageReqState;
 import com.dmarket.domain.user.MileageReq;
 import com.dmarket.domain.user.User;
-import com.dmarket.constant.InquiryType;
 import com.dmarket.domain.product.*;
 import com.dmarket.constant.*;
-import com.dmarket.constant.FaqType;
-import com.dmarket.dto.common.ProductOptionDto;
-import com.dmarket.dto.common.ProductOptionListDto;
-import com.dmarket.dto.request.ChangeRoleReqDto;
 import com.dmarket.repository.order.RefundRepository;
-import com.dmarket.repository.product.CategoryRepository;
-import com.dmarket.repository.product.ProductImgsRepository;
-import com.dmarket.repository.product.ProductOptionRepository;
-import com.dmarket.repository.product.ProductRepository;
-import com.dmarket.dto.common.QnaDto;
-import com.dmarket.dto.common.ReturnDto;
 import com.dmarket.repository.product.*;
-import com.dmarket.constant.OrderDetailState;
-import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.order.Return;
-import com.dmarket.domain.product.Category;
-import com.dmarket.domain.product.Product;
-import com.dmarket.domain.product.ProductImgs;
-import com.dmarket.domain.product.ProductOption;
 import com.dmarket.dto.request.ProductListDto;
 import com.dmarket.repository.order.OrderDetailRepository;
 import com.dmarket.repository.order.RefundRepository;
 import com.dmarket.repository.order.ReturnRepository;
-import com.dmarket.repository.product.CategoryRepository;
-import com.dmarket.repository.product.ProductImgsRepository;
-import com.dmarket.repository.product.ProductOptionRepository;
-import com.dmarket.repository.product.ProductRepository;
-import com.dmarket.domain.product.Category;
-import com.dmarket.domain.product.Product;
-import com.dmarket.dto.common.ProductOptionDto;
-import com.dmarket.dto.common.ProductOptionListDto;
-import com.dmarket.repository.product.CategoryRepository;
-import com.dmarket.repository.product.ProductImgsRepository;
-import com.dmarket.repository.product.ProductOptionRepository;
-import com.dmarket.repository.product.ProductRepository;
+import java.util.stream.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -56,6 +27,7 @@ import com.dmarket.domain.board.*;
 import com.dmarket.dto.request.OptionReqDto;
 import com.dmarket.dto.request.ProductReqDto;
 import com.dmarket.dto.request.RefundReqDto;
+import com.dmarket.dto.request.UserReqDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.repository.board.*;
 import com.dmarket.repository.user.*;
@@ -94,8 +66,11 @@ public class AdminService {
         userRepository.deleteByUserId(userId);
     }
 
-    public List<UserResDto> getUsersFindByDktNum(Integer userDktNum) {
-        return userRepository.getUsersFindByDktNum(userDktNum);
+    public List<UserResDto.Search> getUsersFindByDktNum(Integer userDktNum) {
+            List<User> users = userRepository.getUsersFindByUserDktNum(userDktNum);
+    return users.stream()
+            .map(UserResDto.Search::new)
+            .collect(Collectors.toList());
     }
 
     public Page<NoticeResDto> getNotices(Pageable pageable) {
@@ -573,7 +548,7 @@ public class AdminService {
 
     // 권한 변경
     @Transactional
-    public void changeRole(Long userId, ChangeRoleReqDto newRole){
+    public void changeRole(Long userId, UserReqDto.ChangeRole newRole){
         User user = userRepository.findByUserId(userId);
 
         // String -> Enum 으로 형변환

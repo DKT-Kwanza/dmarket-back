@@ -96,7 +96,7 @@ public class AdminController {
     @GetMapping("/admin-user")
     public ResponseEntity<?> getUsers(@RequestParam(value = "q", required = true) Integer dktNum) {
         try {
-            List<UserResDto> userResDtos = adminService.getUsersFindByDktNum(dktNum);
+            List<UserResDto.Search> userResDtos = adminService.getUsersFindByDktNum(dktNum);
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("사용자 목록 조회 완료").data(userResDtos).build(), HttpStatus.OK);
 
@@ -754,10 +754,10 @@ public class AdminController {
     }
 
     // 권한 부여한
-    // 사용힌 ChangeRoleReqDto
+    // 사용힌 ChangeRoleReqDto -> UserReqDto.ChangeRole로 변경
     @PutMapping("/admin-users/{userId}")
     public ResponseEntity<?> changeRole(@PathVariable Long userId,
-                                        @RequestBody ChangeRoleReqDto newRole){
+                                        @RequestBody UserReqDto.ChangeRole newRole){
         try {
             adminService.changeRole(userId,newRole);
             return new ResponseEntity<>(CMResDto.builder()
