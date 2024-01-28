@@ -3,10 +3,8 @@ package com.dmarket.repository.order;
 import com.dmarket.constant.OrderDetailState;
 
 import com.dmarket.domain.order.OrderDetail;
-import com.dmarket.dto.common.ProductDetailListDto;
-import com.dmarket.dto.response.OrderResDto.OrderDetailListResDto;
-import com.dmarket.dto.response.OrderResDto.OrderCancelResDto;
-import com.dmarket.dto.response.OrderResDto.OrderDetailResDto;
+import com.dmarket.dto.common.ProductCommonDto;
+import com.dmarket.dto.response.OrderResDto;
 import com.dmarket.dto.response.ReviewResDto;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,7 +16,7 @@ import java.util.List;
 
 @Repository
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> {
-        @Query("SELECT new com.dmarket.dto.response.OrderDetailResDto(od, p, pi, po) " +
+        @Query("SELECT new com.dmarket.dto.response.OrderResDto$OrderDetailResDto(od, p, pi, po) " +
                         "FROM OrderDetail od " +
                         "JOIN Product p ON p.productId = od.productId " +
                         "JOIN ProductImgs pi ON pi.productId = p.productId " +
@@ -27,7 +25,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
                         "WHERE od.orderId = :orderId AND pr.reviewId IS NULL AND pi.imgId = (" +
                         "SELECT MIN(pi2.imgId) FROM ProductImgs pi2 WHERE pi2.productId = od.productId" +
                         ")")
-        List<OrderDetailResDto> findOrderDetailsWithoutReviewByOrder(@Param("orderId") Long orderId);
+        List<OrderResDto.OrderDetailResDto> findOrderDetailsWithoutReviewByOrder(@Param("orderId") Long orderId);
 
         @Query("SELECT new com.dmarket.dto.response.ReviewResDto(od, p, pi, po, pr) " +
                         "FROM OrderDetail od " +
@@ -55,7 +53,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
         Integer getOrderDetailSalePriceFindByReturnId(@Param("returnId") Long returnId);
 
         // 주문 내역 상세 조회
-        @Query(value = "select new com.dmarket.dto.common.ProductDetailListDto(od, p, po, pi) " +
+        @Query(value = "select new com.dmarket.dto.common.ProductCommonDto$ProductDetailListDto(od, p, po, pi) " +
                         "from OrderDetail od " +
                         "join Product p on od.productId = p.productId " +
                         "join ProductOption po on od.optionId = po.optionId " +
@@ -63,7 +61,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
                         "where od.orderId = :orderId and pi.imgId = (" +
                         "select min(pi2.imgId) from ProductImgs pi2 where pi2.productId = od.productId" +
                         ")")
-        List<ProductDetailListDto> findOrderDetailByOrderId(@Param("orderId") Long orderId);
+        List<ProductCommonDto.ProductDetailListDto> findOrderDetailByOrderId(@Param("orderId") Long orderId);
 
         // count (orderDetailState) by userId
         @Query(value = "SELECT COUNT(*) " +

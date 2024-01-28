@@ -2,7 +2,7 @@ package com.dmarket.service;
 
 import com.dmarket.domain.board.Faq;
 import com.dmarket.domain.board.Notice;
-import com.dmarket.dto.response.FaqListResDto;
+import com.dmarket.dto.response.FaqResDto;
 import com.dmarket.dto.response.NoticeResDto;
 import com.dmarket.repository.board.FaqRepository;
 import com.dmarket.repository.board.NoticeRepository;
@@ -36,8 +36,8 @@ public class BoardService {
     public Page<Faq> getAllFaqs(Pageable pageable) {
         return faqRepository.findAll(pageable);
     }
-    public Page<FaqListResDto> mapToFaqListResDto(Page<Faq> faqsPage) {
-        return faqsPage.map(faq -> new FaqListResDto(
+    public Page<FaqResDto.FaqListResDto> mapToFaqListResDto(Page<Faq> faqsPage) {
+        return faqsPage.map(faq -> new FaqResDto.FaqListResDto(
                 faq.getFaqId(),
                 faq.getFaqType(),
                 faq.getFaqQuestion(),

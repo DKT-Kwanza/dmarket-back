@@ -9,7 +9,8 @@ import com.dmarket.domain.product.Product;
 import com.dmarket.domain.product.ProductImgs;
 import com.dmarket.domain.product.ProductOption;
 import com.dmarket.domain.user.User;
-import com.dmarket.dto.common.ProductDetailListDto;
+import com.dmarket.dto.common.OrderCommonDto;
+import com.dmarket.dto.common.ProductCommonDto;
 import lombok.*;
 
 @Data
@@ -69,9 +70,9 @@ public class OrderResDto<T> {
         private Integer userPostalCode;
         private String userAddress;
         private String userDetailedAddress;     // userAddressDetail
-        private List<ProductDetailListDto> productDetailList;
+        private List<ProductCommonDto.ProductDetailListDto> productDetailList;
 
-        public OrderDetailListResDto(Order order, User user, List<ProductDetailListDto> productDetailList){
+        public OrderDetailListResDto(Order order, User user, List<ProductCommonDto.ProductDetailListDto> productDetailList){
             this.orderId = order.getOrderId();
             this.orderDate = order.getOrderDate();
             this.totalPay = order.getOrderTotalPay();
@@ -106,5 +107,45 @@ public class OrderResDto<T> {
         }
 
     }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class OrderListResDto {
+        private Long confPayCount;           //결제 완료 상태 개수
+        private Long preShipCount;           // 배송 준비 중 상태 개수
+        private Long inTransitCount;         // 배송 중 상태 개수
+        private Long cmpltDilCount;          // 배송 완료 상태 개수
+        private Long orderCancelCount;       // 주문 취소 상태 개수
+        private Long returnCount;            // 반품 상태 개수 RETURN_REQUEST + RETURN_COMPLETE
+        private List<OrderCommonDto.OrderListDto> orderList;   // 주문 리스트
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class OrderListAdminResDto {
+        // 배송 목록 조회
+
+        private Long orderId;
+        private LocalDateTime orderDate;
+        private Long detailId;
+        private Long productId;
+        private Long optionId;
+        private String optionName;
+        private String optionValue;
+        private String productBrand;
+        private String productName;
+        private String productImg;
+        private Integer productCount;
+        private String orderStatus;
+
+        //    public Integer getOrderCount() {
+        //        return getProductCount();
+        //    }
+    }
+
+
 }
 

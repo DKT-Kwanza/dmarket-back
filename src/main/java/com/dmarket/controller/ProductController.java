@@ -2,10 +2,6 @@ package com.dmarket.controller;
 
 import com.dmarket.dto.request.ReviewReqDto;
 import com.dmarket.dto.response.CMResDto;
-import com.dmarket.dto.response.ProductInfoResDto;
-import com.dmarket.dto.response.ProductReviewListResDto;
-import com.dmarket.dto.response.CategoryListResDto;
-import com.dmarket.dto.response.ProductListResDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.service.ProductService;
 import java.util.HashMap;
@@ -37,7 +33,7 @@ public class ProductController {
     @GetMapping(value = "/categories")
     public ResponseEntity<?> getCategories() {
         try{
-            List<CategoryListResDto> categories = productService.getCategories(1);
+            List<CategoryResDto.CategoryListResDto> categories = productService.getCategories(1);
             log.info("데이터 조회 완료");
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("카테고리 목록 조회 완료").data(categories).build(), HttpStatus.OK);
@@ -69,7 +65,7 @@ public class ProductController {
                                                  @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo, Pageable pageable){
         try{
             pageNo = pageNo > 0 ? pageNo-1 : pageNo;
-            ProductListResDto products = productService.getCategoryProducts(pageable, pageNo , cateId,
+            ProductResDto.ProductListResDto products = productService.getCategoryProducts(pageable, pageNo , cateId,
                     sorter, minPrice, maxPrice, star);
             log.info("데이터 조회 완료");
             return new ResponseEntity<>(CMResDto.builder()
@@ -98,7 +94,7 @@ public class ProductController {
                                                Pageable pageable){
         try{
             pageNo = pageNo > 0 ? pageNo-1 : pageNo;
-            ProductListResDto products = productService.getSearchProducts(pageable, pageNo , query,
+            ProductResDto.ProductListResDto products = productService.getSearchProducts(pageable, pageNo , query,
                     sorter, minPrice, maxPrice, star);
             log.info("데이터 조회 완료");
             return new ResponseEntity<>(CMResDto.builder()
@@ -120,7 +116,7 @@ public class ProductController {
     @GetMapping("/new-products")
     public ResponseEntity<?> getLatestProducts() {
         try {
-            List<NewProductResDto> latestProducts = productService.findNewProducts();
+            List<ProductResDto.NewProductResDto> latestProducts = productService.findNewProducts();
             // response format mapping
             List<Object> responseData = productService.mapToResponseFormat(latestProducts);
             // response build
@@ -208,7 +204,7 @@ public class ProductController {
     public ResponseEntity<?> getProductInfo(@PathVariable Long productId){
         try {
             Long userId = 1L;
-            ProductInfoResDto res = productService.getProductInfo(productId, userId);
+            ProductResDto.ProductInfoResDto res = productService.getProductInfo(productId, userId);
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("상품 상세 조회 성공").data(res).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
@@ -226,7 +222,7 @@ public class ProductController {
                                                @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo){
         try {
             pageNo = pageNo > 0 ? pageNo-1 : pageNo;
-            ProductReviewListResDto res = productService.getReviewList(productId, pageNo);
+            ProductResDto.ProductReviewListResDto res = productService.getReviewList(productId, pageNo);
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("상품 리뷰 목록 조회 성공").data(res).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
@@ -267,7 +263,7 @@ public class ProductController {
     @GetMapping("/{productId}/recommend")
     public ResponseEntity<?> recommendProduct(@PathVariable Long productId){
         try {
-            List<RecommendProductResDto> res = productService.recommendProduct(productId);
+            List<ProductResDto.RecommendProductResDto> res = productService.recommendProduct(productId);
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("추천 상품 조회").data(res).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {

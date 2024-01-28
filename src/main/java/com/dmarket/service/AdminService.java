@@ -9,8 +9,6 @@ import com.dmarket.domain.user.User;
 import com.dmarket.domain.product.*;
 import com.dmarket.constant.*;
 import com.dmarket.constant.FaqType;
-import com.dmarket.dto.common.ProductOptionDto;
-import com.dmarket.dto.common.ProductOptionListDto;
 import com.dmarket.repository.order.RefundRepository;
 import com.dmarket.repository.product.CategoryRepository;
 import com.dmarket.repository.product.ProductImgsRepository;
@@ -25,16 +23,12 @@ import com.dmarket.domain.order.Return;
 import com.dmarket.domain.board.*;
 
 import com.dmarket.dto.request.*;
-import com.dmarket.dto.request.ProductListDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.repository.order.OrderRepository;
-import com.dmarket.repository.product.*;
 import com.dmarket.repository.board.*;
 import com.dmarket.repository.user.*;
-import com.dmarket.repository.order.RefundRepository;
 import com.dmarket.repository.order.OrderDetailRepository;
 import com.dmarket.repository.order.ReturnRepository;
-import java.util.stream.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -112,9 +106,9 @@ public class AdminService {
 
     // 마일리지 충전 요청 내역
     @Transactional
-    public MileageReqListResDto getMileageRequests(Pageable pageable, String status, int pageNo){
+    public MileageResDto.MileageReqListResDto getMileageRequests(Pageable pageable, String status, int pageNo){
         pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "mileageReqDate"));
-        Page<MileageReqDto> dtos;
+        Page<MileageCommonDto> dtos;
         if(status.equals("PROCESSING")){
             dtos = mileageReqRepository.findAllByProcessing(pageable);
         }else if(status.equals("PROCESSED")){
@@ -122,10 +116,10 @@ public class AdminService {
         }else{
             throw new IllegalArgumentException("올바르지 않은 경로입니다.");
         }
-        List<MileageReqListDto> mileageRequests = dtos.getContent().stream()
-                .map(MileageReqListDto::new).toList();
+        List<MileageCommonDto.MileageReqListDto> mileageRequests = dtos.getContent().stream()
+                .map(MileageCommonDto.MileageReqListDto::new).toList();
 
-        return new MileageReqListResDto(dtos.getTotalPages(), mileageRequests);
+        return new MileageResDto.MileageReqListResDto(dtos.getTotalPages(), mileageRequests);
     }
 
     // 마일리지 충전 요청 처리
@@ -162,8 +156,8 @@ public class AdminService {
         return faqRepository.findFaqType(faqType, pageable);
     }
 
-    public Page<FaqListResDto> mapToFaqListResDto(Page<Faq> faqsPage) {
-        return faqsPage.map(faq -> new FaqListResDto(
+    public Page<FaqResDto.FaqListResDto> mapToFaqListResDto(Page<Faq> faqsPage) {
+        return faqsPage.map(faq -> new FaqResDto.FaqListResDto(
                 faq.getFaqId(),
                 faq.getFaqType(),
                 faq.getFaqQuestion(),
@@ -250,7 +244,7 @@ public class AdminService {
     }
 
     // 상품 상세 정보 조회
-    public ProductInfoResDto getProductInfo(Long productId, Long userId) {
+    public ProductResDto.ProductInfoResDto getProductInfo(Long productId, Long userId) {
         // 싱품 정보 조회
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
@@ -262,14 +256,14 @@ public class AdminService {
         // 사용자가 위시리스트에 등록한 상품인지 확인
         Boolean isWish = wishlistRepository.existsByUserIdAndProductId(userId, productId);
         // 상품 옵션 목록, 옵션별 재고 조회
-        List<ProductOptionDto> opts = productOptionRepository.findOptionsByProductId(productId);
+        List<ProductCommonDto.ProductOptionDto> opts = productOptionRepository.findOptionsByProductId(productId);
         // 상품 이미지 목록 조회
         List<String> imgs = productImgsRepository.findAllByProductId(productId);
         // DTO 생성 및 반환
-        return new ProductInfoResDto(product, productCategory, reviewCnt, isWish, opts, imgs);
+        return new ProductResDto.ProductInfoResDto(product, productCategory, reviewCnt, isWish, opts, imgs);
     }
 
-    public Page<AdminReviewsResDto> getProductReviews(Pageable pageable) {
+    public Page<AdminResDto.AdminReviewsResDto> getProductReviews(Pageable pageable) {
         return productReviewRepository.getProductReviews(pageable);
     }
 
@@ -324,7 +318,7 @@ public class AdminService {
     }
 
     // 반품 상태 리스트
-    public ReturnListResDto getReturns(String returnStatus, Pageable pageable) {
+    public ReturnResDto.ReturnListResDto getReturns(String returnStatus, Pageable pageable) {
         ReturnState returnState = null;
         switch (returnStatus) {
             case "반품 요청":
@@ -340,7 +334,7 @@ public class AdminService {
                 throw new IllegalArgumentException("Unknown return state: " + returnStatus);
         }
         Page<ReturnDto> returnDto = returnRepository.getReturnsByReturnState(returnState, pageable);
-        ReturnListResDto returnListResDto = returnRepository.getReturnsCount();
+        ReturnResDto.ReturnListResDto returnListResDto = returnRepository.getReturnsCount();
         returnListResDto.setReturnList(returnDto);
         return returnListResDto;
 
@@ -364,8 +358,8 @@ public class AdminService {
 
     // 신상품 등록
     @Transactional
-    public void saveProductList(List<ProductListDto> productList) {
-        for (ProductListDto productitem : productList) {
+    public void saveProductList(List<ProductReqDto.ProductListDto> productList) {
+        for (ProductReqDto.ProductListDto productitem : productList) {
             // CategoryId 가져오기
             Long categoryId = getCategoryByCategoryName(productitem.getCategoryName());
 
@@ -390,7 +384,7 @@ public class AdminService {
     }
 
     @Transactional
-    public Product saveProduct(ProductListDto productitem, Long categoryId) {
+    public Product saveProduct(ProductReqDto.ProductListDto productitem, Long categoryId) {
         Product newProduct = Product.builder()
                 .categoryId(categoryId)
                 .productBrand(productitem.getBrand())
@@ -404,8 +398,8 @@ public class AdminService {
     }
 
     @Transactional
-    public void saveProductOptions(Long productId, List<ProductListDto.Option> optionList) {
-        for (ProductListDto.Option option : optionList) {
+    public void saveProductOptions(Long productId, List<ProductReqDto.ProductListDto.Option> optionList) {
+        for (ProductReqDto.ProductListDto.Option option : optionList) {
             ProductOption newOption = ProductOption.builder()
                     .productId(productId)
                     .optionName(option.getOptionName())
@@ -431,7 +425,7 @@ public class AdminService {
 
     // 문의 목록 조회(카테고리별)
     @Transactional
-    public Page<InquiryListResDto> getAllInquiriesByType(InquiryType inquiryType, Pageable pageable) {
+    public Page<InquiryResDto.InquiryListResDto> getAllInquiriesByType(InquiryType inquiryType, Pageable pageable) {
         return inquiryRepository.findByInquiryType(inquiryType, pageable);
     }
 
@@ -460,7 +454,7 @@ public class AdminService {
         return inquiryReplyRepository.save(inquiryReply);
     }
     // 문의 답변 등록 - response
-    public InquiryDetailsDto getInquiryDetails(Long inquiryReplyId) {
+    public InquiryCommonDto.InquiryDetailsDto getInquiryDetails(Long inquiryReplyId) {
         return inquiryRepository.findInquiryDetailsByInquiryReplyId(inquiryReplyId);
     }
 
@@ -516,32 +510,32 @@ public class AdminService {
     }
 
     // 상품 목록 조회
-    public List<ProductListAdminResDto> getProductListByCateogryId(Long categoryId) {
+    public List<ProductResDto.ProductListAdminResDto> getProductListByCateogryId(Long categoryId) {
         List<Product> products = categoryRepository.findProductsByCategoryId(categoryId);
         Category category = categoryRepository.findByCategoryId(categoryId);
-        List<ProductOptionListDto> options = categoryRepository.findOptionsByCategoryId(categoryId);
+        List<ProductCommonDto.ProductOptionListDto> options = categoryRepository.findOptionsByCategoryId(categoryId);
         List<String> imgs = categoryRepository.findImgsByCategoryId(categoryId);
 
         // 제품 목록을 처리하고 DTO 목록을 만듭니다.
-        List<ProductListAdminResDto> result = new ArrayList<>();
+        List<ProductResDto.ProductListAdminResDto> result = new ArrayList<>();
         for (Product product : products) {
-            result.add(new ProductListAdminResDto(product, category, options, imgs));
+            result.add(new ProductResDto.ProductListAdminResDto(product, category, options, imgs));
         }
 
         return result;
     }
 
     // 관리자 전체 조회
-    public TotalAdminResDto getAdminUserDetails() {
+    public UserResDto.TotalAdminResDto getAdminUserDetails() {
         List<User> allManagers = userRepository.findAllByUserRoleIsNot(Role.ROLE_USER);
-        List<ManagerInfoDto> managerInfoDTOList = new ArrayList<>();
+        List<AdminResDto.ManagerInfoDto> managerInfoDTOList = new ArrayList<>();
 
         int gmCount = adminCount(allManagers, Role.ROLE_GM);
         int smCount = adminCount(allManagers, Role.ROLE_SM);
         int pmCount = adminCount(allManagers, Role.ROLE_PM);
 
         for (User manager : allManagers) {
-            ManagerInfoDto managerInfoDto = new ManagerInfoDto(
+            AdminResDto.ManagerInfoDto managerInfoDto = new AdminResDto.ManagerInfoDto(
                     manager.getUserId(),
                     manager.getUserName(),
                     manager.getUserEmail(),
@@ -550,7 +544,7 @@ public class AdminService {
             managerInfoDTOList.add(managerInfoDto);
         }
 
-        return new TotalAdminResDto(allManagers.size(), gmCount, smCount, pmCount, managerInfoDTOList);
+        return new UserResDto.TotalAdminResDto(allManagers.size(), gmCount, smCount, pmCount, managerInfoDTOList);
     }
 
     // 관리자 권한 별 관리자 수 집계
@@ -616,7 +610,7 @@ public class AdminService {
 
     // 상품 재고 추가
     @Transactional
-    public void addProductStock(StockReqDto stockReqDto) {
+    public void addProductStock(ProductReqDto.StockReqDto stockReqDto) {
         try {
             Long productId = stockReqDto.getProductId();
             Long optionId = stockReqDto.getOptionId();
@@ -642,14 +636,14 @@ public class AdminService {
     }
 
     // 상품 재고 추가 RESPONSE
-    public ProductInfoOptionResDto getProductInfoWithOption(Long productId) {
+    public ProductResDto.ProductInfoOptionResDto getProductInfoWithOption(Long productId) {
         try {
-            List<ProductInfoOptionResDto> productDetails = productRepository.findProductDetails(productId);
+            List<ProductResDto.ProductInfoOptionResDto> productDetails = productRepository.findProductDetails(productId);
 
             if (!productDetails.isEmpty()) {
-                ProductInfoOptionResDto productDetail = productDetails.get(0);
+                ProductResDto.ProductInfoOptionResDto productDetail = productDetails.get(0);
 
-                return ProductInfoOptionResDto.builder()
+                return ProductResDto.ProductInfoOptionResDto.builder()
                         .productId(productDetail.getProductId())
                         .productBrand(productDetail.getProductBrand())
                         .productName(productDetail.getProductName())
@@ -670,11 +664,11 @@ public class AdminService {
 
 
     // 배송 목록 조회
-    public OrderDetailStateCountsDto getOrderDetailStateCounts() {
+    public OrderCommonDto.OrderDetailStateCountsDto getOrderDetailStateCounts() {
         return orderRepository.getOrderDetailStateCounts();
     }
 
-    public List<OrderListAdminResDto> getOrdersByStatus(String status) {
+    public List<OrderResDto.OrderListAdminResDto> getOrdersByStatus(String status) {
         try {
             OrderDetailState orderStatus = OrderDetailState.valueOf(status);
             List<OrderDetail> orderDetails = orderDetailRepository
@@ -710,7 +704,7 @@ public class AdminService {
 
 
 
-    private List<OrderListAdminResDto> mapOrderDetailsToDto(List<OrderDetail> orderDetails,
+    private List<OrderResDto.OrderListAdminResDto> mapOrderDetailsToDto(List<OrderDetail> orderDetails,
                                                        List<Product> products,
                                                        List<ProductOption> productOptions,
                                                        List<ProductImgs> productImgs,
@@ -749,7 +743,7 @@ public class AdminService {
                                 .orElse(null);
 
 
-                        return new OrderListAdminResDto(
+                        return new OrderResDto.OrderListAdminResDto(
                                 orderDetail.getOrderId(),
                                 order != null ? order.getOrderDate() : null,
                                 orderDetail.getOrderDetailId(),
@@ -763,7 +757,7 @@ public class AdminService {
                                 orderDetail.getOrderDetailCount(),
                                 orderDetail.getOrderDetailState().toString());
                     } else {
-                        return new OrderListAdminResDto();
+                        return new OrderResDto.OrderListAdminResDto();
                     }
                 })
                 .collect(Collectors.toList());

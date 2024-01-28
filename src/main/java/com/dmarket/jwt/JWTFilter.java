@@ -2,9 +2,9 @@ package com.dmarket.jwt;
 
 import com.dmarket.domain.user.RefreshToken;
 import com.dmarket.domain.user.User;
+import com.dmarket.dto.common.UserCommonDto;
 import com.dmarket.dto.response.CMResDto;
-import com.dmarket.dto.response.CustomUserDetails;
-import com.dmarket.dto.common.TokenResponseDto;
+import com.dmarket.dto.response.UserResDto;
 import com.dmarket.repository.user.RefreshTokenRepository;
 import com.dmarket.repository.user.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -99,11 +99,11 @@ public class JWTFilter extends OncePerRequestFilter {
                 String newRefreshtoken = jwtUtil.createRefreshJwt();
                 refreshTokenRepository.save(new RefreshToken(newRefreshtoken,newAccessToken,email));
 
-                TokenResponseDto tokenResponseDto = new TokenResponseDto();
+                UserCommonDto.TokenResponseDto tokenResponseDto = new UserCommonDto.TokenResponseDto();
                 tokenResponseDto.setAccesstoken(newAccessToken);
                 tokenResponseDto.setRefreshtoken(newRefreshtoken);
 
-                CMResDto<TokenResponseDto> cmRespDto = CMResDto.<TokenResponseDto>builder()
+                CMResDto<UserCommonDto.TokenResponseDto> cmRespDto = CMResDto.<UserCommonDto.TokenResponseDto>builder()
                         .code(200)
                         .msg("새로운 토큰 발급 Success")
                         .data(tokenResponseDto)
@@ -128,7 +128,7 @@ public class JWTFilter extends OncePerRequestFilter {
         }
 
         User userEntity = new User(email,777,"temppassword","username", LocalDate.now(),"77-89",11," ","");
-        CustomUserDetails customUserDetails = new CustomUserDetails(userEntity);
+        UserResDto.CustomUserDetails customUserDetails = new UserResDto.CustomUserDetails(userEntity);
         Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authToken);
         filterChain.doFilter(request, response);

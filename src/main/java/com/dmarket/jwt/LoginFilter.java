@@ -1,9 +1,9 @@
 package com.dmarket.jwt;
 
 import com.dmarket.domain.user.RefreshToken;
+import com.dmarket.dto.common.UserCommonDto;
 import com.dmarket.dto.response.CMResDto;
-import com.dmarket.dto.response.CustomUserDetails;
-import com.dmarket.dto.common.TokenResponseDto;
+import com.dmarket.dto.response.UserResDto;
 import com.dmarket.repository.user.RefreshTokenRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -62,7 +62,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) {
 
-        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+        UserResDto.CustomUserDetails customUserDetails = (UserResDto.CustomUserDetails) authentication.getPrincipal();
 
         String email = customUserDetails.getEmail();
 
@@ -83,11 +83,11 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         refreshTokenRepository.save(new RefreshToken(refreshtoken,accesstoken,email));
 
 
-        TokenResponseDto tokenResponseDto = new TokenResponseDto();
+        UserCommonDto.TokenResponseDto tokenResponseDto = new UserCommonDto.TokenResponseDto();
         tokenResponseDto.setAccesstoken(accesstoken);
         tokenResponseDto.setRefreshtoken(refreshtoken);
 
-        CMResDto<TokenResponseDto> cmRespDto = CMResDto.<TokenResponseDto>builder()
+        CMResDto<UserCommonDto.TokenResponseDto> cmRespDto = CMResDto.<UserCommonDto.TokenResponseDto>builder()
                 .code(200)
                 .msg("Success")
                 .data(tokenResponseDto)

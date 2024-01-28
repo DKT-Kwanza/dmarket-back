@@ -162,8 +162,8 @@ public class UserService {
     // 페이지 사이즈
     private static final int PAGE_SIZE = 10;
 
-    public List<CartListDto> getCartsfindByUserId(Long userId) {
-        List<CartListDto> originalList = cartRepository.getCartsfindByUserId(userId);
+    public List<CartCommonDto.CartListDto> getCartsfindByUserId(Long userId) {
+        List<CartCommonDto.CartListDto> originalList = cartRepository.getCartsfindByUserId(userId);
         return originalList;
     }
 
@@ -224,7 +224,7 @@ public class UserService {
     }
 
     // 장바구니 상품 개수 조회
-    public CartCountResDto getCartCount(Long userId) {
+    public CartResDto.CartCountResDto getCartCount(Long userId) {
         return cartRepository.findCountByUserId(userId);
     }
 
@@ -345,19 +345,19 @@ public class UserService {
     }
 
     // 마일리지 사용(충전) 내역 조회
-    public MileageListResDto getMileageUsage(Long userId, int pageNo) {
+    public MileageResDto.MileageListResDto getMileageUsage(Long userId, int pageNo) {
         Pageable pageable = PageRequest.of(pageNo, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "mileageDate"));
         Page<Mileage> mileages = mileageRepository.findByUserId(pageable, userId);
 
-        List<MileageDto> mileageChageList = mileages.getContent().stream().map(
-                (o) -> MileageDto.builder()
+        List<MileageCommonDto.MileageDto> mileageChageList = mileages.getContent().stream().map(
+                (o) -> MileageCommonDto.MileageDto.builder()
                         .mileageChangeDate(o.getMileageDate())
                         .mileageContents(o.getMileageInfo())
                         .changeMileage(o.getChangeMileage())
                         .remainMileage(o.getRemainMileage())
                         .build()).collect(Collectors.toList());
 
-        return new MileageListResDto(mileages.getTotalPages(), mileageChageList);
+        return new MileageResDto.MileageListResDto(mileages.getTotalPages(), mileageChageList);
     }
 
     // 마일리지 충전 요청
@@ -375,21 +375,21 @@ public class UserService {
     }
 
     // 사용자 문의 전체 조회
-    public List<UserInquiryAllResDto> getUserInquiryAllbyUserId(Long userId) {
+    public List<InquiryResDto.UserInquiryAllResDto> getUserInquiryAllbyUserId(Long userId) {
         return inquiryRepository.findUserInquiryAllByUserId(userId);
     }
 
     // 사용자 주문 내역 상세 조회
     public OrderResDto.OrderDetailListResDto getOrderDetailListByOrderId(Long orderId,Long userId) {
-        List<ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(orderId);
+        List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(orderId);
         Order order = orderRepository.findByOrderId(orderId);
         User user = userRepository.findByUserId(userId);
         return new OrderResDto.OrderDetailListResDto(order, user, productDetailList);
     }
 
     // 주문 / 배송 내역 조회
-    public OrderListResDto getOrderListResByUserId(Long userId) {
-        List<OrderListDto> orderList = new ArrayList<>();
+    public OrderResDto.OrderListResDto getOrderListResByUserId(Long userId) {
+        List<OrderCommonDto.OrderListDto> orderList = new ArrayList<>();
         List<Order> orders = orderRepository.findByUserId(userId);
 
         Long confPayCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_COMPLETE);
@@ -400,11 +400,11 @@ public class UserService {
         Long returnCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_REQUEST) +
                 orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_COMPLETE);
         for (Order order : orders) {
-            List<ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
-            orderList.add(new OrderListDto(order, productDetailListDtos));
+            List<ProductCommonDto.ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
+            orderList.add(new OrderCommonDto.OrderListDto(order, productDetailListDtos));
         }
 
-        OrderListResDto orderListResDto = new OrderListResDto();
+        OrderResDto.OrderListResDto orderListResDto = new OrderResDto.OrderListResDto();
 
         if (confPayCount == null) {
             orderListResDto.setConfPayCount(0L);

@@ -2,8 +2,8 @@ package com.dmarket.service;
 
 import com.dmarket.domain.product.Product;
 import com.dmarket.domain.user.User;
-import com.dmarket.dto.request.ProductToOrderReqDto;
-import com.dmarket.dto.response.ProductToOrderRespDto;
+import com.dmarket.dto.request.ProductReqDto;
+import com.dmarket.dto.response.ProductResDto;
 import com.dmarket.repository.product.ProductImgsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,22 +25,22 @@ public class OrderService {
     private final ProductService productService;
     private final ProductImgsRepository productImgsRepository;
 
-    public ProductToOrderRespDto getProductToOrder(ProductToOrderReqDto dto) {
+    public ProductResDto.ProductToOrderRespDto getProductToOrder(ProductReqDto.ProductToOrderReqDto dto) {
 
         Integer totalPrice = 0;
         Integer totalPay = 0;
-        ProductToOrderRespDto respDto = new ProductToOrderRespDto();
-        ArrayList<ProductToOrderRespDto.ProductToOrder> productList = new ArrayList<>();
-        List<ProductToOrderReqDto.ProductToOrder> products = dto.getProductList();
+        ProductResDto.ProductToOrderRespDto respDto = new ProductResDto.ProductToOrderRespDto();
+        ArrayList<ProductResDto.ProductToOrderRespDto.ProductToOrder> productList = new ArrayList<>();
+        List<ProductReqDto.ProductToOrderReqDto.ProductToOrder> products = dto.getProductList();
 
-        for (ProductToOrderReqDto.ProductToOrder productToOrder : products) {
+        for (ProductReqDto.ProductToOrderReqDto.ProductToOrder productToOrder : products) {
 
             Long productId = productToOrder.getProductId();
             Integer productCount = productToOrder.getProductCount();
             Long optionId = productToOrder.getOptionId();
             Product product = productService.findByProductId(productId);
 
-            ProductToOrderRespDto.ProductToOrder productDetail = new ProductToOrderRespDto.ProductToOrder();
+            ProductResDto.ProductToOrderRespDto.ProductToOrder productDetail = new ProductResDto.ProductToOrderRespDto.ProductToOrder();
             productDetail.setProductId(productId);
             productDetail.setProductBrand(product.getProductBrand());
             productDetail.setProductName(product.getProductName());
