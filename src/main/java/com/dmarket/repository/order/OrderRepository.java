@@ -3,7 +3,9 @@ package com.dmarket.repository.order;
 import com.dmarket.domain.order.Order;
 
 import java.util.List;
+import java.util.Optional;
 
+import com.dmarket.dto.common.OrderDetailStateCountsDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,5 +21,16 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Order findByOrderId(Long orderId);
 
     List<Order> findByUserId(Long userId);
+
+    //배송 목록 조회
+//    Optional<Order> findByOrderId(Long orderId);
+
+    @Query("SELECT new com.dmarket.dto.common.OrderDetailStateCountsDto(" +
+            "count(od) FILTER (WHERE od.orderDetailState = 'ORDER_COMPLETE'), " +
+            "count(od) FILTER (WHERE od.orderDetailState = 'DELIVERY_READY'), " +
+            "count(od) FILTER (WHERE od.orderDetailState = 'DELIVERY_ING'), " +
+            "count(od) FILTER (WHERE od.orderDetailState = 'DELIVERY_COMPLETE')) " +
+            "FROM OrderDetail od")
+    OrderDetailStateCountsDto getOrderDetailStateCounts();
 }
 

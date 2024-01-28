@@ -1,35 +1,32 @@
 package com.dmarket.controller;
 
 import com.dmarket.constant.InquiryType;
-import com.dmarket.domain.board.InquiryReply;
-import com.dmarket.dto.common.InquiryDetailsDto;
 import com.dmarket.constant.FaqType;
+import com.dmarket.constant.OrderDetailState;
+import com.dmarket.domain.board.InquiryReply;
 import com.dmarket.domain.board.Faq;
-import com.dmarket.constant.ReturnState;
+import com.dmarket.dto.common.InquiryDetailsDto;
+import com.dmarket.dto.common.OrderDetailStateCountsDto;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
 import com.dmarket.service.AdminService;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import org.springframework.security.core.parameters.P;
-import org.springframework.web.bind.annotation.*;
-
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-
-import java.util.*;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 
 @Slf4j
@@ -593,7 +590,7 @@ public class AdminController {
 
     // 문의 답변 등록
     @PostMapping("/board/inquiry/reply/{inquiryId}")
-    public ResponseEntity<?> postInquiryReply(
+    public ResponseEntity<CMResDto<InquiryDetailsDto>> postInquiryReply(
             @PathVariable Long inquiryId,
             @RequestBody InquiryReplyRequestDto inquiryReplyRequestDto) {
         try {
@@ -602,18 +599,17 @@ public class AdminController {
                     .inquiryReplyContents(inquiryReplyRequestDto.getInquiryReplyContents())
                     .build();
 
-            InquiryReply createdInquiryReply = adminService.createInquiryReply(inquiryReply);
+            InquiryReply savedInquiryReply = adminService.createInquiryReply(inquiryReply);
+            InquiryDetailsDto inquiryDetails = adminService.getInquiryDetails(savedInquiryReply.getInquiryReplyId());
 
-            InquiryDetailsDto inquiryDetails = adminService.getInquiryDetails(inquiryId);
-
-            return ResponseEntity.ok(CMResDto.builder()
-                    .code(HttpStatus.OK.value())
-                    .msg("답변 작성 완료")
-                    .data(inquiryDetails)
-                    .build());
+            return ResponseEntity.ok(CMResDto.<InquiryDetailsDto>builder().code(200).msg("답변 작성 완료").data(inquiryDetails).build());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(CMResDto.<InquiryDetailsDto>builder().code(400).msg("유효하지 않은 요청 메시지").build());
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CMResDto.<InquiryDetailsDto>builder().code(401).msg("유효하지 않은 인증").build());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error while processing the request.");
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CMResDto.<InquiryDetailsDto>builder().code(500).msg("서버 내부 오류").build());
         }
     }
 
@@ -864,5 +860,66 @@ public class AdminController {
                     .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+    //재고 추가
+    @PutMapping("/products/stock")
+    public ResponseEntity<?> addProductStock(@RequestBody StockReqDto stockReqDto) {
+        try {
+            adminService.addProductStock(stockReqDto);
+
+            // Retrieve and return updated product information
+            Long productId = stockReqDto.getProductId();
+            ProductInfoOptionResDto productInfoOptionResDto = adminService.getProductInfoWithOption(productId);
+
+            return ResponseEntity.ok(CMResDto.builder()
+                    .code(200)
+                    .msg("상품 재고 추가 완료")
+                    .data(Collections.singletonList(productInfoOptionResDto))
+                    .build());
+        }
+        catch (IllegalArgumentException e) {
+            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Error deleting Inquiry Reply: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+    // 배송 목록 조회
+    @GetMapping("/api/admin/orders")
+    public ResponseEntity<CMResDto<Map<String, Object>>> getOrdersByStatus(@RequestParam String status) {
+        try {
+            OrderDetailStateCountsDto statusCounts = adminService.getOrderDetailStateCounts();
+            List<OrderListAdminResDto> orderList = adminService.getOrdersByStatus(status);
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("confPayCount", statusCounts.getOrderCompleteCount());
+            responseData.put("preShipCount", statusCounts.getDeliveryReadyCount());
+            responseData.put("InTransitCount", statusCounts.getDeliveryIngCount());
+            responseData.put("delivCompCount", statusCounts.getDeliveryCompleteCount());
+            responseData.put("orderList", orderList);
+
+            return ResponseEntity.ok(CMResDto.<Map<String, Object>>builder()
+                    .code(200)
+                    .msg("배송 조회 완료")
+                    .data(responseData)
+                    .build());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(CMResDto.<Map<String, Object>>builder()
+                    .code(400)
+                    .msg("유효하지 않은 요청 메시지")
+                    .build());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CMResDto.<Map<String, Object>>builder()
+                    .code(500)
+                    .msg("서버 내부 오류")
+                    .build());
+        }
+    }
+    // ---배송 목록 조회---
+
 
 }

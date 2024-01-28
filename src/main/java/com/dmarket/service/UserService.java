@@ -1,41 +1,41 @@
 package com.dmarket.service;
 
+import com.dmarket.jwt.JWTUtil;
 import com.dmarket.constant.MileageReqState;
 import com.dmarket.constant.MileageContents;
 import com.dmarket.constant.OrderDetailState;
-import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.*;
 import com.dmarket.dto.response.*;
-import com.dmarket.jwt.JWTUtil;
+import com.dmarket.dto.request.*;
 import com.dmarket.domain.board.Inquiry;
 import com.dmarket.domain.user.Mileage;
 import com.dmarket.domain.user.MileageReq;
 import com.dmarket.domain.user.Cart;
 import com.dmarket.domain.user.Wishlist;
-import com.dmarket.dto.request.UserReqDto;
+import com.dmarket.domain.order.Order;
+import com.dmarket.domain.user.User;
 import com.dmarket.repository.user.*;
 import com.dmarket.repository.board.InquiryRepository;
-import jakarta.servlet.http.HttpServletRequest;
+import com.dmarket.repository.order.OrderDetailRepository;
+import com.dmarket.repository.order.OrderRepository;
+import com.dmarket.repository.product.QnaRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import com.dmarket.domain.order.Order;
-import com.dmarket.repository.order.OrderDetailRepository;
-import com.dmarket.repository.order.OrderRepository;
-import com.dmarket.repository.product.QnaRepository;
-
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Duration;
@@ -264,14 +264,21 @@ public class UserService {
     // 장바구니 추가
     @Transactional
     public void addCart(Long userId, Long productId, Long optionId, Integer productCount) {
-        // 위시리스트 저장
-        Cart cart = Cart.builder()
-                .userId(userId)
-                .productId(productId)
-                .optionId(optionId)
-                .cartCount(productCount)
-                .build();
-        cartRepository.save(cart);
+        // 장바구니에 존재하는 상품과 옵션인지 확인
+        Optional<Cart> existingCart = cartRepository.findByUserIdAndOptionId(userId, optionId);
+        if (existingCart.isPresent()){
+            // 수량만 추가
+            existingCart.get().updateCartCount(productCount);
+        } else {
+            // 장바구니에 저장
+            Cart cart = Cart.builder()
+                    .userId(userId)
+                    .productId(productId)
+                    .optionId(optionId)
+                    .cartCount(productCount)
+                    .build();
+            cartRepository.save(cart);
+        }
     }
 
     //사용자 배송지 변경

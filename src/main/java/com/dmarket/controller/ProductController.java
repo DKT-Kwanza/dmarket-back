@@ -8,10 +8,12 @@ import com.dmarket.dto.response.CategoryListResDto;
 import com.dmarket.dto.response.ProductListResDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.service.ProductService;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.data.domain.Page;
@@ -22,10 +24,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.springframework.security.core.AuthenticationException;
 
 @Slf4j

@@ -54,7 +54,6 @@ public class JWTFilter extends OncePerRequestFilter {
 
         //request에서 Authorization 헤더를 찾음
         String authorization = request.getHeader("Authorization");
-        System.out.println("authorization = " + authorization);
 
         //Authorization 헤더 검증
         if (authorization == null || !authorization.startsWith("Bearer ")) {
@@ -68,7 +67,6 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // 헤더가 있기 때문에 헤더를 추출
         String token = authorization.split(" ")[1];
-        System.out.println("token = " + token);
 
         // 헤더가 만료되었는 확인
         try {
@@ -95,11 +93,11 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // 타입이 refresh 인 경우 검증해서 재발급
         if(Objects.equals(type, "RTK")){
-            if(refreshTokenRepository.existsByRefreshToken(token)){
-                refreshTokenRepository.deleteByUserEmail(email);
-                String newAccessToken = jwtUtil.createAccessJwt(email,role,jwtExpiration);
-                String newRefreshtoken = jwtUtil.createRefreshJwt(email, role, RefreshjwtExpiration);
-                saveRefreshTokenToDatabase(email,newRefreshtoken);
+            if(refreshTokenRepository.existsById(token)){
+                refreshTokenRepository.deleteById(token);
+                String newAccessToken = jwtUtil.createAccessJwt(email,role);
+                String newRefreshtoken = jwtUtil.createRefreshJwt();
+                refreshTokenRepository.save(new RefreshToken(newRefreshtoken,newAccessToken,email));
 
                 TokenResponseDto tokenResponseDto = new TokenResponseDto();
                 tokenResponseDto.setAccesstoken(newAccessToken);
@@ -117,8 +115,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
             }
             // refresh 토큰이 없다면 다시 로그인 유도
-            else
-                {
+            else {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     CMResDto<Void> cmRespDto = CMResDto.<Void>builder()
                             .code(HttpServletResponse.SC_UNAUTHORIZED) // 401 Unauthorized
@@ -127,7 +124,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
                     writeResponse(response, cmRespDto);
                     return;
-                }
+            }
         }
 
         User userEntity = new User(email,777,"temppassword","username", LocalDate.now(),"77-89",11," ","");
@@ -165,9 +162,9 @@ public class JWTFilter extends OncePerRequestFilter {
     }
 
     // refresh 토큰 저장 메서드
-    private void saveRefreshTokenToDatabase(String userEmail, String refreshToken) {
-        RefreshToken refreshTokendata = new RefreshToken(userEmail,refreshToken);
-
-        refreshTokenRepository.save(refreshTokendata);
-    }
+//    private void saveRefreshTokenToDatabase(String userEmail, String refreshToken) {
+//        RefreshToken refreshTokendata = new RefreshToken(userEmail,refreshToken);
+//
+//        refreshTokenRepository.save(refreshTokendata);
+//    }
 }

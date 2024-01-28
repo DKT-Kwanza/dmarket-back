@@ -6,14 +6,14 @@ import com.dmarket.dto.response.FaqListResDto;
 import com.dmarket.dto.response.NoticeResDto;
 import com.dmarket.repository.board.FaqRepository;
 import com.dmarket.repository.board.NoticeRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -44,5 +44,4 @@ public class BoardService {
                 faq.getFaqAnswer()
         ));
     }
-
 }

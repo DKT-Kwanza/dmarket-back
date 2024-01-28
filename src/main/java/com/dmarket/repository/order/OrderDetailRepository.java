@@ -103,4 +103,8 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
                 Long count = countOrderDetailByUserIdAndOrderDetailState(userId, orderDetailState);
                 return count != null ? count : 0L;
         }
+
+
+        //배송 목록 조회
+        List<OrderDetail> findByOrderDetailStateOrderByOrderDetailUpdatedDateDesc(OrderDetailState orderDetailState);
 }
