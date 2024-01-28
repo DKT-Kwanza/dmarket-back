@@ -644,7 +644,10 @@ public class AdminService {
 
     public List<OrderListAdminResDto> getOrdersByStatus(String status) {
         try {
-            OrderDetailState orderStatus = OrderDetailState.valueOf(status);
+            OrderDetailState orderStatus = OrderDetailState.fromLabel(status);
+            if(orderStatus == null) {
+                throw new IllegalArgumentException("유효하지 않은 주문 상태: " + status);
+            }
             return orderDetailRepository.findByStatus(orderStatus);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("유효하지 않은 주문 상태: " + status);
