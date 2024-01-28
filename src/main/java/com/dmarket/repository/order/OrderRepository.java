@@ -23,14 +23,18 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByUserId(Long userId);
 
     //배송 목록 조회
-//    Optional<Order> findByOrderId(Long orderId);
 
+    //Optional<Order> findByOrderId(Long orderId); // 민혁님꺼랑 겹쳐서 일단 optional 수정했어요
     @Query("SELECT new com.dmarket.dto.common.OrderDetailStateCountsDto(" +
             "count(od) FILTER (WHERE od.orderDetailState = 'ORDER_COMPLETE'), " +
             "count(od) FILTER (WHERE od.orderDetailState = 'DELIVERY_READY'), " +
             "count(od) FILTER (WHERE od.orderDetailState = 'DELIVERY_ING'), " +
-            "count(od) FILTER (WHERE od.orderDetailState = 'DELIVERY_COMPLETE')) " +
+            "count(od) FILTER (WHERE od.orderDetailState = 'DELIVERY_COMPLETE'), " +
+            "count(od) FILTER (WHERE od.orderDetailState = 'ORDER_CANCEL'), " +
+            "count(od) FILTER (WHERE od.orderDetailState = 'RETURN_REQUEST'), " +
+            "count(od) FILTER (WHERE od.orderDetailState = 'RETURN_COMPLETE')) " +
             "FROM OrderDetail od")
     OrderDetailStateCountsDto getOrderDetailStateCounts();
+    // --- 배송 목록 조회 ---
 }
 
