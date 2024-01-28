@@ -100,12 +100,18 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
 
 
         // 시간업데이트 및 상태변경
+        @Modifying
+        @Query(value = "update OrderDetail od " +
+                "set od.orderDetailState = :orderDetailState " +
+                "where od.orderDetailId = :orderDetailId")
+        void updateOrderDetailUpdateDateAndOrderDetailStateByOrderDetailId(@Param("orderDetailId") Long orderDetailId, @Param("orderDetailState") OrderDetailState orderDetailState);
+
+        // 시간 업데이트 및 상태 주문 취소로 변경
 //        @Modifying
 //        @Query(value = "update OrderDetail od " +
 //                "set od.orderDetailState = :orderDetailState, od.orderDetailUpdateDate = CURRENT_TIMESTAMP " +
 //                "where od.orderDetailId = :orderDetailId")
 //        void updateOrderDetailUpdateDateAndOrderDetailStateByOrderDetailId(@Param("orderDetailId") Long orderDetailId, @Param("orderDetailState") OrderDetailState orderDetailState);
-
 
 
         // null 값 처리를 위해 메서드 수정
