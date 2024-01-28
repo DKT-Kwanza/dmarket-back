@@ -3,7 +3,9 @@ package com.dmarket.repository.order;
 import com.dmarket.constant.OrderDetailState;
 
 import com.dmarket.domain.order.OrderDetail;
-import com.dmarket.dto.common.ProductDetailListDto;
+import com.dmarket.dto.common.ProductCommonDto;
+import com.dmarket.dto.response.OrderResDto;
+import com.dmarket.dto.response.ReviewResDto;
 import com.dmarket.dto.response.*;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -52,7 +54,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
         Integer getOrderDetailSalePriceFindByReturnId(@Param("returnId") Long returnId);
 
         // 주문 내역 상세 조회
-        @Query(value = "select new com.dmarket.dto.common.ProductDetailListDto(od, p, po, pi) " +
+        @Query(value = "select new com.dmarket.dto.common.ProductCommonDto$ProductDetailListDto(od, p, po, pi) " +
                         "from OrderDetail od " +
                         "join Product p on od.productId = p.productId " +
                         "join ProductOption po on od.optionId = po.optionId " +
@@ -60,7 +62,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
                         "where od.orderId = :orderId and pi.imgId = (" +
                         "select min(pi2.imgId) from ProductImgs pi2 where pi2.productId = od.productId" +
                         ")")
-        List<ProductDetailListDto> findOrderDetailByOrderId(@Param("orderId") Long orderId);
+        List<ProductCommonDto.ProductDetailListDto> findOrderDetailByOrderId(@Param("orderId") Long orderId);
 
         // count (orderDetailState) by userId
         @Query(value = "SELECT COUNT(*) " +
@@ -72,7 +74,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
                         "GROUP BY od.orderDetailState")
         Long countOrderDetailByUserIdAndOrderDetailState(@Param("userId") Long userId, @Param("orderDetailState") OrderDetailState orderDetailState);
 
-        @Query("SELECT new com.dmarket.dto.response.OrderCancelResDto(" +
+        @Query("SELECT " +
                 "   prod.productId, " +
                 "   ord.orderId, " +
                 "   prod.productName, " +
@@ -82,8 +84,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
                 "   popt.optionName, " +
                 "   ord.orderDate, " +
                 "   od.orderDetailCount, " +
-                "   od.orderDetailState" + // Enum 값 그대로 조회
-                ") " +
+                "   od.orderDetailState " + // Enum 값 그대로 조회
                 "FROM OrderDetail od " +
                 "JOIN Order ord ON od.orderId = ord.orderId " +
                 "JOIN Product prod ON od.productId = prod.productId " +
@@ -91,7 +92,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
                 "JOIN ProductImgs img ON prod.productId = img.productId " +
                 "WHERE od.orderDetailState = :orderCancelState " +
                 "GROUP BY prod.productId, ord.orderId, prod.productName, prod.productBrand, popt.optionValue, popt.optionName, ord.orderDate, od.orderDetailCount, od.orderDetailState")
-        List<OrderCancelResDto> findOrderCancelResDtosByOrderDetailState(@Param("orderCancelState") OrderDetailState orderCancelState);
+        List<Object[]> findOrderCancelResDtosByOrderDetailState(@Param("orderCancelState") OrderDetailState orderCancelState);
 
 
 

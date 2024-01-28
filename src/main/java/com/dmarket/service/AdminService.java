@@ -3,24 +3,32 @@ package com.dmarket.service;
 import com.dmarket.domain.order.Order;
 import com.dmarket.domain.order.OrderDetail;
 import com.dmarket.domain.order.Refund;
+import com.dmarket.dto.common.*;
 import com.dmarket.domain.user.MileageReq;
 import com.dmarket.domain.user.User;
 import com.dmarket.domain.product.*;
+import com.dmarket.constant.*;
+import com.dmarket.constant.FaqType;
+import com.dmarket.repository.order.RefundRepository;
+import com.dmarket.repository.product.CategoryRepository;
+import com.dmarket.repository.product.ProductImgsRepository;
+import com.dmarket.repository.product.ProductOptionRepository;
+import com.dmarket.repository.product.ProductRepository;
+import com.dmarket.dto.common.QnaDto;
+import com.dmarket.dto.common.ReturnDto;
+import com.dmarket.repository.product.*;
+import com.dmarket.constant.OrderDetailState;
+import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.order.Return;
 import com.dmarket.domain.board.*;
-import com.dmarket.constant.*;
-import com.dmarket.dto.common.*;
+
 import com.dmarket.dto.request.*;
-import com.dmarket.dto.request.ProductListDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.repository.order.OrderRepository;
-import com.dmarket.repository.product.*;
 import com.dmarket.repository.board.*;
 import com.dmarket.repository.user.*;
-import com.dmarket.repository.order.RefundRepository;
 import com.dmarket.repository.order.OrderDetailRepository;
 import com.dmarket.repository.order.ReturnRepository;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,6 +39,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -70,8 +79,11 @@ public class AdminService {
         userRepository.deleteByUserId(userId);
     }
 
-    public List<UserResDto> getUsersFindByDktNum(Integer userDktNum) {
-        return userRepository.getUsersFindByDktNum(userDktNum);
+    public List<UserResDto.Search> getUsersFindByDktNum(Integer userDktNum) {
+            List<User> users = userRepository.getUsersFindByUserDktNum(userDktNum);
+    return users.stream()
+            .map(UserResDto.Search::new)
+            .collect(Collectors.toList());
     }
 
     public Page<NoticeResDto> getNotices(Pageable pageable) {
@@ -94,9 +106,9 @@ public class AdminService {
 
     // 마일리지 충전 요청 내역
     @Transactional
-    public MileageReqListResDto getMileageRequests(Pageable pageable, String status, int pageNo){
+    public MileageResDto.MileageReqListResDto getMileageRequests(Pageable pageable, String status, int pageNo){
         pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "mileageReqDate"));
-        Page<MileageReqDto> dtos;
+        Page<MileageCommonDto> dtos;
         if(status.equals("PROCESSING")){
             dtos = mileageReqRepository.findAllByProcessing(pageable);
         }else if(status.equals("PROCESSED")){
@@ -104,10 +116,10 @@ public class AdminService {
         }else{
             throw new IllegalArgumentException("올바르지 않은 경로입니다.");
         }
-        List<MileageReqListDto> mileageRequests = dtos.getContent().stream()
-                .map(MileageReqListDto::new).toList();
+        List<MileageCommonDto.MileageReqListDto> mileageRequests = dtos.getContent().stream()
+                .map(MileageCommonDto.MileageReqListDto::new).toList();
 
-        return new MileageReqListResDto(dtos.getTotalPages(), mileageRequests);
+        return new MileageResDto.MileageReqListResDto(dtos.getTotalPages(), mileageRequests);
     }
 
     // 마일리지 충전 요청 처리
@@ -144,8 +156,8 @@ public class AdminService {
         return faqRepository.findFaqType(faqType, pageable);
     }
 
-    public Page<FaqListResDto> mapToFaqListResDto(Page<Faq> faqsPage) {
-        return faqsPage.map(faq -> new FaqListResDto(
+    public Page<FaqResDto.FaqListResDto> mapToFaqListResDto(Page<Faq> faqsPage) {
+        return faqsPage.map(faq -> new FaqResDto.FaqListResDto(
                 faq.getFaqId(),
                 faq.getFaqType(),
                 faq.getFaqQuestion(),
@@ -232,7 +244,7 @@ public class AdminService {
     }
 
     // 상품 상세 정보 조회
-    public ProductInfoResDto getProductInfo(Long productId, Long userId) {
+    public ProductResDto.ProductInfoResDto getProductInfo(Long productId, Long userId) {
         // 싱품 정보 조회
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
@@ -244,32 +256,32 @@ public class AdminService {
         // 사용자가 위시리스트에 등록한 상품인지 확인
         Boolean isWish = wishlistRepository.existsByUserIdAndProductId(userId, productId);
         // 상품 옵션 목록, 옵션별 재고 조회
-        List<ProductOptionDto> opts = productOptionRepository.findOptionsByProductId(productId);
+        List<ProductCommonDto.ProductOptionDto> opts = productOptionRepository.findOptionsByProductId(productId);
         // 상품 이미지 목록 조회
         List<String> imgs = productImgsRepository.findAllByProductId(productId);
         // DTO 생성 및 반환
-        return new ProductInfoResDto(product, productCategory, reviewCnt, isWish, opts, imgs);
+        return new ProductResDto.ProductInfoResDto(product, productCategory, reviewCnt, isWish, opts, imgs);
     }
 
-    public Page<AdminReviewsResDto> getProductReviews(Pageable pageable) {
+    public Page<AdminResDto.AdminReviewsResDto> getProductReviews(Pageable pageable) {
         return productReviewRepository.getProductReviews(pageable);
     }
 
     // 상품 QnA 조회
-    public QnaListResDto getQnaList(int pageNo) {
+    public QnaResDto.QnaListResDto getQnaList(int pageNo) {
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "qnaCreatedDate"));
         Page<QnaDto> qnaList = qnaRepository.findAllQna(pageable);
-        return new QnaListResDto(qnaList.getTotalPages(), qnaList.getContent());
+        return new QnaResDto.QnaListResDto(qnaList.getTotalPages(), qnaList.getContent());
     }
 
     // 상품 QnA 상세(개별) 조회
-    public QnaDetailResDto getQnADetail(Long qnaId) {
+    public QnaResDto.QnaDetailResDto getQnADetail(Long qnaId) {
         return qnaRepository.findQnaAndReply(qnaId);
     }
 
     // 상품 QnA 답변 작성
     @Transactional
-    public QnaDetailResDto createQnaReply(Long qnaId, String qnaReplyContents) {
+    public QnaResDto.QnaDetailResDto createQnaReply(Long qnaId, String qnaReplyContents) {
         // QnA 존재 확인
         Qna qna = qnaRepository.findById(qnaId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Qna"));
 
@@ -288,7 +300,7 @@ public class AdminService {
 
     // 상품 QnA 답변 삭제
     @Transactional
-    public QnaDetailResDto deleteQnaReply(Long qnaReplyId){
+    public QnaResDto.QnaDetailResDto deleteQnaReply(Long qnaReplyId){
         // QnA 번호 가져오기
         Long qnaId = qnaReplyRepository.findQnaIdByQnaReplyId(qnaReplyId);
 
@@ -306,7 +318,7 @@ public class AdminService {
     }
 
     // 반품 상태 리스트
-    public ReturnListResDto getReturns(String returnStatus, Pageable pageable) {
+    public ReturnResDto.ReturnListResDto getReturns(String returnStatus, Pageable pageable) {
         ReturnState returnState = null;
         switch (returnStatus) {
             case "반품 요청":
@@ -322,7 +334,7 @@ public class AdminService {
                 throw new IllegalArgumentException("Unknown return state: " + returnStatus);
         }
         Page<ReturnDto> returnDto = returnRepository.getReturnsByReturnState(returnState, pageable);
-        ReturnListResDto returnListResDto = returnRepository.getReturnsCount();
+        ReturnResDto.ReturnListResDto returnListResDto = returnRepository.getReturnsCount();
         returnListResDto.setReturnList(returnDto);
         return returnListResDto;
 
@@ -346,8 +358,8 @@ public class AdminService {
 
     // 신상품 등록
     @Transactional
-    public void saveProductList(List<ProductListDto> productList) {
-        for (ProductListDto productitem : productList) {
+    public void saveProductList(List<ProductReqDto.ProductListDto> productList) {
+        for (ProductReqDto.ProductListDto productitem : productList) {
             // CategoryId 가져오기
             Long categoryId = getCategoryByCategoryName(productitem.getCategoryName());
 
@@ -372,7 +384,7 @@ public class AdminService {
     }
 
     @Transactional
-    public Product saveProduct(ProductListDto productitem, Long categoryId) {
+    public Product saveProduct(ProductReqDto.ProductListDto productitem, Long categoryId) {
         Product newProduct = Product.builder()
                 .categoryId(categoryId)
                 .productBrand(productitem.getBrand())
@@ -386,8 +398,8 @@ public class AdminService {
     }
 
     @Transactional
-    public void saveProductOptions(Long productId, List<ProductListDto.Option> optionList) {
-        for (ProductListDto.Option option : optionList) {
+    public void saveProductOptions(Long productId, List<ProductReqDto.ProductListDto.Option> optionList) {
+        for (ProductReqDto.ProductListDto.Option option : optionList) {
             ProductOption newOption = ProductOption.builder()
                     .productId(productId)
                     .optionName(option.getOptionName())
@@ -413,7 +425,7 @@ public class AdminService {
 
     // 문의 목록 조회(카테고리별)
     @Transactional
-    public Page<InquiryListResDto> getAllInquiriesByType(InquiryType inquiryType, Pageable pageable) {
+    public Page<InquiryResDto.InquiryListResDto> getAllInquiriesByType(InquiryType inquiryType, Pageable pageable) {
         return inquiryRepository.findByInquiryType(inquiryType, pageable);
     }
 
@@ -442,7 +454,7 @@ public class AdminService {
         return inquiryReplyRepository.save(inquiryReply);
     }
     // 문의 답변 등록 - response
-    public InquiryDetailsDto getInquiryDetails(Long inquiryReplyId) {
+    public InquiryCommonDto.InquiryDetailsDto getInquiryDetails(Long inquiryReplyId) {
         return inquiryRepository.findInquiryDetailsByInquiryReplyId(inquiryReplyId);
     }
 
@@ -498,32 +510,32 @@ public class AdminService {
     }
 
     // 상품 목록 조회
-    public List<ProductListAdminResDto> getProductListByCateogryId(Long categoryId) {
+    public List<ProductResDto.ProductListAdminResDto> getProductListByCateogryId(Long categoryId) {
         List<Product> products = categoryRepository.findProductsByCategoryId(categoryId);
         Category category = categoryRepository.findByCategoryId(categoryId);
-        List<ProductOptionListDto> options = categoryRepository.findOptionsByCategoryId(categoryId);
+        List<ProductCommonDto.ProductOptionListDto> options = categoryRepository.findOptionsByCategoryId(categoryId);
         List<String> imgs = categoryRepository.findImgsByCategoryId(categoryId);
 
         // 제품 목록을 처리하고 DTO 목록을 만듭니다.
-        List<ProductListAdminResDto> result = new ArrayList<>();
+        List<ProductResDto.ProductListAdminResDto> result = new ArrayList<>();
         for (Product product : products) {
-            result.add(new ProductListAdminResDto(product, category, options, imgs));
+            result.add(new ProductResDto.ProductListAdminResDto(product, category, options, imgs));
         }
 
         return result;
     }
 
     // 관리자 전체 조회
-    public TotalAdminResDto getAdminUserDetails() {
+    public UserResDto.TotalAdminResDto getAdminUserDetails() {
         List<User> allManagers = userRepository.findAllByUserRoleIsNot(Role.ROLE_USER);
-        List<ManagerInfoDto> managerInfoDTOList = new ArrayList<>();
+        List<AdminResDto.ManagerInfoDto> managerInfoDTOList = new ArrayList<>();
 
         int gmCount = adminCount(allManagers, Role.ROLE_GM);
         int smCount = adminCount(allManagers, Role.ROLE_SM);
         int pmCount = adminCount(allManagers, Role.ROLE_PM);
 
         for (User manager : allManagers) {
-            ManagerInfoDto managerInfoDto = new ManagerInfoDto(
+            AdminResDto.ManagerInfoDto managerInfoDto = new AdminResDto.ManagerInfoDto(
                     manager.getUserId(),
                     manager.getUserName(),
                     manager.getUserEmail(),
@@ -532,7 +544,7 @@ public class AdminService {
             managerInfoDTOList.add(managerInfoDto);
         }
 
-        return new TotalAdminResDto(allManagers.size(), gmCount, smCount, pmCount, managerInfoDTOList);
+        return new UserResDto.TotalAdminResDto(allManagers.size(), gmCount, smCount, pmCount, managerInfoDTOList);
     }
 
     // 관리자 권한 별 관리자 수 집계
@@ -542,7 +554,7 @@ public class AdminService {
 
     // 권한 변경
     @Transactional
-    public void changeRole(Long userId, ChangeRoleReqDto newRole){
+    public void changeRole(Long userId, UserReqDto.ChangeRole newRole){
         User user = userRepository.findByUserId(userId);
 
         // String -> Enum 으로 형변환
@@ -556,12 +568,12 @@ public class AdminService {
 
     // 사용자 검색
     @Transactional
-    public SearchUserResDto searchUser(Integer dktNum){
+    public UserResDto.SearchUser searchUser(Integer dktNum){
         User userdata = userRepository.findByUserDktNum(dktNum);
 
-        SearchUserResDto searchUserResDto = userdata.toUserInfoRes();
+        UserResDto.SearchUser searchUserDto = userdata.toUserInfoRes();
 
-        return searchUserResDto ;
+        return searchUserDto ;
     }
 
     // 마일리지 환불
@@ -578,13 +590,27 @@ public class AdminService {
 
     // 취소 목록 조회
     @Transactional
-    public List<OrderCancelResDto> orderCancle(){
-        return orderDetailRepository.findOrderCancelResDtosByOrderDetailState(OrderDetailState.ORDER_CANCEL);
+    public List<OrderResDto.OrderCancelResDto> orderCancle(){
+        return orderDetailRepository.findOrderCancelResDtosByOrderDetailState(OrderDetailState.ORDER_CANCEL)
+                .stream()
+                .map(row -> new OrderResDto.OrderCancelResDto(
+                        (Long) row[0],
+                        (Long) row[1],
+                        (String) row[2],
+                        (String) row[3],
+                        (String) row[4],
+                        (String) row[5],
+                        (String) row[6],
+                        (LocalDateTime) row[7],
+                        (Integer) row[8],
+                        (OrderDetailState) row[9]
+                ))
+                .collect(Collectors.toList());
     }
 
     // 상품 재고 추가
     @Transactional
-    public void addProductStock(StockReqDto stockReqDto) {
+    public void addProductStock(ProductReqDto.StockReqDto stockReqDto) {
         try {
             Long productId = stockReqDto.getProductId();
             Long optionId = stockReqDto.getOptionId();
@@ -610,14 +636,14 @@ public class AdminService {
     }
 
     // 상품 재고 추가 RESPONSE
-    public ProductInfoOptionResDto getProductInfoWithOption(Long productId) {
+    public ProductResDto.ProductInfoOptionResDto getProductInfoWithOption(Long productId) {
         try {
-            List<ProductInfoOptionResDto> productDetails = productRepository.findProductDetails(productId);
+            List<ProductResDto.ProductInfoOptionResDto> productDetails = productRepository.findProductDetails(productId);
 
             if (!productDetails.isEmpty()) {
-                ProductInfoOptionResDto productDetail = productDetails.get(0);
+                ProductResDto.ProductInfoOptionResDto productDetail = productDetails.get(0);
 
-                return ProductInfoOptionResDto.builder()
+                return ProductResDto.ProductInfoOptionResDto.builder()
                         .productId(productDetail.getProductId())
                         .productBrand(productDetail.getProductBrand())
                         .productName(productDetail.getProductName())
@@ -638,7 +664,7 @@ public class AdminService {
 
 
     // 배송 목록 조회
-    public OrderDetailStateCountsDto getOrderDetailStateCounts() {
+    public OrderCommonDto.OrderDetailStateCountsDto getOrderDetailStateCounts() {
         return orderRepository.getOrderDetailStateCounts();
     }
 

@@ -3,8 +3,8 @@ package com.dmarket.repository.order;
 import com.dmarket.domain.order.Order;
 
 import java.util.List;
-import java.util.Optional;
 
+import com.dmarket.dto.common.OrderCommonDto;
 import com.dmarket.dto.common.OrderDetailStateCountsDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +25,19 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     //배송 목록 조회
 
     //Optional<Order> findByOrderId(Long orderId); // 민혁님꺼랑 겹쳐서 일단 optional 수정했어요
-    @Query("SELECT new com.dmarket.dto.common.OrderDetailStateCountsDto(" +
+//    @Query("SELECT new com.dmarket.dto.common.OrderDetailStateCountsDto(" +
+//            "count(od) FILTER (WHERE od.orderDetailState = 'ORDER_COMPLETE'), " +
+//            "count(od) FILTER (WHERE od.orderDetailState = 'DELIVERY_READY'), " +
+//            "count(od) FILTER (WHERE od.orderDetailState = 'DELIVERY_ING'), " +
+//            "count(od) FILTER (WHERE od.orderDetailState = 'DELIVERY_COMPLETE'), " +
+//            "count(od) FILTER (WHERE od.orderDetailState = 'ORDER_CANCEL'), " +
+//            "count(od) FILTER (WHERE od.orderDetailState = 'RETURN_REQUEST'), " +
+//            "count(od) FILTER (WHERE od.orderDetailState = 'RETURN_COMPLETE')) " +
+//            "FROM OrderDetail od")
+//    OrderDetailStateCountsDto getOrderDetailStateCounts();
+    // --- 배송 목록 조회 ---
+
+    @Query("SELECT new com.dmarket.dto.common.OrderCommonDto$OrderDetailStateCountsDto(" +
             "count(od) FILTER (WHERE od.orderDetailState = 'ORDER_COMPLETE'), " +
             "count(od) FILTER (WHERE od.orderDetailState = 'DELIVERY_READY'), " +
             "count(od) FILTER (WHERE od.orderDetailState = 'DELIVERY_ING'), " +
@@ -34,7 +46,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             "count(od) FILTER (WHERE od.orderDetailState = 'RETURN_REQUEST'), " +
             "count(od) FILTER (WHERE od.orderDetailState = 'RETURN_COMPLETE')) " +
             "FROM OrderDetail od")
-    OrderDetailStateCountsDto getOrderDetailStateCounts();
-    // --- 배송 목록 조회 ---
+    OrderCommonDto.OrderDetailStateCountsDto getOrderDetailStateCounts();
 }
 

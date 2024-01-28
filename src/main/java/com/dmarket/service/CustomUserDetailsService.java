@@ -1,7 +1,7 @@
 package com.dmarket.service;
 
 import com.dmarket.domain.user.User;
-import com.dmarket.dto.response.CustomUserDetails;
+import com.dmarket.dto.response.UserResDto;
 import com.dmarket.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,7 +23,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         User userData = userRepository.findByUserEmail(email);
 
         if (userData != null) {
-            return new CustomUserDetails(userData);
+            return new UserResDto.CustomUserDetails(userData);
         }
 
         return null;
