@@ -61,4 +61,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
         void updateUserMileageByReturnId(@Param("returnId") Long returnId,
                         @Param("calculatedAmount") Integer calculatedAmount);
 
+    // 전체 사용자 마일리지 초기화
+    @Modifying
+    @Query("update User u set u.userMileage = :initMileage")
+    void resetUserMileage(Integer initMileage);
 }
