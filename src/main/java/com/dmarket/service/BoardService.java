@@ -11,7 +11,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,8 +27,15 @@ public class BoardService {
 
     // 공지사항 목록 조회
     public Page<Notice> getAllNotices(Pageable pageable) {
-        return noticeRepository.findAll(pageable);
+        return noticeRepository.findAll(PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "noticeCreatedDate")));
     }
+
+
+
+
     public Page<NoticeResDto> mapToNoticeResDto(Page<Notice> noticesPage) {
         return noticesPage.map(no -> new NoticeResDto(no));
     }
