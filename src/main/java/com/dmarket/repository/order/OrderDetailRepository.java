@@ -6,6 +6,7 @@ import com.dmarket.domain.order.OrderDetail;
 import com.dmarket.dto.common.ProductCommonDto;
 import com.dmarket.dto.response.OrderResDto;
 import com.dmarket.dto.response.ReviewResDto;
+import com.dmarket.dto.response.*;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -16,7 +17,7 @@ import java.util.List;
 
 @Repository
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> {
-        @Query("SELECT new com.dmarket.dto.response.OrderResDto$OrderDetailResDto(od, p, pi, po) " +
+        @Query("SELECT new com.dmarket.dto.response.OrderDetailResDto(od, p, pi, po) " +
                         "FROM OrderDetail od " +
                         "JOIN Product p ON p.productId = od.productId " +
                         "JOIN ProductImgs pi ON pi.productId = p.productId " +
@@ -25,7 +26,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
                         "WHERE od.orderId = :orderId AND pr.reviewId IS NULL AND pi.imgId = (" +
                         "SELECT MIN(pi2.imgId) FROM ProductImgs pi2 WHERE pi2.productId = od.productId" +
                         ")")
-        List<OrderResDto.OrderDetailResDto> findOrderDetailsWithoutReviewByOrder(@Param("orderId") Long orderId);
+        List<OrderDetailResDto> findOrderDetailsWithoutReviewByOrder(@Param("orderId") Long orderId);
 
         @Query("SELECT new com.dmarket.dto.response.ReviewResDto(od, p, pi, po, pr) " +
                         "FROM OrderDetail od " +
@@ -103,5 +104,22 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
 
 
         //배송 목록 조회
-        List<OrderDetail> findByOrderDetailStateOrderByOrderDetailUpdatedDateDesc(OrderDetailState orderDetailState);
+        @Query("SELECT new com.dmarket.dto.response.OrderListAdminResDto(od.orderId, o.orderDate, od.orderDetailId, " +
+                "od.productId, od.optionId, po.optionName, po.optionValue, p.productBrand, p.productName, pi.imgAddress, " +
+                "od.orderDetailCount, od.orderDetailState) " +
+                "FROM OrderDetail od " +
+                "JOIN Order o ON od.orderId = o.orderId " +
+                "JOIN Product p ON od.productId = p.productId " +
+                "LEFT JOIN ProductOption po ON po.productId = p.productId AND po.optionId IN " +
+                "  (SELECT min(po2.optionId) FROM ProductOption po2 WHERE po2.productId = p.productId) " +
+                "LEFT JOIN ProductImgs pi ON pi.productId = p.productId AND pi.imgId IN " +
+                "  (SELECT min(pi2.imgId) FROM ProductImgs pi2 WHERE pi2.productId = p.productId) " +
+                "WHERE od.orderDetailState = :status " +
+                "ORDER BY od.orderDetailUpdatedDate DESC")
+        List<OrderListAdminResDto> findByStatus(@Param("status") OrderDetailState status);
+
+
+
+
+
 }

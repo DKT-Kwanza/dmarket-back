@@ -182,7 +182,7 @@ public class UserService {
 
         Page<Order> ordersPage = orderRepository.findByUserIdOrderedByOrderIdDesc(userId, pageable);
         for (Order order : ordersPage) {
-            List<OrderResDto.OrderDetailResDto> orderDetailResDtos = orderDetailRepository
+            List<OrderDetailResDto> orderDetailResDtos = orderDetailRepository
                     .findOrderDetailsWithoutReviewByOrder(order.getOrderId());
             if (!orderDetailResDtos.isEmpty()) {
                 orderResDtos.add(new OrderResDto(order, orderDetailResDtos));
