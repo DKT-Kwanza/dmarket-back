@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -22,5 +23,13 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("select o from Order o left join OrderDetail od on o.orderId = od.orderId where od.orderDetailId = :orderDetailId")
     Order findByOrderDetailId(@Param("orderDetailId") Long orderDetailId);
+
+    // 주문 총 결제 금액 변경
+    @Modifying
+    @Query("update Order o set o.orderTotalPay = o.orderTotalPay - :orderTotalPay, " +
+            "o.orderTotalPrice = o.orderTotalPrice - :orderTotalPrice " +
+            "where o.orderId = :orderId")
+    void updateOrderTotalPrice(@Param("orderId") Long orderId, @Param("orderTotalPay") Integer orderTotalPay, @Param("orderTotalPrice") Integer orderTotalPrice);
+
 }
 

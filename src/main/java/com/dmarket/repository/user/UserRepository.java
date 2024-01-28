@@ -48,17 +48,22 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // 사원 번호로 user 검색
     User findByUserDktNum(Integer userDktNum);
 
-        // User 별로 사용자 집계
-        List<User> findAllByUserRoleIsNot(Role userRole);
+    // User 별로 사용자 집계
+    List<User> findAllByUserRoleIsNot(Role userRole);
 
-        @Modifying
-        @Query("UPDATE User u SET u.userMileage = u.userMileage + :calculatedAmount " +
-        "WHERE u.userId IN (" +
-                        "SELECT o.userId FROM Order o " +
-                        "JOIN OrderDetail od ON o.orderId = od.orderId " +
-                        "JOIN Return r ON od.orderDetailId = r.orderDetailId " +
-                        "WHERE r.returnId = :returnId)")
-        void updateUserMileageByReturnId(@Param("returnId") Long returnId,
-                        @Param("calculatedAmount") Integer calculatedAmount);
+    @Modifying
+    @Query("UPDATE User u SET u.userMileage = u.userMileage + :calculatedAmount " +
+    "WHERE u.userId IN (" +
+                    "SELECT o.userId FROM Order o " +
+                    "JOIN OrderDetail od ON o.orderId = od.orderId " +
+                    "JOIN Return r ON od.orderDetailId = r.orderDetailId " +
+                    "WHERE r.returnId = :returnId)")
+    void updateUserMileageByReturnId(@Param("returnId") Long returnId,
+                    @Param("calculatedAmount") Integer calculatedAmount);
+
+    // 주문 취소시 마일리지 추가
+    @Modifying
+    @Query(value = "update User u set u.userMileage = u.userMileage + :cancelPrice where u.userId = :userId")
+    void updateUserMileageByCancel(@Param("userId") Long userId, @Param("cancelPrice") Integer cancelPrice);
 
 }

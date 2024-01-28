@@ -473,13 +473,19 @@ public class UserService {
     }
 
     @Transactional
-    public OrderDetailListResDto postOrderCancel(Long orderId, Long orderDetailId) {
+    public OrderDetailListResDto postOrderCancel(Long orderId, Long orderDetailId, Long userId) {
         // orderstate를 주문취소로 바꾸고 시간 현재시간으로 변경
-        // total pay 계산
+        orderDetailRepository.updateOrderDetailUpdateDateAndOrderDetailStateByOrderDetailId(orderDetailId, OrderDetailState.ORDER_CANCEL);
+
+        // 계산값 적용
+        Integer orderDetailSalePrice = orderDetailRepository.orderDetailTotalSalePrice(orderDetailId);
+        Integer orderDetailPrice = orderDetailRepository.orderDetailTotalPrice(orderDetailId);
+        orderRepository.updateOrderTotalPrice(orderId,  orderDetailSalePrice, orderDetailPrice);
         // 마일리지 적립
+        userRepository.updateUserMileageByCancel(userId, orderDetailSalePrice);
 
         Order order = orderRepository.findByOrderDetailId(orderDetailId);
-        User user = userRepository.findByUserId(order.getUserId());
+        User user = userRepository.findByUserId(userId);
         List<ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
         return new OrderDetailListResDto(order, user, productDetailList);
     }
