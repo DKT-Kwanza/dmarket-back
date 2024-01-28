@@ -1,5 +1,6 @@
 package com.dmarket.controller;
 
+import com.dmarket.constant.InquiryType;
 import com.dmarket.dto.common.InquiryRequestDto;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
@@ -493,9 +494,14 @@ public class UserController {
             @PathVariable Long userId,
             @RequestBody InquiryRequestDto inquiryRequestDto) {
         try {
+            InquiryType inquiryType = InquiryType.fromLabel(inquiryRequestDto.getInquiryType());
+            if(inquiryType == null) {
+                throw new IllegalArgumentException("유효하지 않은 문의 유형: " + inquiryRequestDto.getInquiryType());
+            }
+
             Inquiry inquiry = Inquiry.builder()
                     .userId(userId)
-                    .inquiryType(inquiryRequestDto.getInquiryType())
+                    .inquiryType(inquiryType)
                     .inquiryTitle(inquiryRequestDto.getInquiryTitle())
                     .inquiryContents(inquiryRequestDto.getInquiryContents())
                     .inquiryImg(inquiryRequestDto.getInquiryImg())
@@ -506,26 +512,13 @@ public class UserController {
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("문의 작성 성공").build(), HttpStatus.OK);
 
-        }
-         catch (IllegalArgumentException e) {
-            // 잘못된 요청에 대한 예외 처리
-            log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
-            return new ResponseEntity<>(CMResDto.builder()
-                    .code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
-
-        } catch (AuthenticationException e) {
-            // 인증 오류에 대한 예외 처리
-            log.warn("유효하지 않은 인증" + e.getMessage());
-            return new ResponseEntity<>(CMResDto.builder()
-                    .code(401).msg("유효하지 않은 인증").build(), HttpStatus.UNAUTHORIZED);
-
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("유효하지 않은 문의 유형: " + inquiryRequestDto.getInquiryType());
         } catch (Exception e) {
-            // 기타 예외에 대한 예외 처리
-            log.error("서버 내부 오류: " + e.getMessage());
-            return new ResponseEntity<>(CMResDto.builder()
-                    .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new RuntimeException("문의 작성 중 오류 발생", e);
         }
     }
+
 
     // 마일리지 사용(충전) 내역 api
     @GetMapping("/{userId}/mypage/mileage-usage")
