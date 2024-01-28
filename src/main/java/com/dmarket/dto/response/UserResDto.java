@@ -1,15 +1,15 @@
 package com.dmarket.dto.response;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import com.dmarket.domain.user.User;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 public class UserResDto {
 
@@ -86,4 +86,87 @@ public class UserResDto {
 
     }
 
+    @RequiredArgsConstructor
+    public static class CustomUserDetails  implements UserDetails {
+
+        private final User userEntity;
+
+
+        @Override
+        public Collection<? extends GrantedAuthority> getAuthorities() {
+
+            Collection<GrantedAuthority> collection = new ArrayList<>();
+
+            collection.add(new GrantedAuthority() {
+
+                @Override
+                public String getAuthority() {
+
+                    return String.valueOf(userEntity.getUserRole());
+                }
+            });
+
+            return collection;
+        }
+
+        @Override
+        public String getPassword() {
+
+            return userEntity.getUserPassword();
+        }
+
+        @Override
+        public String getUsername() {
+
+            return userEntity.getUserName();
+        }
+
+        public String getEmail(){
+            return userEntity.getUserEmail();
+        }
+
+        @Override
+        public boolean isAccountNonExpired() {
+
+            return true;
+        }
+
+        @Override
+        public boolean isAccountNonLocked() {
+
+            return true;
+        }
+
+        @Override
+        public boolean isCredentialsNonExpired() {
+
+            return true;
+        }
+
+        @Override
+        public boolean isEnabled() {
+
+            return true;
+        }
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class TotalAdminResDto {
+        private int totalManagerCount;
+        private int GMCount;
+        private int SMCount;
+        private int PMCount;
+        private List<AdminResDto.ManagerInfoDto> managerList;
+
+        public TotalAdminResDto(int totalManagerCount, int GMCount, int SMCount, int PMCount, List<AdminResDto.ManagerInfoDto> managerList) {
+            this.totalManagerCount = totalManagerCount;
+            this.GMCount = GMCount;
+            this.SMCount = SMCount;
+            this.PMCount = PMCount;
+            this.managerList = managerList;
+        }
+
+    }
 }

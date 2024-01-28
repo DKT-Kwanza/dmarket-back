@@ -3,8 +3,8 @@ package com.dmarket.repository.order;
 import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.order.Return;
 import com.dmarket.dto.common.ReturnDto;
-import com.dmarket.dto.response.ReturnListResDto;
 
+import com.dmarket.dto.response.ReturnResDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -27,10 +27,10 @@ public interface ReturnRepository extends JpaRepository<Return, Long> {
             ") ORDER BY r.returnId DESC")
     Page<ReturnDto> getReturnsByReturnState(@Param("returnState") ReturnState returnState, Pageable pageable);
 
-    @Query("SELECT new com.dmarket.dto.response.ReturnListResDto(" +
+    @Query("SELECT new com.dmarket.dto.response.ReturnResDto$ReturnListResDto(" +
             "(SELECT count(r) FROM Return r WHERE r.returnState = 'RETURN_REQUEST'), " +
             "(SELECT count(r) FROM Return r WHERE r.returnState = 'COLLECT_ING'), " +
             "(SELECT count(r) FROM Return r WHERE r.returnState = 'COLLECT_COMPLETE'))")
-    ReturnListResDto getReturnsCount();
+    ReturnResDto.ReturnListResDto getReturnsCount();
 
 }

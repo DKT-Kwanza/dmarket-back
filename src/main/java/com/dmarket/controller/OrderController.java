@@ -1,8 +1,8 @@
 package com.dmarket.controller;
 
-import com.dmarket.dto.request.ProductToOrderReqDto;
+import com.dmarket.dto.request.ProductReqDto;
 import com.dmarket.dto.response.CMResDto;
-import com.dmarket.dto.response.ProductToOrderRespDto;
+import com.dmarket.dto.response.ProductResDto;
 import com.dmarket.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,9 +22,9 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping("/products")
-    public ResponseEntity<?> productToOrder(@RequestBody ProductToOrderReqDto dto) {
+    public ResponseEntity<?> productToOrder(@RequestBody ProductReqDto.ProductToOrderReqDto dto) {
         try {
-            ProductToOrderRespDto respDto = orderService.getProductToOrder(dto);
+            ProductResDto.ProductToOrderRespDto respDto = orderService.getProductToOrder(dto);
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("success").data(respDto).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
