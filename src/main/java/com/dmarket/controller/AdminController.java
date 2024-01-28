@@ -536,10 +536,17 @@ public class AdminController {
     // 문의 목록 조회(카테고리별)
     @GetMapping("/board/inquiry")
     public ResponseEntity<?> getInquiries(
-            @RequestParam(required = false, value = "type") InquiryType inquiryType,
+            @RequestParam(required = false, value = "type") String type,
             @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
             @RequestParam(required = false, value = "size", defaultValue = "10") int pageSize) {
         try {
+            InquiryType inquiryType = null;
+            if (type != null) {
+                inquiryType = InquiryType.fromLabel(type);
+                if(inquiryType == null) {
+                    throw new IllegalArgumentException("유효하지 않은 문의 유형: " + type);
+                }
+            }
             if (pageNo < 0 || pageSize <= 0) {
                 return new ResponseEntity<>(CMResDto.builder()
                         .code(400).msg("검증되지 않은 페이지").build(), HttpStatus.BAD_REQUEST);

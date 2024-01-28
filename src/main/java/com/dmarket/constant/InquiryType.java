@@ -1,5 +1,7 @@
 package com.dmarket.constant;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 import java.util.Arrays;
 
 public enum InquiryType {
@@ -14,6 +16,7 @@ public enum InquiryType {
         this.label = label;
     }
 
+    @JsonValue
     public String getLabel() {
         return label;
     }
