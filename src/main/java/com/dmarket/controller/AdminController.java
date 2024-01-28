@@ -900,6 +900,9 @@ public class AdminController {
             responseData.put("preShipCount", statusCounts.getDeliveryReadyCount());
             responseData.put("InTransitCount", statusCounts.getDeliveryIngCount());
             responseData.put("delivCompCount", statusCounts.getDeliveryCompleteCount());
+            responseData.put("OrderCancelCount", statusCounts.getOrderCancelCount());
+            responseData.put("ReturnRequestCount", statusCounts.getReturnRequestCount());
+            responseData.put("ReturnCompleteCount", statusCounts.getReturnCompleteCount());
             responseData.put("orderList", orderList);
 
             return ResponseEntity.ok(CMResDto.<Map<String, Object>>builder()

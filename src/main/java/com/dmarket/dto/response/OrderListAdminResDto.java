@@ -1,5 +1,6 @@
 package com.dmarket.dto.response;
 
+import com.dmarket.constant.OrderDetailState;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,7 +24,7 @@ public class OrderListAdminResDto {
     private String productName;
     private String productImg;
     private Integer productCount;
-    private String orderStatus;
+    private OrderDetailState orderStatus;
 
     //    public Integer getOrderCount() {
     //        return getProductCount();

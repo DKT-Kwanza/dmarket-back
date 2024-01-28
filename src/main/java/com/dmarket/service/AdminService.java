@@ -645,103 +645,12 @@ public class AdminService {
     public List<OrderListAdminResDto> getOrdersByStatus(String status) {
         try {
             OrderDetailState orderStatus = OrderDetailState.valueOf(status);
-            List<OrderDetail> orderDetails = orderDetailRepository
-                    .findByOrderDetailStateOrderByOrderDetailUpdatedDateDesc(orderStatus);
-
-            List<Long> productIds = orderDetails.stream()
-                    .map(OrderDetail::getProductId)
-                    .collect(Collectors.toList());
-
-            List<Product> products = productRepository.findAllById(productIds);
-            List<ProductOption> productOptions = productOptionRepository.findOptionsByProductIdIn(productIds);
-            List<ProductImgs> productImgs = productImgsRepository.findAllByProductIdIn(productIds);
-
-            List<Order> orders = orderDetails.stream()
-                    .map(orderDetail -> {
-                        Order order = orderRepository.findByOrderId(orderDetail.getOrderId());
-                        if (order == null) {
-                            throw new RuntimeException("Order not found for OrderDetailId: " + orderDetail.getOrderDetailId());
-                        }
-                        return order;
-                    })
-                    .collect(Collectors.toList());
-
-
-            return mapOrderDetailsToDto(orderDetails, products, productOptions, productImgs, orders);
+            return orderDetailRepository.findByStatus(orderStatus);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("유효하지 않은 주문 상태: " + status);
         } catch (Exception e) {
             throw new RuntimeException("주문 목록 조회 중 오류 발생", e);
         }
-    }
-
-
-
-
-    private List<OrderListAdminResDto> mapOrderDetailsToDto(List<OrderDetail> orderDetails,
-                                                       List<Product> products,
-                                                       List<ProductOption> productOptions,
-                                                       List<ProductImgs> productImgs,
-                                                       List<Order> orders) {
-        Map<Long, List<ProductOption>> optionsByProductId = productOptions.stream()
-                .collect(Collectors.groupingBy(ProductOption::getProductId));
-
-        Map<Long, List<ProductImgs>> productImgsByProductId = productImgs.stream()
-                .collect(Collectors.groupingBy(ProductImgs::getProductId));
-
-        return orderDetails.stream()
-                .map(orderDetail -> {
-                    Product product = getProductById(products, orderDetail.getProductId());
-                    List<ProductOption> options = optionsByProductId.get(orderDetail.getProductId());
-                    List<ProductImgs> imgs = productImgsByProductId.get(orderDetail.getProductId());
-
-                    if (product != null) {
-                        String optionName = "SampleOptionName";
-                        String optionValue = "SampleOptionValue";
-                        String imgAddress = "https://sample-image.com/sample.png";
-
-                        if (options != null && !options.isEmpty()) {
-                            ProductOption productOption = options.get(0);
-                            optionName = productOption.getOptionName();
-                            optionValue = productOption.getOptionValue();
-                        }
-
-                        if (imgs != null && !imgs.isEmpty()) {
-                            imgAddress = imgs.get(0).getImgAddress();
-                        }
-
-                        // Find the corresponding order for the current orderDetail
-                        Order order = orders.stream()
-                                .filter(o -> o.getOrderId().equals(orderDetail.getOrderId()))
-                                .findFirst()
-                                .orElse(null);
-
-
-                        return new OrderListAdminResDto(
-                                orderDetail.getOrderId(),
-                                order != null ? order.getOrderDate() : null,
-                                orderDetail.getOrderDetailId(),
-                                orderDetail.getProductId(),
-                                orderDetail.getOptionId(),
-                                optionName,
-                                optionValue,
-                                product.getProductBrand(),
-                                product.getProductName(),
-                                imgAddress,
-                                orderDetail.getOrderDetailCount(),
-                                orderDetail.getOrderDetailState().toString());
-                    } else {
-                        return new OrderListAdminResDto();
-                    }
-                })
-                .collect(Collectors.toList());
-    }
-
-    private Product getProductById(List<Product> products, Long productId) {
-        return products.stream()
-                .filter(product -> product.getProductId().equals(productId))
-                .findFirst()
-                .orElse(null);
     }
     // --- 배송 목록 조회 ---
 

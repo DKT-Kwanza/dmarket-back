@@ -4,10 +4,7 @@ import com.dmarket.constant.OrderDetailState;
 
 import com.dmarket.domain.order.OrderDetail;
 import com.dmarket.dto.common.ProductDetailListDto;
-import com.dmarket.dto.response.OrderDetailListResDto;
-import com.dmarket.dto.response.OrderCancelResDto;
-import com.dmarket.dto.response.OrderDetailResDto;
-import com.dmarket.dto.response.ReviewResDto;
+import com.dmarket.dto.response.*;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -106,5 +103,22 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
 
 
         //배송 목록 조회
-        List<OrderDetail> findByOrderDetailStateOrderByOrderDetailUpdatedDateDesc(OrderDetailState orderDetailState);
+        @Query("SELECT new com.dmarket.dto.response.OrderListAdminResDto(od.orderId, o.orderDate, od.orderDetailId, " +
+                "od.productId, od.optionId, po.optionName, po.optionValue, p.productBrand, p.productName, pi.imgAddress, " +
+                "od.orderDetailCount, od.orderDetailState) " +
+                "FROM OrderDetail od " +
+                "JOIN Order o ON od.orderId = o.orderId " +
+                "JOIN Product p ON od.productId = p.productId " +
+                "LEFT JOIN ProductOption po ON po.productId = p.productId AND po.optionId IN " +
+                "  (SELECT min(po2.optionId) FROM ProductOption po2 WHERE po2.productId = p.productId) " +
+                "LEFT JOIN ProductImgs pi ON pi.productId = p.productId AND pi.imgId IN " +
+                "  (SELECT min(pi2.imgId) FROM ProductImgs pi2 WHERE pi2.productId = p.productId) " +
+                "WHERE od.orderDetailState = :status " +
+                "ORDER BY od.orderDetailUpdatedDate DESC")
+        List<OrderListAdminResDto> findByStatus(@Param("status") OrderDetailState status);
+
+
+
+
+
 }
