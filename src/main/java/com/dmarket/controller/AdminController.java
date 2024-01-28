@@ -2,7 +2,6 @@ package com.dmarket.controller;
 
 import com.dmarket.constant.InquiryType;
 import com.dmarket.constant.FaqType;
-import com.dmarket.constant.OrderDetailState;
 import com.dmarket.domain.board.InquiryReply;
 import com.dmarket.domain.board.Faq;
 import com.dmarket.dto.common.InquiryDetailsDto;
@@ -11,7 +10,6 @@ import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
 import com.dmarket.service.AdminService;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -435,7 +433,7 @@ public class AdminController {
             @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
         try {
             pageNo = pageNo > 0 ? pageNo - 1 : pageNo;
-            QnaListResDto qnaList = adminService.getQnaList(pageNo);
+            QnaResDto.QnaListResDto qnaList = adminService.getQnaList(pageNo);
             return new ResponseEntity<>(CMResDto.builder().code(200).msg("성공").data(qnaList).build(), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(CMResDto.builder().code(200).msg(e.getMessage()).build(), HttpStatus.OK);
@@ -445,7 +443,7 @@ public class AdminController {
     // 상품 QnA 상세 + 답변 조회 api
     @GetMapping("/products/qna/{qnaId}")
     public ResponseEntity<?> getQnADetailed(@PathVariable Long qnaId) {
-        QnaDetailResDto qnaDetail = adminService.getQnADetail(qnaId);
+        QnaResDto.QnaDetailResDto qnaDetail = adminService.getQnADetail(qnaId);
         return new ResponseEntity<>(CMResDto.builder()
                 .code(200).msg("성공").data(qnaDetail).build(), HttpStatus.OK);
     }
@@ -456,7 +454,7 @@ public class AdminController {
         try {
             bindingResultErrorsCheck(bindingResult);
 
-            QnaDetailResDto qnaDetail = adminService.createQnaReply(qnaId, qnaReplyReqDto.getQnaReplyContents());
+            QnaResDto.QnaDetailResDto qnaDetail = adminService.createQnaReply(qnaId, qnaReplyReqDto.getQnaReplyContents());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("성공").data(qnaDetail).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
@@ -469,7 +467,7 @@ public class AdminController {
     @DeleteMapping("/products/qna/reply/{qnaReplyId}")
     public ResponseEntity<?> writeQnaReply(@PathVariable Long qnaReplyId){
         try {
-            QnaDetailResDto qnaDetail = adminService.deleteQnaReply(qnaReplyId);
+            QnaResDto.QnaDetailResDto qnaDetail = adminService.deleteQnaReply(qnaReplyId);
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("성공").data(qnaDetail).build(), HttpStatus.OK);
         } catch (Exception e) {
@@ -834,11 +832,13 @@ public class AdminController {
     }
 
 
+    // 주문 취소 목록 조회
     ///api/admin/cancel-order-details
+
     @GetMapping("/cancel-order-details")
     public ResponseEntity<?> getCancledOrder(){
         try {
-            List<OrderCancelResDto> orderCancleList = adminService.orderCancle();
+            List<OrderResDto.OrderCancelResDto> orderCancleList = adminService.orderCancle();
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("취소 목록 조회 완료").data(orderCancleList).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {

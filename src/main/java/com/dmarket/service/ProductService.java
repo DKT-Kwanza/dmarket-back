@@ -119,14 +119,13 @@ public class ProductService {
     }
 
     // 상품 별 Q&A 리스트 조회
-    public Page<QnaProductIdListResDto> findQnasByProductId(Long productId, Pageable pageable) {
-        System.out.println("2");
+    public Page<QnaResDto.QnaProductIdListResDto> findQnasByProductId(Long productId, Pageable pageable) {
         return qnaRepository.findQnasByProductId(productId, pageable);
     }
 
     // Q&A 작성
     @Transactional
-    public QnaWriteResponseDto qnaWrite(Long productId, Long userId, String qnaTitle, String qnaContents,
+    public QnaResDto.QnaWriteResponseDto qnaWrite(Long productId, Long userId, String qnaTitle, String qnaContents,
             Boolean qnaIsSecret) {
         // userId로 회원 이름 가져오기
         User userdata = userRepository.findUserNameByUserId(userId);
@@ -145,7 +144,7 @@ public class ProductService {
         Qna savedQna = qnaRepository.save(qna);
 
         // 반환값 생성
-        return new QnaWriteResponseDto(savedQna.getQnaSecret(), qnaWriter, savedQna.getQnaTitle(),
+        return new QnaResDto.QnaWriteResponseDto(savedQna.getQnaSecret(), qnaWriter, savedQna.getQnaTitle(),
                 savedQna.getQnaCreatedDate(), savedQna.getQnaState());
     }
 

@@ -174,7 +174,7 @@ public class UserService {
 
     }
 
-    public Page<QnaResDto> getQnasfindByUserId(Long userId, Pageable pageable) {
+    public Page<QnaResDto.QnaTotalListResDto> getQnasfindByUserId(Long userId, Pageable pageable) {
         return qnaRepository.getQnasfindByUserId(userId, pageable);
     }
 
@@ -183,7 +183,7 @@ public class UserService {
 
         Page<Order> ordersPage = orderRepository.findByUserIdOrderedByOrderIdDesc(userId, pageable);
         for (Order order : ordersPage) {
-            List<OrderDetailResDto> orderDetailResDtos = orderDetailRepository
+            List<OrderResDto.OrderDetailResDto> orderDetailResDtos = orderDetailRepository
                     .findOrderDetailsWithoutReviewByOrder(order.getOrderId());
             if (!orderDetailResDtos.isEmpty()) {
                 orderResDtos.add(new OrderResDto(order, orderDetailResDtos));
@@ -374,11 +374,11 @@ public class UserService {
     }
 
     // 사용자 주문 내역 상세 조회
-    public OrderDetailListResDto getOrderDetailListByOrderId(Long orderId,Long userId) {
+    public OrderResDto.OrderDetailListResDto getOrderDetailListByOrderId(Long orderId,Long userId) {
         List<ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(orderId);
         Order order = orderRepository.findByOrderId(orderId);
         User user = userRepository.findByUserId(userId);
-        return new OrderDetailListResDto(order, user, productDetailList);
+        return new OrderResDto.OrderDetailListResDto(order, user, productDetailList);
     }
 
     // 주문 / 배송 내역 조회

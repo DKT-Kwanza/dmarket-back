@@ -4,9 +4,9 @@ import com.dmarket.constant.OrderDetailState;
 
 import com.dmarket.domain.order.OrderDetail;
 import com.dmarket.dto.common.ProductDetailListDto;
-import com.dmarket.dto.response.OrderDetailListResDto;
-import com.dmarket.dto.response.OrderCancelResDto;
-import com.dmarket.dto.response.OrderDetailResDto;
+import com.dmarket.dto.response.OrderResDto.OrderDetailListResDto;
+import com.dmarket.dto.response.OrderResDto.OrderCancelResDto;
+import com.dmarket.dto.response.OrderResDto.OrderDetailResDto;
 import com.dmarket.dto.response.ReviewResDto;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -75,7 +75,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
                         "GROUP BY od.orderDetailState")
         Long countOrderDetailByUserIdAndOrderDetailState(@Param("userId") Long userId, @Param("orderDetailState") OrderDetailState orderDetailState);
 
-        @Query("SELECT new com.dmarket.dto.response.OrderCancelResDto(" +
+        @Query("SELECT " +
                 "   prod.productId, " +
                 "   ord.orderId, " +
                 "   prod.productName, " +
@@ -85,8 +85,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
                 "   popt.optionName, " +
                 "   ord.orderDate, " +
                 "   od.orderDetailCount, " +
-                "   od.orderDetailState" + // Enum 값 그대로 조회
-                ") " +
+                "   od.orderDetailState " + // Enum 값 그대로 조회
                 "FROM OrderDetail od " +
                 "JOIN Order ord ON od.orderId = ord.orderId " +
                 "JOIN Product prod ON od.productId = prod.productId " +
@@ -94,7 +93,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
                 "JOIN ProductImgs img ON prod.productId = img.productId " +
                 "WHERE od.orderDetailState = :orderCancelState " +
                 "GROUP BY prod.productId, ord.orderId, prod.productName, prod.productBrand, popt.optionValue, popt.optionName, ord.orderDate, od.orderDetailCount, od.orderDetailState")
-        List<OrderCancelResDto> findOrderCancelResDtosByOrderDetailState(@Param("orderCancelState") OrderDetailState orderCancelState);
+        List<Object[]> findOrderCancelResDtosByOrderDetailState(@Param("orderCancelState") OrderDetailState orderCancelState);
 
 
 

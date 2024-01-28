@@ -141,13 +141,14 @@ public class ProductController {
         }
     }
 
+    // QnA
     // 상품 별 Q&A 리스트 조회
     @GetMapping("/{productId}/qna")
     public ResponseEntity<CMResDto> getQnasByProdcutId(@PathVariable Long productId,
                                                        @RequestParam(required = false, defaultValue = "0") int page,
                                                        @RequestParam(required = false, defaultValue = "10") int size) {
         try {
-            Page<QnaProductIdListResDto> qnaList = productService.findQnasByProductId(productId, PageRequest.of(page, size));
+            Page<QnaResDto.QnaProductIdListResDto> qnaList = productService.findQnasByProductId(productId, PageRequest.of(page, size));
 
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("count", qnaList.getTotalElements());
@@ -183,9 +184,8 @@ public class ProductController {
                                                  @RequestParam String qnaContents,
                                                  @RequestParam(defaultValue = "false") Boolean qnaIsSecret) {
         try {
-            QnaWriteResponseDto qnaWriteRespone = productService.qnaWrite(productId,userId,qnaTitle,qnaContents,qnaIsSecret );
+            QnaResDto.QnaWriteResponseDto qnaWriteRespone = productService.qnaWrite(productId,userId,qnaTitle,qnaContents,qnaIsSecret );
             log.info("QnA 저장 완료");
-            System.out.println("qnaWriteRespone.getQnaTitle() : " + qnaWriteRespone.getQnaTitle());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("QnA 저장 완료").data(qnaWriteRespone).build(), HttpStatus.OK);
         }

@@ -31,6 +31,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -256,20 +257,20 @@ public class AdminService {
     }
 
     // 상품 QnA 조회
-    public QnaListResDto getQnaList(int pageNo) {
+    public QnaResDto.QnaListResDto getQnaList(int pageNo) {
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "qnaCreatedDate"));
         Page<QnaDto> qnaList = qnaRepository.findAllQna(pageable);
-        return new QnaListResDto(qnaList.getTotalPages(), qnaList.getContent());
+        return new QnaResDto.QnaListResDto(qnaList.getTotalPages(), qnaList.getContent());
     }
 
     // 상품 QnA 상세(개별) 조회
-    public QnaDetailResDto getQnADetail(Long qnaId) {
+    public QnaResDto.QnaDetailResDto getQnADetail(Long qnaId) {
         return qnaRepository.findQnaAndReply(qnaId);
     }
 
     // 상품 QnA 답변 작성
     @Transactional
-    public QnaDetailResDto createQnaReply(Long qnaId, String qnaReplyContents) {
+    public QnaResDto.QnaDetailResDto createQnaReply(Long qnaId, String qnaReplyContents) {
         // QnA 존재 확인
         Qna qna = qnaRepository.findById(qnaId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Qna"));
 
@@ -288,7 +289,7 @@ public class AdminService {
 
     // 상품 QnA 답변 삭제
     @Transactional
-    public QnaDetailResDto deleteQnaReply(Long qnaReplyId){
+    public QnaResDto.QnaDetailResDto deleteQnaReply(Long qnaReplyId){
         // QnA 번호 가져오기
         Long qnaId = qnaReplyRepository.findQnaIdByQnaReplyId(qnaReplyId);
 
@@ -578,8 +579,22 @@ public class AdminService {
 
     // 취소 목록 조회
     @Transactional
-    public List<OrderCancelResDto> orderCancle(){
-        return orderDetailRepository.findOrderCancelResDtosByOrderDetailState(OrderDetailState.ORDER_CANCEL);
+    public List<OrderResDto.OrderCancelResDto> orderCancle(){
+        return orderDetailRepository.findOrderCancelResDtosByOrderDetailState(OrderDetailState.ORDER_CANCEL)
+                .stream()
+                .map(row -> new OrderResDto.OrderCancelResDto(
+                        (Long) row[0],
+                        (Long) row[1],
+                        (String) row[2],
+                        (String) row[3],
+                        (String) row[4],
+                        (String) row[5],
+                        (String) row[6],
+                        (LocalDateTime) row[7],
+                        (Integer) row[8],
+                        (OrderDetailState) row[9]
+                ))
+                .collect(Collectors.toList());
     }
 
     // 상품 재고 추가

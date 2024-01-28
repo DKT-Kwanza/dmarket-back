@@ -17,7 +17,7 @@ public class ProductListDto {
     private String productDes;
     private String productSalePrice;
     private List<String> imgList;
-    private List<Option> optionList;
+    private List<ProductListDto.Option> optionList;
 
     // 생성자, getter, setter 등 필요한 메서드들을 추가로 구현합니다.
 

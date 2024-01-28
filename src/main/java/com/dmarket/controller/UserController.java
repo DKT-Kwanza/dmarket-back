@@ -391,7 +391,7 @@ public class UserController {
                         HttpStatus.BAD_REQUEST);
             }
             Pageable pageable = PageRequest.of(page, size);
-            Page<QnaResDto> qnaListResDtos = userService.getQnasfindByUserId(userId, pageable);
+            Page<QnaResDto.QnaTotalListResDto> qnaListResDtos = userService.getQnasfindByUserId(userId, pageable);
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("작성한 상품 QnA 목록 조회 완료").data(qnaListResDtos).build(), HttpStatus.OK);
 
@@ -604,7 +604,7 @@ public class UserController {
     @GetMapping("/{userId}/mypage/orders/{orderId}")
     public ResponseEntity<?> getUserOrderDetailListByOrderId(@PathVariable(name = "userId") Long userId, @PathVariable(name = "orderId") Long orderId) {
         try {
-            OrderDetailListResDto userOrderDetailResDtos = userService.getOrderDetailListByOrderId(userId, orderId);
+            OrderResDto.OrderDetailListResDto userOrderDetailResDtos = userService.getOrderDetailListByOrderId(userId, orderId);
             log.info("데이터 조회 완료");
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("사용자 주문 내역 상세 조회 완료").data(userOrderDetailResDtos).build(), HttpStatus.OK);
