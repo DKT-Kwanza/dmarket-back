@@ -4,7 +4,6 @@ import com.dmarket.dto.common.InquiryRequestDto;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
 import com.dmarket.dto.response.CMResDto;
-import com.dmarket.dto.response.UserInfoResDto;
 import com.dmarket.dto.response.WishlistResDto;
 import com.dmarket.domain.board.Inquiry;
 import com.dmarket.dto.common.CartListDto;
@@ -36,7 +35,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/join")
-    public ResponseEntity<?> join(@Valid @RequestBody JoinReqDto dto, BindingResult bindingResult) {
+    public ResponseEntity<?> join(@Valid @RequestBody UserReqDto.Join dto, BindingResult bindingResult) {
 
         try {
             // 유효성 확인
@@ -75,7 +74,7 @@ public class UserController {
     }
 
     @PostMapping("/email/verify")
-    public ResponseEntity<?> emailVerify(@RequestBody EmailReqDto dto) {
+    public ResponseEntity<?> emailVerify(@RequestBody UserReqDto.Emails dto) {
         try {
             userService.isValidEmailCode(dto.getUserEmail(), dto.getCode());
             return new ResponseEntity<>(CMResDto.builder()
@@ -195,7 +194,7 @@ public class UserController {
     public ResponseEntity<?> getSubHeader(@PathVariable(name = "userId") Long userId) {
         try {
 
-            UserHeaderInfoResDto subHeader = userService.getSubHeader(userId);
+            UserResDto.UserHeaderInfo subHeader = userService.getSubHeader(userId);
             log.info("데이터 조회 완료");
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("마이페이지 서브 헤더 조회 완료").data(subHeader).build(), HttpStatus.OK);
@@ -245,7 +244,7 @@ public class UserController {
     @GetMapping("/{userId}/mypage/myinfo")
     public ResponseEntity<?> getUserInfoByUserId(@PathVariable(name = "userId") Long userId) {
         try {
-            UserInfoResDto userInfo = userService.getUserInfoByUserId(userId);
+            UserResDto.UserInfo userInfo = userService.getUserInfoByUserId(userId);
             log.info("데이터 조회 완료");
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("사용자 정보 조회 완료").data(userInfo).build(), HttpStatus.OK);
@@ -266,12 +265,12 @@ public class UserController {
     @PutMapping("{userId}/mypage/change-pwd")
     public ResponseEntity<?> updatePassword(HttpServletRequest request,
             @PathVariable(name = "userId") Long userId,
-            @Valid @RequestBody ChangePwdReqDto changePwdReqDto,
+            @Valid @RequestBody UserReqDto.ChangePwd changePwdDto,
             BindingResult bindingResult) {
         try {
             bindingResultErrorsCheck(bindingResult);
-            String currentPassword = changePwdReqDto.getCurrentPassword();
-            String newPassword = changePwdReqDto.getNewPassword();
+            String currentPassword = changePwdDto.getCurrentPassword();
+            String newPassword = changePwdDto.getNewPassword();
 
             userService.validatePassword(request, currentPassword);
             userService.updatePassword(newPassword, userId);
@@ -296,12 +295,12 @@ public class UserController {
     @PutMapping("{userId}/mypage/myinfo")
     public ResponseEntity<?> updateAddress(HttpServletRequest request,
             @PathVariable(name = "userId") Long userId,
-            @Valid @RequestBody UserAddressReqDto userAddressReqDto,
+            @Valid @RequestBody UserReqDto.UserAddress userAddressDto,
             BindingResult bindingResult) {
         try {
             bindingResultErrorsCheck(bindingResult);
 
-            UserAddressResDto result = userService.updateAddress(request, userId, userAddressReqDto);
+            UserResDto.UserAddress result = userService.updateAddress(request, userId, userAddressDto);
             log.info("데이터 변경 완료");
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("배송지 변경 완료").build(), HttpStatus.OK);

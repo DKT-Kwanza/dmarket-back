@@ -3,13 +3,27 @@ package com.dmarket.service;
 import com.dmarket.domain.order.Order;
 import com.dmarket.domain.order.OrderDetail;
 import com.dmarket.domain.order.Refund;
+import com.dmarket.dto.common.*;
 import com.dmarket.domain.user.MileageReq;
 import com.dmarket.domain.user.User;
 import com.dmarket.domain.product.*;
+import com.dmarket.constant.*;
+import com.dmarket.constant.FaqType;
+import com.dmarket.dto.common.ProductOptionDto;
+import com.dmarket.dto.common.ProductOptionListDto;
+import com.dmarket.repository.order.RefundRepository;
+import com.dmarket.repository.product.CategoryRepository;
+import com.dmarket.repository.product.ProductImgsRepository;
+import com.dmarket.repository.product.ProductOptionRepository;
+import com.dmarket.repository.product.ProductRepository;
+import com.dmarket.dto.common.QnaDto;
+import com.dmarket.dto.common.ReturnDto;
+import com.dmarket.repository.product.*;
+import com.dmarket.constant.OrderDetailState;
+import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.order.Return;
 import com.dmarket.domain.board.*;
-import com.dmarket.constant.*;
-import com.dmarket.dto.common.*;
+
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.request.ProductListDto;
 import com.dmarket.dto.response.*;
@@ -20,7 +34,7 @@ import com.dmarket.repository.user.*;
 import com.dmarket.repository.order.RefundRepository;
 import com.dmarket.repository.order.OrderDetailRepository;
 import com.dmarket.repository.order.ReturnRepository;
-
+import java.util.stream.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -70,8 +84,11 @@ public class AdminService {
         userRepository.deleteByUserId(userId);
     }
 
-    public List<UserResDto> getUsersFindByDktNum(Integer userDktNum) {
-        return userRepository.getUsersFindByDktNum(userDktNum);
+    public List<UserResDto.Search> getUsersFindByDktNum(Integer userDktNum) {
+            List<User> users = userRepository.getUsersFindByUserDktNum(userDktNum);
+    return users.stream()
+            .map(UserResDto.Search::new)
+            .collect(Collectors.toList());
     }
 
     public Page<NoticeResDto> getNotices(Pageable pageable) {
@@ -542,7 +559,7 @@ public class AdminService {
 
     // 권한 변경
     @Transactional
-    public void changeRole(Long userId, ChangeRoleReqDto newRole){
+    public void changeRole(Long userId, UserReqDto.ChangeRole newRole){
         User user = userRepository.findByUserId(userId);
 
         // String -> Enum 으로 형변환
@@ -556,12 +573,12 @@ public class AdminService {
 
     // 사용자 검색
     @Transactional
-    public SearchUserResDto searchUser(Integer dktNum){
+    public UserResDto.SearchUser searchUser(Integer dktNum){
         User userdata = userRepository.findByUserDktNum(dktNum);
 
-        SearchUserResDto searchUserResDto = userdata.toUserInfoRes();
+        UserResDto.SearchUser searchUserDto = userdata.toUserInfoRes();
 
-        return searchUserResDto ;
+        return searchUserDto ;
     }
 
     // 마일리지 환불
