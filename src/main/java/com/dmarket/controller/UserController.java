@@ -666,6 +666,32 @@ public class UserController {
         }
     }
 
+    // 반품 요청(신청)
+    @PostMapping("/{userId}/mypage/order/return")
+    public ResponseEntity<?> postOrderReturn(@PathVariable(name = "userId") Long userId,
+                                             @Valid @RequestBody OrderReturnReqDto orderReturnReqDto,
+                                             BindingResult bindingResult) {
+        try {
+            bindingResultErrorsCheck(bindingResult);
+
+            OrderDetailListResDto orderDetailListResDto = userService.postOrderReturn(orderReturnReqDto.getOrderDetailId(), orderReturnReqDto.getReturnContents());
+            return ResponseEntity.ok(CMResDto.builder()
+                    .code(200).msg("환불 요청 성공").data(orderDetailListResDto).build());
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid request: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build());
+        } catch (RuntimeException e) {
+            log.error("Runtime exception: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(CMResDto.builder()
+                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build());
+        } catch (Exception e) {
+            log.error("Internal server error: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CMResDto.builder()
+                    .code(500).msg("서버 내부 오류").build());
+        }
+    }
+
     // validation 체크
     private void bindingResultErrorsCheck(BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {

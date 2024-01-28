@@ -13,8 +13,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> {
@@ -97,10 +99,20 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
         List<OrderCancelResDto> findOrderCancelResDtosByOrderDetailState(@Param("orderCancelState") OrderDetailState orderCancelState);
 
 
+        // 시간업데이트 및 상태변경
+//        @Modifying
+//        @Query(value = "update OrderDetail od " +
+//                "set od.orderDetailState = :orderDetailState, od.orderDetailUpdateDate = CURRENT_TIMESTAMP " +
+//                "where od.orderDetailId = :orderDetailId")
+//        void updateOrderDetailUpdateDateAndOrderDetailStateByOrderDetailId(@Param("orderDetailId") Long orderDetailId, @Param("orderDetailState") OrderDetailState orderDetailState);
+
+
 
         // null 값 처리를 위해 메서드 수정
         default Long safeCountOrderDetailByUserIdAndOrderDetailState(Long userId, OrderDetailState orderDetailState) {
                 Long count = countOrderDetailByUserIdAndOrderDetailState(userId, orderDetailState);
                 return count != null ? count : 0L;
         }
+
+
 }
