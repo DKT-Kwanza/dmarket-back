@@ -2,7 +2,8 @@ package com.dmarket.domain.user;
 
 import com.dmarket.constant.Role;
 import com.dmarket.dto.request.UserReqDto;
-import com.dmarket.dto.response.SearchUserResDto;
+import com.dmarket.dto.response.UserResDto;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -65,8 +66,8 @@ public class User {
         this.userRole = newRole;
     }
 
-    public SearchUserResDto toUserInfoRes(){
-        return SearchUserResDto.builder()
+    public UserResDto.SearchUser toUserInfoRes(){
+        return UserResDto.SearchUser.builder()
                 .userId(this.userId)
                 .userName(this.userName)
                 .userEmail(this.userEmail)

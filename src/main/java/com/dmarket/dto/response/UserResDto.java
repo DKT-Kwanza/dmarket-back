@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 public class UserResDto {
 
@@ -68,6 +69,21 @@ public class UserResDto {
         private String userAddressDetail;
         private Integer userPostalCode;
         private LocalDate userJoinDate;
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SearchUser {
+        private Long userId;
+        private String userName;
+        private String userEmail;
+        private Integer userDktNum;
+        private String userRole; // Role 타입을 String으로 변환하여 저장할 것이므로 String 타입으로 선언합니다.
+        private LocalDate userJoinDate;
+
     }
 
 }

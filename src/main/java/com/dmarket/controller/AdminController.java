@@ -735,7 +735,7 @@ public class AdminController {
     public ResponseEntity<?> getAdmins(@RequestParam(value = "q", required = false) Integer dktNum) {
         try {
             if (dktNum != null){
-                SearchUserResDto searchUserRes = adminService.searchUser(dktNum);
+                UserResDto.SearchUser searchUserRes = adminService.searchUser(dktNum);
                 return new ResponseEntity<>(CMResDto.builder()
                         .code(200).msg("사원 검색").data(searchUserRes).build(), HttpStatus.OK);
             }else {

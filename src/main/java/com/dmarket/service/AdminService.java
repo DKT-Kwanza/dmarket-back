@@ -562,12 +562,12 @@ public class AdminService {
 
     // 사용자 검색
     @Transactional
-    public SearchUserResDto searchUser(Integer dktNum){
+    public UserResDto.SearchUser searchUser(Integer dktNum){
         User userdata = userRepository.findByUserDktNum(dktNum);
 
-        SearchUserResDto searchUserResDto = userdata.toUserInfoRes();
+        UserResDto.SearchUser searchUserDto = userdata.toUserInfoRes();
 
-        return searchUserResDto ;
+        return searchUserDto ;
     }
 
     // 마일리지 환불
