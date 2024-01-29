@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 
 public class CartReqDto {
     @Data
-    @NoArgsConstructor
     @AllArgsConstructor
     public static class AddCartReqDto {
         @NotNull

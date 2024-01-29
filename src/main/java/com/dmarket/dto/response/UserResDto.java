@@ -94,31 +94,28 @@ public class UserResDto {
 
         @Override
         public Collection<? extends GrantedAuthority> getAuthorities() {
-
             Collection<GrantedAuthority> collection = new ArrayList<>();
-
             collection.add(new GrantedAuthority() {
-
                 @Override
                 public String getAuthority() {
-
                     return String.valueOf(userEntity.getUserRole());
                 }
             });
-
             return collection;
         }
 
         @Override
         public String getPassword() {
-
             return userEntity.getUserPassword();
         }
 
         @Override
         public String getUsername() {
-
             return userEntity.getUserName();
+        }
+
+        public Long getUserId(){
+            return userEntity.getUserId();
         }
 
         public String getEmail(){
