@@ -474,7 +474,12 @@ public class AdminService {
     public InquiryReply createInquiryReply(InquiryReply inquiryReply) {
         // 문의 아이디와 일치하지 않으면 등록하지 않음
         Inquiry inquiry = inquiryRepository.findById(inquiryReply.getInquiryId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid inquiry ID: " + inquiryReply.getInquiryId()));
+                .orElseThrow(() -> new IllegalArgumentException("문의 아이디와 일치하지 않음, inquiry ID: " + inquiryReply.getInquiryId()));
+
+        // 이미 답변이 등록된 문의인지 확인
+        if (inquiry.getInquiryState()) {
+            throw new IllegalArgumentException("이미 답변이 등록된 문의, inquiry ID: " + inquiryReply.getInquiryId());
+        }
 
         inquiry.updateStatus(true);  // 문의 상태를 1 (답변 완료)로 변경
         return inquiryReplyRepository.save(inquiryReply);
