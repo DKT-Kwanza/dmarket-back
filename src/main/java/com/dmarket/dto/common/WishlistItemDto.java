@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class WishlistItemDto {
+
     private Long productId;
     private Long wishId;
     private String productName;

@@ -6,7 +6,7 @@ import org.springframework.data.redis.core.RedisHash;
 
 
 @Getter
-@RedisHash(value =  "refreshToken", timeToLive = 240 * 60 * 60 * 1000)
+@RedisHash(value = "refreshToken", timeToLive = 240 * 60 * 60 * 1000)
 public class RefreshToken {
 
     @Id
@@ -15,7 +15,7 @@ public class RefreshToken {
     private String userEmail;
 
     @Builder
-    public RefreshToken(String refreshToken, String accessToken,String userEmail) {
+    public RefreshToken(String refreshToken, String accessToken, String userEmail) {
         this.userEmail = userEmail;
         this.refreshToken = refreshToken;
         this.accessToken = accessToken;

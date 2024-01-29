@@ -9,8 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderCancelReqDto {
+
     @NotNull
     private Long orderId;
+
     @NotNull
     private Long orderDetailId;
 }

@@ -85,6 +85,7 @@ public class QnaResDto {
         private String qnaStatus;
         private LocalDateTime qnaReplyDate;
         private String qnaReplyContents;
+
         public QnaProductIdListResDto(Long qnaId, Boolean qnaIsSecret, String qnaWriter, String qnaTitle, String qnaContents, LocalDateTime qnaCreatedDate, Boolean qnaState, LocalDateTime qnaReplyDate, String qnaReplyContents) {
             this.qnaId = qnaId;
             this.qnaIsSecret = qnaIsSecret;

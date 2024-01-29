@@ -25,5 +25,5 @@ public class NoticeResDto {
         this.noticeContents = notice.getNoticeContents();
     }
 
-    
+
 }

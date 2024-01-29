@@ -13,7 +13,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -74,7 +73,7 @@ public class UserController {
 
     // 위시리스트 조회
     @GetMapping("/{userId}/wish")
-    public ResponseEntity<?> getWishlistByUserId(@PathVariable(name = "userId") Long userId ,
+    public ResponseEntity<?> getWishlistByUserId(@PathVariable(name = "userId") Long userId,
                                                  @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
 
         WishlistResDto wishlist = userService.getWishlistByUserId(userId, pageNo);
@@ -253,7 +252,7 @@ public class UserController {
     public ResponseEntity<?> getUserOrderDetailListByOrderId(@PathVariable(name = "userId") Long userId,
                                                              @PathVariable(name = "orderId") Long orderId,
                                                              @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
-        Page<OrderResDto.OrderDetailListResDto> userOrderDetailResDtos = userService.getOrderDetailListByOrderId(userId, orderId,pageNo);
+        Page<OrderResDto.OrderDetailListResDto> userOrderDetailResDtos = userService.getOrderDetailListByOrderId(userId, orderId, pageNo);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(userOrderDetailResDtos), HttpStatus.OK);
     }
@@ -263,7 +262,7 @@ public class UserController {
     public ResponseEntity<?> getUserOrderList(@PathVariable(name = "userId") Long userId,
                                               @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
 
-        OrderResDto.OrderListResDto userOrderListResDtos = userService.getOrderListResByUserId(userId,pageNo);
+        OrderResDto.OrderListResDto userOrderListResDtos = userService.getOrderListResByUserId(userId, pageNo);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(userOrderListResDtos), HttpStatus.OK);
     }
@@ -275,7 +274,7 @@ public class UserController {
                                              @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
 
 
-        OrderResDto.OrderDetailListResDto orderDetailListResDto = userService.postOrderCancel(orderCancelReqDto.getOrderId(), orderCancelReqDto.getOrderDetailId(), userId,pageNo);
+        OrderResDto.OrderDetailListResDto orderDetailListResDto = userService.postOrderCancel(orderCancelReqDto.getOrderId(), orderCancelReqDto.getOrderDetailId(), userId, pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(orderDetailListResDto), HttpStatus.OK);
 
     }
@@ -286,7 +285,7 @@ public class UserController {
                                              @Valid @RequestBody OrderReturnReqDto orderReturnReqDto,
                                              @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
 
-        OrderResDto.OrderDetailListResDto orderDetailListResDto = userService.postOrderReturn(orderReturnReqDto.getOrderDetailId(), orderReturnReqDto.getReturnContents(),pageNo);
+        OrderResDto.OrderDetailListResDto orderDetailListResDto = userService.postOrderReturn(orderReturnReqDto.getOrderDetailId(), orderReturnReqDto.getReturnContents(), pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(orderDetailListResDto), HttpStatus.OK);
     }
 }

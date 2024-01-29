@@ -9,10 +9,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 public class CartCommonDto {
+
     @Data
     @Getter
     @NoArgsConstructor
     public static class CartListDto {
+
         private Long cartId;
         private Long productId;
         private String productBrand;
@@ -31,7 +33,7 @@ public class CartCommonDto {
             this.productOption = productOption.getOptionName();
             this.productCount = cart.getCartCount();
             this.productTotalSalePrice = cart.getCartCount() * product.getProductSalePrice();
-           }
+        }
 
         // getters and setters
     }

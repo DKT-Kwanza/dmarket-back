@@ -1,10 +1,7 @@
 package com.dmarket.dto.response;
-import java.time.LocalDateTime;
-import java.util.List;
 
 import com.dmarket.constant.OrderDetailState;
 import com.dmarket.domain.order.*;
-
 import com.dmarket.domain.product.Product;
 import com.dmarket.domain.product.ProductImgs;
 import com.dmarket.domain.product.ProductOption;
@@ -12,18 +9,21 @@ import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.OrderCommonDto;
 import com.dmarket.dto.common.ProductCommonDto;
 import lombok.*;
-import org.springframework.data.domain.Page;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Getter
 @NoArgsConstructor
 public class OrderResDto<T> {
+
     private LocalDateTime orderDate;
     private Long orderId;
     private List<T> orderDetailList; // 제네릭 리스트 사용
 
     // 제네릭 생성자
-    public OrderResDto(Order order, List<T> details){
+    public OrderResDto(Order order, List<T> details) {
         this.orderDate = order.getOrderDate();
         this.orderId = order.getOrderId();
         this.orderDetailList = details;
@@ -31,7 +31,7 @@ public class OrderResDto<T> {
 
     @Data
     @NoArgsConstructor
-    public static class OrderCancelResDto{
+    public static class OrderCancelResDto {
         private Long productId;
         private Long orderId;
         private String productName;
@@ -73,7 +73,7 @@ public class OrderResDto<T> {
         private String userDetailedAddress;     // userAddressDetail
         private List<ProductCommonDto.ProductDetailListDto> productDetailList;
 
-        public OrderDetailListResDto(Order order, User user, List<ProductCommonDto.ProductDetailListDto> productDetailList){
+        public OrderDetailListResDto(Order order, User user, List<ProductCommonDto.ProductDetailListDto> productDetailList) {
             this.orderId = order.getOrderId();
             this.orderDate = order.getOrderDate();
             this.totalPay = order.getOrderTotalPay();
@@ -97,7 +97,7 @@ public class OrderResDto<T> {
         private Integer productCount;
         private Integer productTotalSalePrice;
 
-        public OrderDetailResDto(OrderDetail orderDetail, Product product, ProductImgs productImgs, ProductOption productOption){
+        public OrderDetailResDto(OrderDetail orderDetail, Product product, ProductImgs productImgs, ProductOption productOption) {
             this.orderDetailId = orderDetail.getOrderDetailId();
             this.orderBrand = product.getProductBrand();
             this.productName = product.getProductName();

@@ -11,10 +11,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 @Repository
 public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
+
     //문의 목록 조회(카테고리별)
     @Query("SELECT new com.dmarket.dto.response.InquiryResDto$InquiryListResDto(" +
             "i.inquiryId, i.inquiryTitle, i.inquiryContents, i.inquiryType, i.inquiryState, i.inquiryImg, i.inquiryCreatedDate, u.userName) " +

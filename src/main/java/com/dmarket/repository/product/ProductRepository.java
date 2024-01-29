@@ -77,19 +77,19 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<ProductResDto.NewProductResDto> findNewProducts();
 
 
-        @Modifying
-        @Transactional
-        @Query("UPDATE Product p SET p.categoryId = :categoryId, p.productBrand = :productBrand, " +
-                        "p.productName = :productName, p.productPrice = :productPrice, " +
-                        "p.productSalePrice = :productSalePrice, p.productDescription = :productDescription " +
-                        "WHERE p.productId = :productId")
-        void updateProductDetails(@Param("productId") Long productId,
-                        @Param("categoryId") Long categoryId,
-                        @Param("productBrand") String productBrand,
-                        @Param("productName") String productName,
-                        @Param("productPrice") Integer productPrice,
-                        @Param("productSalePrice") Integer productSalePrice,
-                        @Param("productDescription") String productDescription);
+    @Modifying
+    @Transactional
+    @Query("UPDATE Product p SET p.categoryId = :categoryId, p.productBrand = :productBrand, " +
+            "p.productName = :productName, p.productPrice = :productPrice, " +
+            "p.productSalePrice = :productSalePrice, p.productDescription = :productDescription " +
+            "WHERE p.productId = :productId")
+    void updateProductDetails(@Param("productId") Long productId,
+                              @Param("categoryId") Long categoryId,
+                              @Param("productBrand") String productBrand,
+                              @Param("productName") String productName,
+                              @Param("productPrice") Integer productPrice,
+                              @Param("productSalePrice") Integer productSalePrice,
+                              @Param("productDescription") String productDescription);
 
 
     //상품 재고 추가
@@ -103,9 +103,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "GROUP BY p.productId, po.optionId " +
             "ORDER BY p.productCreatedDate DESC")
     List<ProductResDto.ProductInfoOptionResDto> findProductDetails(@Param("productId") Long productId);
-
-
-
 
 
 }
