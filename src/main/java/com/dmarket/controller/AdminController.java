@@ -302,8 +302,9 @@ public class AdminController {
 
     // 상품 목록 조회
     @GetMapping("/products/categories/{categoryId}")
-    public ResponseEntity<?> getProductsListAdmin(@PathVariable(name = "categoryId") Long categoryId) {
-        List<ProductResDto.ProductListAdminResDto> productListAdminResDto = adminService.getProductListByCateogryId(categoryId);
+    public ResponseEntity<?> getProductsListAdmin(@PathVariable(name = "categoryId") Long categoryId,
+                                                  @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
+        Page<ProductResDto.ProductListAdminResDto> productListAdminResDto = adminService.getProductListByCateogryId(categoryId, pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(productListAdminResDto), HttpStatus.OK);
     }
 
