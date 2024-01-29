@@ -10,9 +10,7 @@ import com.dmarket.dto.common.*;
 import com.dmarket.dto.request.JoinReqDto;
 import com.dmarket.dto.request.UserAddressReqDto;
 import com.dmarket.dto.response.*;
-import com.dmarket.exception.BadRequestException;
-import com.dmarket.exception.ConflictException;
-import com.dmarket.exception.ErrorCode;
+import com.dmarket.exception.*;
 import com.dmarket.jwt.JWTUtil;
 import com.dmarket.repository.board.InquiryRepository;
 import com.dmarket.repository.order.OrderDetailRepository;
@@ -34,6 +32,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.dmarket.exception.ErrorCode.*;
 
 @Slf4j
 @Service
@@ -59,6 +59,9 @@ public class UserService {
     private long authCodeExpirationMillis;
     private static final String AUTH_CODE_PREFIX = "auth:email:";
 
+    private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final int REVIEW_PAGE_SIZE = 5;
+
     /**
      * 회원가입
      * @Return userId
@@ -79,7 +82,6 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
-
         return user.getUserId();
     }
 
@@ -100,7 +102,7 @@ public class UserService {
 
         //사원번호 겹치면 안됨
         if (existByUserDktNum(userDktNum)) {
-            throw new IllegalArgumentException("이미 존재하는 회원입니다.");
+            throw new ConflictException(ALREADY_SAVED_USER);
         }
     }
 
@@ -112,7 +114,7 @@ public class UserService {
         }
         //이메일이 겹치면 안 됨
         if (existByUserEmail(email)) {
-            throw new IllegalArgumentException("이미 존재하는 회원입니다.");
+            throw new ConflictException(ALREADY_SAVED_USER);
         }
     }
 
@@ -135,7 +137,7 @@ public class UserService {
         boolean isValid = redisService.checkExistsValue(redisAuthCode) && redisAuthCode.equals(authCode);
 
         if (!isValid) {
-            throw new IllegalArgumentException("인증 코드가 동일하지 않습니다.");
+            throw new BadRequestException(INVALID_EMAIL_CODE);
         }
     }
 
@@ -148,14 +150,11 @@ public class UserService {
                 builder.append(random.nextInt(10));
             }
             return builder.toString();
-        } catch (NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException e) { //얘도 예외처리 빼야가
             log.warn("UserService.createCode()");
             throw new RuntimeException(e.getMessage(), e.getCause());
         }
     }
-
-    // 페이지 사이즈
-    private static final int PAGE_SIZE = 10;
 
     public List<CartListDto> getCartsfindByUserId(Long userId) {
         List<CartListDto> originalList = cartRepository.getCartsfindByUserId(userId);
@@ -168,14 +167,19 @@ public class UserService {
 
     }
 
-    public Page<QnaResDto> getQnasfindByUserId(Long userId, Pageable pageable) {
+    //작성한 qna 조회
+    public Page<QnaResDto> getQnasfindByUserId(Long userId, int pageNo) {
+        pageNo = pageVaildation(pageNo);
+        Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "qnaId"));
         return qnaRepository.getQnasfindByUserId(userId, pageable);
     }
 
-    public Page<OrderResDto> getOrderDetailsWithoutReviewByUserId(Long userId, Pageable pageable) {
+    public Page<OrderResDto> getOrderDetailsWithoutReviewByUserId(Long userId, int pageNo) {
         List<OrderResDto> orderResDtos = new ArrayList<>();
-
+        pageNo = pageVaildation(pageNo);
+        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "reviewId"));
         Page<Order> ordersPage = orderRepository.findByUserIdOrderedByOrderIdDesc(userId, pageable);
+
         for (Order order : ordersPage) {
             List<OrderDetailResDto> orderDetailResDtos = orderDetailRepository
                     .findOrderDetailsWithoutReviewByOrder(order.getOrderId());
@@ -187,10 +191,12 @@ public class UserService {
         return new PageImpl<>(orderResDtos, pageable, ordersPage.getTotalElements());
     }
 
-    public Page<OrderResDto> getOrderDetailsWithReviewByUserId(Long userId, Pageable pageable) {
+    public Page<OrderResDto> getOrderDetailsWithReviewByUserId(Long userId, int pageNo) {
         List<OrderResDto> orderResDtos = new ArrayList<>();
-
+        pageNo = pageVaildation(pageNo);
+        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "reviewId"));
         Page<Order> ordersPage = orderRepository.findByUserIdOrderedByOrderIdDesc(userId, pageable);
+
         for (Order order : ordersPage) {
             List<ReviewResDto> orderDetailResDtos = orderDetailRepository
                     .findOrderDetailsWithReviewByOrder(order.getOrderId());
@@ -212,6 +218,7 @@ public class UserService {
 
     // 위시리스트 조회
     public WishlistResDto getWishlistByUserId(Long userId) {
+        findUserById(userId);
         List<WishlistItemDto> wishlistItems = wishlistRepository.findWishlistItemsByUserId(userId);
         return WishlistResDto.builder()
                 .wishListItem(wishlistItems)
@@ -225,6 +232,7 @@ public class UserService {
 
     // 마이페이지 서브헤더 사용자 정보 및 마일리지 조회
     public UserHeaderInfoResDto getSubHeader(Long userId) {
+
         return userRepository.findUserHeaderInfoByUserId(userId);
     }
 
@@ -253,12 +261,7 @@ public class UserService {
     // 문의 작성
     @Transactional
     public Inquiry createInquiry(Inquiry inquiry) {
-        try {
-            return inquiryRepository.save(inquiry);
-        } catch (Exception e) {
-            log.error("문의 작성 실패 로그: {}", e.getMessage());
-            throw new RuntimeException("문의 작성 실패", e);
-        }
+        return inquiryRepository.save(inquiry);
     }
 
     // 장바구니 추가
@@ -280,9 +283,7 @@ public class UserService {
                               Long userId, UserAddressReqDto userAddressReqDto){
         String header = jwtUtil.getAuthHeader(request);
         String token = jwtUtil.getToken(header);
-        if (token == null || !jwtUtil.isTokenValid(token)) {
-            throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
-        }
+
         String email = jwtUtil.getEmail(token);
         User user = userRepository.findByUserEmail(email);
         user.updateAddress(userAddressReqDto);
@@ -291,55 +292,38 @@ public class UserService {
 
     //사용자 비밀번호 확인
     @Transactional
-    public void validatePassword(HttpServletRequest request, String currentPassword){
+    public User validatePassword(HttpServletRequest request, String currentPassword){
         String header = jwtUtil.getAuthHeader(request);
         String token = jwtUtil.getToken(header);
 
-        if (token == null || !jwtUtil.isTokenValid(token)) {
-            throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
-        }
         String email = jwtUtil.getEmail(token);
-        User user = userRepository.findByUserEmail(email);
+        User user = userRepository.findByUserEmail(email); //예외처리 해야함
         if (!isPasswordSame(currentPassword, user.getUserPassword())) {
-            throw new IllegalArgumentException("비밀번호가 다릅니다.");
+            throw new BadRequestException(INVALID_USER_PASSWORD);
         }
+        return user;
     }
 
     //사용자 비밀번호 변경
     @Transactional
-    public void updatePassword(String newPassword, Long userId){
+    public void updatePassword(String newPassword, User user){
         String regExp = "^(?=.*[a-zA-Z])(?=.*[!@#$%^])(?=.*[0-9]).{8,25}$";
         //비밀번호 유효성 검사
         if (!newPassword.matches(regExp)) {
             throw new IllegalArgumentException("비밀번호는 영문자, 숫자, 특수문자(!@#$%^)가 포함되어야 합니다.");
         }
-        User user = findById(userId);
         if (isPasswordSame(newPassword, user.getUserPassword())) {
-            throw new IllegalArgumentException("동일한 비밀번호입니다.");
+            throw new BadRequestException(USER_MODIFY_PASSWORD_FAILURE);
         } else{
             user.updatePassword(passwordEncoder.encode(newPassword));
         }
     }
 
-    public User findById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않은 회원 입니다."));
-    }
-    public boolean isPasswordSame(String pwd, String originPwd) {
-        return passwordEncoder.matches(pwd, originPwd);
-    }
-
-    public boolean existByUserEmail(String userEmail) {
-        return userRepository.existsByUserEmail(userEmail);
-    }
-
-    public boolean existByUserDktNum(Integer userDktNum) {
-        return userRepository.existsByUserDktNum(userDktNum);
-    }
-
     // 마일리지 사용(충전) 내역 조회
     public MileageListResDto getMileageUsage(Long userId, int pageNo) {
-        Pageable pageable = PageRequest.of(pageNo, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "mileageDate"));
+        findUserById(userId);
+        pageNo = pageVaildation(pageNo);
+        Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "mileageDate"));
         Page<Mileage> mileages = mileageRepository.findByUserId(pageable, userId);
 
         List<MileageDto> mileageChageList = mileages.getContent().stream().map(
@@ -369,6 +353,7 @@ public class UserService {
 
     // 사용자 문의 전체 조회
     public List<UserInquiryAllResDto> getUserInquiryAllbyUserId(Long userId) {
+        findUserById(userId);
         return inquiryRepository.findUserInquiryAllByUserId(userId);
     }
 
@@ -434,4 +419,25 @@ public class UserService {
         return orderListResDto;
     }
 
+    //사용 id로 조회
+    public User findUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
+    }
+    public boolean isPasswordSame(String pwd, String originPwd) {
+        return passwordEncoder.matches(pwd, originPwd);
+    }
+
+    public boolean existByUserEmail(String userEmail) {
+        return userRepository.existsByUserEmail(userEmail);
+    }
+
+    public boolean existByUserDktNum(Integer userDktNum) {
+        return userRepository.existsByUserDktNum(userDktNum);
+    }
+
+    // 페이지 예외처리
+    public int pageVaildation(int page){
+        return page = page > 0 ? page-1 : 0;
+    }
 }

@@ -11,9 +11,14 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingPathVariableException;
+import org.springframework.web.bind.MissingRequestHeaderException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +35,7 @@ public class GlobalExceptionHandler {
         return errorMap.toString();
     }
 
-    // 토큰이 없는 경우
+    // 토큰이 없는 경우 401
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<?> handleAuthenticationException(AuthenticationException e) {
         log.error("[AuthenticationException] message: {}", e.getMessage());
@@ -38,7 +43,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.UNAUTHORIZED);
     }
 
-    // 권한 없는 경로 접근한 경우
+    // 권한 없는 경로 접근한 경우 403
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<?> handleAuthorizationServiceException(AccessDeniedException e) {
         log.error("[AccessDeniedException] message: {}", e.getMessage());
@@ -46,11 +51,19 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.FORBIDDEN);
     }
 
-    // 잘못된 경로 에러
+    // 잘못된 경로 에러 404
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<?> handleNoHandlerFoundException(NoHandlerFoundException e, HttpServletRequest request){
         log.error("[NoHandlerFoundException] message: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.NOT_FOUND;
+        return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.NOT_FOUND);
+    }
+
+    //Path Value가 없거나 잘못 입력되었을 때 404
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<?> handleNoHandlerFoundException(NoResourceFoundException e, HttpServletRequest request){
+        log.error("[NoResourceFoundException] message: {}", e.getMessage());
+        ErrorCode errorCode = ErrorCode.NOT_VALID_PATH_VALUE;
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.NOT_FOUND);
     }
 
@@ -62,8 +75,23 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.METHOD_NOT_ALLOWED);
     }
 
+    // reqeust param 없을 때 400
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<?> handleMissingServletRequestParameterException(MissingServletRequestParameterException e){
+        log.error("[MissingServletRequestParameterException] message: {}", e.getMessage());
+        ErrorCode errorCode = ErrorCode.MISSING_REQUEST_PARAM;
+        return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.BAD_REQUEST);
+    }
 
-    // request body의 유효성 에러
+    // reqeust param 타입이 안 맞을 때 400
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<?> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e){
+        log.error("[MethodArgumentTypeMismatchException] message: {}", e.getMessage());
+        ErrorCode errorCode = ErrorCode.INVALID_TYPE_REQUEST_VALUE;
+        return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.BAD_REQUEST);
+    }
+
+    // request body의 유효성 에러 400
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         log.error("[MethodArgumentNotValidException] message: {}", e.getMessage());
@@ -71,6 +99,15 @@ public class GlobalExceptionHandler {
         // 유효성 결과 message에 할당
         String message = bindingResultErrorsCheck(e.getBindingResult());
         return new ResponseEntity<>(CMResDto.errorWithMsgRes(errorCode, message), HttpStatus.BAD_REQUEST);
+    }
+
+    // IllegalArgumentException
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> handleIllegalArgumentException(IllegalArgumentException e){
+        log.error("[IllegalArgumentException] message: {}", e.getMessage());
+        ErrorCode errorCode = ErrorCode.BAD_REQUEST;
+        String message = e.getMessage();
+        return  new ResponseEntity<>(CMResDto.errorWithMsgRes(errorCode, message), HttpStatus.BAD_REQUEST);
     }
 
     // 각종 400 에러
@@ -89,7 +126,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.CONFLICT);
     }
 
-    // 위의 경우를 제외한 모든 에러
+    // 위의 경우를 제외한 모든 에러 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleException(Exception e){
         log.error("[Exception] message: {}", e.getMessage());
