@@ -495,6 +495,12 @@ public class AdminService {
     public void deleteInquiryReply(Long inquiryReplyId) {
         InquiryReply inquiryReply = inquiryReplyRepository.findById(inquiryReplyId)
                 .orElseThrow(()-> new NotFoundException(REPLY_NOT_FOUND));
+
+        // 해당 문의의 상태를 '답변이 없는 상태'로 변경
+        Inquiry inquiry = inquiryRepository.findById(inquiryReply.getInquiryId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid inquiry ID: " + inquiryReply.getInquiryId()));
+        inquiry.updateStatus(false);
+
         inquiryReplyRepository.deleteById(inquiryReplyId);
     }
 
