@@ -466,6 +466,9 @@ public class AdminService {
         Inquiry inquiryOptional = inquiryRepository.findById(inquiryId)
                 .orElseThrow(()-> new NotFoundException(INQUIRY_NOT_FOUND));
 
+        // 해당 문의의 답변을 모두 삭제
+        inquiryReplyRepository.deleteByInquiryId(inquiryId);
+
         inquiryRepository.deleteById(inquiryId);
     }
 
@@ -496,7 +499,7 @@ public class AdminService {
         InquiryReply inquiryReply = inquiryReplyRepository.findById(inquiryReplyId)
                 .orElseThrow(()-> new NotFoundException(REPLY_NOT_FOUND));
 
-        // 해당 문의의 상태를 '답변이 없는 상태'로 변경
+        // inquiry State false 로 변경
         Inquiry inquiry = inquiryRepository.findById(inquiryReply.getInquiryId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid inquiry ID: " + inquiryReply.getInquiryId()));
         inquiry.updateStatus(false);
