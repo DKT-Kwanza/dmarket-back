@@ -13,6 +13,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 
 @Repository
 public interface QnaRepository extends JpaRepository<Qna, Long> {
@@ -49,7 +51,7 @@ public interface QnaRepository extends JpaRepository<Qna, Long> {
             "join User u on q.userId = u.userId " +
             "left join QnaReply qr on q.qnaId = qr.qnaId " +
             "where q.qnaId = :qnaId")
-    QnaDetailResDto findQnaAndReply(Long qnaId);
+    Optional<QnaDetailResDto> findQnaAndReply(Long qnaId);
 }
 
 
