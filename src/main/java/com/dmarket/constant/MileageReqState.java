@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum MileageReqState {
-    PROCESSING("처리 전"), // 요청 처리 전
+    PROCESSING("처리전"), // 요청 처리 전
     APPROVAL("승인"),   // 요청 승인
     REFUSAL("거부");    // 요청 거부
 

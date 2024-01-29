@@ -1,8 +1,9 @@
 package com.dmarket.controller;
 
+import com.dmarket.constant.InquiryType;
 import com.dmarket.domain.board.Inquiry;
 import com.dmarket.domain.user.User;
-import com.dmarket.dto.common.CartListDto;
+import com.dmarket.dto.common.CartCommonDto;
 import com.dmarket.dto.common.InquiryRequestDto;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
@@ -12,18 +13,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RestController
@@ -35,7 +29,7 @@ public class UserController {
 
     //회원가입
     @PostMapping("/join")
-    public ResponseEntity<?> join(@Valid @RequestBody JoinReqDto dto) {
+    public ResponseEntity<?> join(@Valid @RequestBody UserReqDto.Join dto) {
 
         userService.verifyJoin(dto);
         Long userId = userService.join(dto);
@@ -44,21 +38,21 @@ public class UserController {
 
     // 이메일 인증 코드 전송
     @PostMapping("/email")
-    public ResponseEntity<?> email(@RequestBody String userEmail) {
+    public ResponseEntity<?> email(@Valid @RequestBody String userEmail) {
         userService.sendCodeToEmail(userEmail);
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
 
     //이메일 인증 코드 확인
     @PostMapping("/email/verify")
-    public ResponseEntity<?> emailVerify(@RequestBody EmailReqDto dto) {
+    public ResponseEntity<?> emailVerify(@Valid @RequestBody UserReqDto.Emails dto) {
         userService.isValidEmailCode(dto.getUserEmail(), dto.getCode());
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
 
     // 장바구니 추가 api
     @PostMapping("/{userId}/cart")
-    public ResponseEntity<?> addCart(@PathVariable Long userId, @Valid @RequestBody AddCartReqDto addCartReqDto) {
+    public ResponseEntity<?> addCart(@PathVariable Long userId, @Valid @RequestBody CartReqDto.AddCartReqDto addCartReqDto) {
 
         Long productId = addCartReqDto.getProductId();
         Long optionId = addCartReqDto.getOptionId();
@@ -69,17 +63,12 @@ public class UserController {
 
     // 위시리스트 추가 api
     @PostMapping("/{userId}/wish")
-    public ResponseEntity<?> addWish(@PathVariable Long userId, @Valid @RequestBody AddWishReqDto addWishReqDto) {
+    public ResponseEntity<?> addWish(@PathVariable Long userId, @Valid @RequestBody WishListReqDto.AddWishReqDto addWishReqDto) {
         // 위시리스트 추가
         Long productId = addWishReqDto.getProductId();
         userService.addWish(userId, productId);
 
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
-    }
-
-    @GetMapping("/user")
-    public String userP() {
-        return "User Page";
     }
 
     // 위시리스트 조회
@@ -95,7 +84,7 @@ public class UserController {
     @GetMapping("{userId}/cart-count")
     public ResponseEntity<?> getCartCount(@PathVariable(name = "userId") Long userId) {
 
-        CartCountResDto cartCount = userService.getCartCount(userId);
+        CartResDto.CartCountResDto cartCount = userService.getCartCount(userId);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(cartCount), HttpStatus.OK);
     }
@@ -104,7 +93,7 @@ public class UserController {
     @GetMapping("/{userId}/mypage/mileage")
     public ResponseEntity<?> getSubHeader(@PathVariable(name = "userId") Long userId) {
 
-        UserHeaderInfoResDto subHeader = userService.getSubHeader(userId);
+        UserResDto.UserHeaderInfo subHeader = userService.getSubHeader(userId);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(subHeader), HttpStatus.OK);
     }
@@ -125,16 +114,17 @@ public class UserController {
     public ResponseEntity<?> getUserInfoByUserId(HttpServletRequest request,
                                                  @PathVariable(name = "userId") Long userId) {
         request.getHeader("Authorization");
-        UserInfoResDto userInfo = userService.getUserInfoByUserId(userId);
+        UserResDto.UserInfo userInfo = userService.getUserInfoByUserId(userId);
         log.info("데이터 조회 완료");
-        return new ResponseEntity<>(CMResDto.successDataRes(userInfo),HttpStatus.OK);
+        return new ResponseEntity<>(CMResDto.successDataRes(userInfo), HttpStatus.OK);
     }
+
 
     // 사용자 비밀번호 변경
     @PutMapping("{userId}/mypage/change-pwd")
     public ResponseEntity<?> updatePassword(HttpServletRequest request,
                                             @PathVariable(name = "userId") Long userId,
-                                            @Valid @RequestBody ChangePwdReqDto changePwdReqDto) {
+                                            @Valid @RequestBody UserReqDto.ChangePwd changePwdReqDto) {
         String currentPassword = changePwdReqDto.getCurrentPassword();
         String newPassword = changePwdReqDto.getNewPassword();
 
@@ -148,26 +138,28 @@ public class UserController {
     // 사용자 배송지 수정
     @PutMapping("{userId}/mypage/myinfo")
     public ResponseEntity<?> updateAddress(HttpServletRequest request,
-                                            @PathVariable(name = "userId") Long userId,
-                                            @Valid @RequestBody UserAddressReqDto userAddressReqDto) {
-        UserAddressResDto result = userService.updateAddress(request, userId, userAddressReqDto);
+                                           @PathVariable(name = "userId") Long userId,
+                                           @Valid @RequestBody UserReqDto.UserAddress userAddressReqDto) {
+        UserResDto.UserAddress result = userService.updateAddress(request, userId, userAddressReqDto);
         log.info("데이터 변경 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(result), HttpStatus.OK);
     }
+
 
     // 장바구니 조회
     @GetMapping("/{userId}/cart")
     public ResponseEntity<?> getCarts(@PathVariable Long userId) {
 
-        List<CartListDto> cartListDtos = userService.getCartsfindByUserId(userId);
-        System.out.println(cartListDtos);
-        TotalCartResDto totalCartResDto = new TotalCartResDto(cartListDtos);
+        List<CartCommonDto.CartListDto> cartListDtos = userService.getCartsfindByUserId(userId);
+        CartResDto.TotalCartResDto totalCartResDto = new CartResDto.TotalCartResDto(cartListDtos);
         return new ResponseEntity<>(CMResDto.successDataRes(totalCartResDto), HttpStatus.OK);
     }
 
+
     // 장바구니 삭제
     @DeleteMapping("/{userId}/cart/{cartIds}")
-    public ResponseEntity<?> deleteCart(@PathVariable Long userId, @PathVariable(name = "cartIds") List<Long> cartIds) {
+    public ResponseEntity<?> deleteCart(@PathVariable Long userId,
+                                        @PathVariable(name = "cartIds") List<Long> cartIds) {
 
         for (Long cartId : cartIds) {
             userService.deleteCartByCartId(userId, cartId);
@@ -181,14 +173,14 @@ public class UserController {
     public ResponseEntity<?> getQna(@PathVariable Long userId,
                                     @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
 
-        Page<QnaResDto> qnaListResDtos = userService.getQnasfindByUserId(userId, pageNo);
+        Page<QnaResDto.QnaTotalListResDto> qnaListResDtos = userService.getQnasfindByUserId(userId, pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(qnaListResDtos), HttpStatus.OK);
     }
 
     // 리뷰 작성 가능한 상품 목록 조회
     @GetMapping("/{userId}/mypage/available-reviews")
     public ResponseEntity<?> getAvailableReviews(@PathVariable Long userId,
-                                                @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
+                                                 @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
 
         Page<OrderResDto> orderResDtos = userService.getOrderDetailsWithoutReviewByUserId(userId, pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(orderResDtos), HttpStatus.OK);
@@ -197,7 +189,7 @@ public class UserController {
     // 작성한 리뷰 목록 조회
     @GetMapping("/{userId}/mypage/written-reviews")
     public ResponseEntity<?> getWrittenReviews(@PathVariable Long userId,
-                                                @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
+                                               @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
 
         Page<OrderResDto> orderResDtos = userService.getOrderDetailsWithReviewByUserId(userId, pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(orderResDtos), HttpStatus.OK);
@@ -206,34 +198,39 @@ public class UserController {
     // 문의 작성
     @PostMapping("/{userId}/board/inquiry")
     public ResponseEntity<CMResDto> createInquiry(@PathVariable Long userId,
-                                                  @RequestBody InquiryRequestDto inquiryRequestDto) {
+                                                  @Valid @RequestBody InquiryRequestDto inquiryRequestDto) {
+
+        InquiryType inquiryType = InquiryType.fromLabel(inquiryRequestDto.getInquiryType());
+        if (inquiryType == null) {
+            throw new IllegalArgumentException("유효하지 않은 문의 유형: " + inquiryRequestDto.getInquiryType());
+        }
 
         Inquiry inquiry = Inquiry.builder()
                 .userId(userId)
-                .inquiryType(inquiryRequestDto.getInquiryType())
+                .inquiryType(inquiryType)
                 .inquiryTitle(inquiryRequestDto.getInquiryTitle())
                 .inquiryContents(inquiryRequestDto.getInquiryContents())
                 .inquiryImg(inquiryRequestDto.getInquiryImg())
                 .inquiryState(false) // 기본값 false로 설정
                 .build();
-
         userService.createInquiry(inquiry);
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
+
 
     // 마일리지 사용(충전) 내역 api
     @GetMapping("/{userId}/mypage/mileage-usage")
     public ResponseEntity<?> getMileageUsage(@PathVariable Long userId,
                                              @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
         // 충전 요청
-        MileageListResDto res = userService.getMileageUsage(userId, pageNo);
+        MileageResDto.MileageListResDto res = userService.getMileageUsage(userId, pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(res), HttpStatus.OK);
     }
 
     // 마일리지 충전 요청 api
     @PostMapping("/{userId}/mypage/mileage-charge")
     public ResponseEntity<?> mileageChargeReq(@PathVariable Long userId,
-                                              @Valid @RequestBody MileageChargeReqDto mileageChargeReqDto) {
+                                              @Valid @RequestBody MileageReqDto.MileageChargeReqDto mileageChargeReqDto) {
         // 충전 요청
         userService.mileageChargeReq(userId, mileageChargeReqDto.getMileageCharge());
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
@@ -243,25 +240,46 @@ public class UserController {
     @GetMapping("/{userId}/mypage/inquiry")
     public ResponseEntity<?> getUserInquiryAllByUserId(@PathVariable(name = "userId") Long userId) {
 
-        List<UserInquiryAllResDto> userInquiryAllResDtos = userService.getUserInquiryAllbyUserId(userId);
+        List<InquiryResDto.UserInquiryAllResDto> userInquiryAllResDtos = userService.getUserInquiryAllbyUserId(userId);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(userInquiryAllResDtos), HttpStatus.OK);
     }
-    // 사용자 주문 내역 상세 조회
+
+    // 사용자 주문 내역 상세 조회 USER-031
     @GetMapping("/{userId}/mypage/orders/{orderId}")
     public ResponseEntity<?> getUserOrderDetailListByOrderId(@PathVariable(name = "userId") Long userId,
                                                              @PathVariable(name = "orderId") Long orderId) {
-        OrderDetailListResDto userOrderDetailResDtos = userService.getOrderDetailListByOrderId(userId, orderId);
+        OrderResDto.OrderDetailListResDto userOrderDetailResDtos = userService.getOrderDetailListByOrderId(userId, orderId);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(userOrderDetailResDtos), HttpStatus.OK);
     }
-    // 주문 / 배송 내역 조회
-    @GetMapping("/{userId}/mypage/orders")
-    public ResponseEntity<?> getUserOrderList(@PathVariable(name="userId") Long userId) {
 
-        OrderListResDto userOrderListResDtos = userService.getOrderListResByUserId(userId);
+    // 주문 / 배송 내역 조회 : USER-030
+    @GetMapping("/{userId}/mypage/orders")
+    public ResponseEntity<?> getUserOrderList(@PathVariable(name = "userId") Long userId) {
+
+        OrderResDto.OrderListResDto userOrderListResDtos = userService.getOrderListResByUserId(userId);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(userOrderListResDtos), HttpStatus.OK);
     }
 
+    // 주문 취소 요청
+    @PostMapping("/{userId}/mypage/order/cancel")
+    public ResponseEntity<?> postOrderCancel(@PathVariable(name = "userId") Long userId,
+                                             @Valid @RequestBody OrderCancelReqDto orderCancelReqDto) {
+
+
+        OrderResDto.OrderDetailListResDto orderDetailListResDto = userService.postOrderCancel(orderCancelReqDto.getOrderId(), orderCancelReqDto.getOrderDetailId(), userId);
+        return new ResponseEntity<>(CMResDto.successDataRes(orderDetailListResDto), HttpStatus.OK);
+
+    }
+
+    // 반품 요청(신청)
+    @PostMapping("/{userId}/mypage/order/return")
+    public ResponseEntity<?> postOrderReturn(@PathVariable(name = "userId") Long userId,
+                                             @Valid @RequestBody OrderReturnReqDto orderReturnReqDto) {
+
+        OrderResDto.OrderDetailListResDto orderDetailListResDto = userService.postOrderReturn(orderReturnReqDto.getOrderDetailId(), orderReturnReqDto.getReturnContents());
+        return new ResponseEntity<>(CMResDto.successDataRes(orderDetailListResDto), HttpStatus.OK);
+    }
 }

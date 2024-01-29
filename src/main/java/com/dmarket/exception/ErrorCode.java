@@ -14,6 +14,7 @@ public enum ErrorCode {
     INVALID_STATE_PARAM(400, "잘못된 상태 값"),
     INVALID_SEARCH_VALUE(400, "검색 값이 비어있음"),
     INVALID_EMAIL_CODE(400, "인증 코드가 일치하지 않음"),
+    INVALID_INQUIRY_TYPE(400, "잘못된 문의 타입"),
 
     UNAUTHORIZED(401, "로그인이 필요한 서비스"),
     FAIL_LOGIN(401, "아이디, 비밀번호 오류"),

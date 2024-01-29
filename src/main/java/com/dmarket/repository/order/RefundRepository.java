@@ -2,7 +2,7 @@ package com.dmarket.repository.order;
 
 
 import com.dmarket.domain.order.Refund;
-import com.dmarket.dto.response.OrderCancelResDto;
+import com.dmarket.dto.response.OrderResDto.OrderCancelResDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

@@ -1,8 +1,8 @@
 package com.dmarket.repository.product;
 
 import com.dmarket.domain.product.ProductReview;
-import com.dmarket.dto.common.ProductReviewDto;
-import com.dmarket.dto.response.AdminReviewsResDto;
+import com.dmarket.dto.common.ProductCommonDto;
+import com.dmarket.dto.response.AdminResDto;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,21 +16,21 @@ public interface ProductReviewRepository extends JpaRepository<ProductReview, Lo
     Long countByProductId(Long productId);
 
     // 상품 번호로 리뷰 목록 조회
-    @Query("select new com.dmarket.dto.common.ProductReviewDto" +
+    @Query("select new com.dmarket.dto.common.ProductCommonDto$ProductReviewDto" +
             "(r.reviewId, u.userName, o.optionValue, r.reviewRating, r.reviewContents, r.reviewCreatedDate, r.reviewImg) " +
             "from ProductReview r " +
             "join User u on r.userId = u.userId " +
             "join ProductOption o on r.optionId = o.optionId " +
             "where r.productId = :productId")
-    Page<ProductReviewDto> findReviewByProductId(Pageable pageable, Long productId);
+    Page<ProductCommonDto.ProductReviewDto> findReviewByProductId(Pageable pageable, Long productId);
 
     void deleteByReviewId(@Param("reviewId") Long reviewId);
 
-    @Query("select new com.dmarket.dto.response.AdminReviewsResDto" +
+    @Query("select new com.dmarket.dto.response.AdminResDto$AdminReviewsResDto" +
     "(r, o, u, p) " +
     "from ProductReview r " +
     "join User u on r.userId = u.userId " +
     "join Product p on r.productId = p.productId " +
     "join ProductOption o on r.optionId = o.optionId ORDER BY r.reviewId DESC")
-    Page<AdminReviewsResDto> getProductReviews(Pageable pageable);
+    Page<AdminResDto.AdminReviewsResDto> getProductReviews(Pageable pageable);
 }

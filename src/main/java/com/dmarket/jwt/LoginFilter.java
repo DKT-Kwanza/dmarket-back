@@ -1,9 +1,9 @@
 package com.dmarket.jwt;
 
 import com.dmarket.domain.user.RefreshToken;
+import com.dmarket.dto.common.UserCommonDto;
 import com.dmarket.dto.response.CMResDto;
-import com.dmarket.dto.response.CustomUserDetails;
-import com.dmarket.dto.common.TokenResponseDto;
+import com.dmarket.dto.response.UserResDto;
 import com.dmarket.repository.user.RefreshTokenRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -62,7 +62,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) {
 
-        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+        UserResDto.CustomUserDetails customUserDetails = (UserResDto.CustomUserDetails) authentication.getPrincipal();
 
         String email = customUserDetails.getEmail();
 
@@ -73,19 +73,21 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String role = auth.getAuthority();
 
         // AccessToken 만료 시간 6분 -> AccessToken 만료 시간 30분
-        String accesstoken = jwtUtil.createAccessJwt( email, role, 30*60*1000L);
+        String accesstoken = jwtUtil.createAccessJwt( email, role);
 
-        // RefreshToken 만료 시간 24시간
-        String refreshtoken = jwtUtil.createRefreshJwt(email, role, 24 * 60 * 60 * 1000L);
+        // RefreshToken 만료 시간 240시간
+        String refreshtoken = jwtUtil.createRefreshJwt();
 
         // RefreshToken 저장
-        saveRefreshTokenToDatabase(email,refreshtoken);
+        //saveRefreshTokenToDatabase(email,refreshtoken);
+        refreshTokenRepository.save(new RefreshToken(refreshtoken,accesstoken,email));
 
-        TokenResponseDto tokenResponseDto = new TokenResponseDto();
+
+        UserCommonDto.TokenResponseDto tokenResponseDto = new UserCommonDto.TokenResponseDto();
         tokenResponseDto.setAccesstoken(accesstoken);
         tokenResponseDto.setRefreshtoken(refreshtoken);
 
-        CMResDto<TokenResponseDto> cmRespDto = CMResDto.<TokenResponseDto>builder()
+        CMResDto<UserCommonDto.TokenResponseDto> cmRespDto = CMResDto.<UserCommonDto.TokenResponseDto>builder()
                 .code(200)
                 .msg("Success")
                 .data(tokenResponseDto)
@@ -107,11 +109,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         response.setStatus(401);
     }
 
-    private void saveRefreshTokenToDatabase(String userEmail, String refreshToken) {
-        RefreshToken refreshTokendata = new RefreshToken(userEmail,refreshToken);
-
-        refreshTokenRepository.save(refreshTokendata);
-    }
 
     private void writeResponse(HttpServletResponse response, CMResDto<?> cmRespDto) {
         try {

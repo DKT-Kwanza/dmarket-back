@@ -45,4 +45,9 @@ public class Inquiry {
         this.inquiryState = inquiryState;
         this.inquiryCreatedDate = LocalDateTime.now().withNano(0);
     }
+
+    // 문의 답변시 status 변경
+    public void updateStatus(Boolean status) {
+        this.inquiryState = status;
+    }
 }

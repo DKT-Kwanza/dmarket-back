@@ -1,17 +1,14 @@
 package com.dmarket.service;
 
-import com.dmarket.domain.product.Category;
-import com.dmarket.domain.product.Product;
-import com.dmarket.domain.product.ProductReview;
-import com.dmarket.domain.product.Qna;
+import com.dmarket.domain.product.*;
 import com.dmarket.domain.user.User;
-import com.dmarket.dto.common.ProductDto;
-import com.dmarket.dto.common.ProductListDto;
-import com.dmarket.dto.common.ProductOptionDto;
-import com.dmarket.dto.common.ProductReviewDto;
+import com.dmarket.dto.common.*;
 import com.dmarket.dto.request.ReviewReqDto;
-import com.dmarket.dto.response.*;
-import com.dmarket.exception.*;
+import com.dmarket.dto.response.CategoryResDto;
+import com.dmarket.dto.response.ProductResDto;
+import com.dmarket.dto.response.QnaResDto;
+import com.dmarket.exception.BadRequestException;
+import com.dmarket.exception.NotFoundException;
 import com.dmarket.repository.product.*;
 import com.dmarket.repository.user.UserRepository;
 import com.dmarket.repository.user.WishlistRepository;
@@ -35,6 +32,7 @@ import static com.dmarket.exception.ErrorCode.*;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ProductService {
+
     // 조회가 아닌 메서드들은 꼭 @Transactional 넣어주세요 (CUD, 입력/수정/삭제)
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
@@ -51,12 +49,12 @@ public class ProductService {
     private static final Integer MAX_VALUE = 9999999;
 
     // 카테고리 전체 목록 depth별로 조회
-    public List<CategoryListResDto> getCategories(Integer categoryDepthLevel) {
+    public List<CategoryResDto.CategoryListResDto> getCategories(Integer categoryDepthLevel) {
         return categoryRepository.findByCategoryDepth(categoryDepthLevel);
     }
 
     // 카테고리별 상품 목록 필터링 조회
-    public ProductListResDto getCategoryProducts(int pageNo, Long cateId,
+    public ProductResDto.ProductListResDto getCategoryProducts(int pageNo, Long cateId,
                                                  String sorter, Integer minPrice, Integer maxPrice, Float star) {
         findCategoryById(cateId);
         sorter = sorterValidation(sorter);
@@ -66,13 +64,12 @@ public class ProductService {
         star = starValidation(star);
 
         Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
-        Page<ProductListDto> productList = productRepository.findByCateId(pageable, cateId, minPrice, maxPrice, star);
-
-        return new ProductListResDto(productList.getTotalPages(), productList.getContent());
+        Page<ProductCommonDto.ProductListDto> productList = productRepository.findByCateId(pageable, cateId, minPrice, maxPrice, star);
+        return new ProductResDto.ProductListResDto(productList.getTotalPages(), productList.getContent());
     }
 
     // 상품 목록 조건 검색
-    public ProductListResDto getSearchProducts(int pageNo, String query,
+    public ProductResDto.ProductListResDto getSearchProducts(int pageNo, String query,
                                                      String sorter, Integer minPrice, Integer maxPrice, Float star) {
         if (query.isEmpty()) {
             throw new BadRequestException(INVALID_SEARCH_VALUE);
@@ -84,30 +81,72 @@ public class ProductService {
         star = starValidation(star);
 
         Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
-        Page<ProductListDto> productList = productRepository.findByQuery(pageable, query, minPrice, maxPrice, star);
-        return new ProductListResDto(productList.getTotalPages(), productList.getContent());
-    }
-
-    // 최신 상품 조회
-    public List<NewProductResDto> findNewProducts() {
-        List<NewProductResDto> latestProducts = productRepository.findNewProducts();
-        return latestProducts.stream()
-                .limit(8)
-                .collect(Collectors.toList());
+        Page<ProductCommonDto.ProductListDto> productList = productRepository.findByQuery(pageable, query, minPrice, maxPrice, star);
+        return new ProductResDto.ProductListResDto(productList.getTotalPages(), productList.getContent());
     }
 
     // 상품 별 Q&A 리스트 조회
-    public Page<QnaProductIdListResDto> findQnasByProductId(Long productId, int pageNo) {
+    public Page<QnaResDto.QnaProductIdListResDto> findQnasByProductId(Long productId, int pageNo) {
         findProductById(productId);
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, QNA_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "qnaId"));
         return qnaRepository.findQnasByProductId(productId, pageable);
     }
 
+    // 최신 상품 조회
+    public List<ProductResDto.NewProductResDto> findNewProducts() {
+        return productRepository.findNewProducts();
+    }
+
+    // 최신 상품 조회 - 매핑
+    public List<Object> mapToResponseFormat(List<ProductResDto.NewProductResDto> latestProducts) {
+        return latestProducts.stream()
+                .limit(16).map(product -> new Object() {
+                    public final Long productId = product.getProductId();
+                    public final String productBrand = product.getProductBrand();
+                    public final String productName = product.getProductName();
+                    public final String productImg = product.getProductImg();
+                    public final String productSalePrice = String.valueOf(product.getProductSalePrice());
+                })
+                .collect(Collectors.toList());
+    }
+
+    // 상품 상세 정보 조회
+    public ProductResDto.ProductInfoResDto getProductInfo(Long productId, Long userId) {
+        // 싱품 정보 조회
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
+        // 상품의 카테고리 depth 1, depth2 조회 후 합치기
+        Category category = categoryRepository.findByCategoryId(product.getCategoryId());
+        String productCategory = category.getParent().getCategoryName() + " / " + category.getCategoryName();
+        // 상품의 리뷰 개수 조회
+        Long reviewCnt = productReviewRepository.countByProductId(productId);
+        // 사용자가 위시리스트에 등록한 상품인지 확인
+        Boolean isWish = wishlistRepository.existsByUserIdAndProductId(userId, productId);
+        // 상품 옵션 목록, 옵션별 재고 조회
+        List<ProductCommonDto.ProductOptionDto> opts = productOptionRepository.findOptionsByProductId(productId);
+        // 상품 이미지 목록 조회
+        List<String> imgs = productImgsRepository.findAllByProductId(productId);
+        // DTO 생성 및 반환
+        return new ProductResDto.ProductInfoResDto(product, productCategory, reviewCnt, isWish, opts, imgs);
+    }
+
+    // 상품별 사용자 리뷰 조회
+    public ProductResDto.ProductReviewListResDto getReviewList(Long productId, Integer pageNo) {
+        pageNo = pageVaildation(pageNo);
+        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_POST_COUNT,
+                Sort.by(Sort.Direction.DESC, "reviewCreatedDate"));
+        // 상품 번호, 상품 별점, 리뷰 개수 조회, 존재하지 않는 상품 번호의 경우 예외 발생
+        ProductCommonDto.ProductDto product = findProductByProductId(productId);
+        // 상품의 리뷰 목록 불러오기
+        Page<ProductCommonDto.ProductReviewDto> reviewList = productReviewRepository.findReviewByProductId(pageable, productId);
+        return new ProductResDto.ProductReviewListResDto(product, reviewList.getTotalPages(), reviewList.getContent());
+    }
+
     // Q&A 작성
     @Transactional
-    public QnaWriteResponseDto qnaWrite(Long productId, Long userId, String qnaTitle, String qnaContents,
-                                        Boolean qnaIsSecret) {
+    public QnaResDto.QnaWriteResponseDto qnaWrite(Long productId, Long userId, String qnaTitle, String qnaContents,
+                                                    Boolean qnaIsSecret) {
         // userId로 회원 이름 가져오기
         User userdata = findUserById(userId);
         String qnaWriter = userdata.getUserName();
@@ -125,46 +164,13 @@ public class ProductService {
         Qna savedQna = qnaRepository.save(qna);
 
         // 반환값 생성
-        return new QnaWriteResponseDto(savedQna.getQnaSecret(), qnaWriter, savedQna.getQnaTitle(),
+        return new QnaResDto.QnaWriteResponseDto(savedQna.getQnaSecret(), qnaWriter, savedQna.getQnaTitle(),
                 savedQna.getQnaCreatedDate(), savedQna.getQnaState());
-    }
-
-    // 상품 상세 정보 조회
-    public ProductInfoResDto getProductInfo(Long productId, Long userId) {
-        // 싱품 정보 조회
-        Product product = findProductById(productId);
-        // 상품의 카테고리 depth 1, depth2 조회 후 합치기
-        Category category = findCategoryById(product.getCategoryId());
-        String productCategory = category.getParent().getCategoryName() + " / " + category.getCategoryName();
-        // 상품의 리뷰 개수 조회
-        Long reviewCnt = productReviewRepository.countByProductId(productId);
-        // 사용자가 위시리스트에 등록한 상품인지 확인
-        Boolean isWish = wishlistRepository.existsByUserIdAndProductId(userId, productId);
-        // 상품 옵션 목록, 옵션별 재고 조회
-        List<ProductOptionDto> opts = productOptionRepository.findOptionsByProductId(productId);
-        // 상품 이미지 목록 조회
-        List<String> imgs = productImgsRepository.findAllByProductId(productId);
-        // DTO 생성 및 반환
-        return new ProductInfoResDto(product, productCategory, reviewCnt, isWish, opts, imgs);
-    }
-
-    // 상품별 사용자 리뷰 조회
-    public ProductReviewListResDto getReviewList(Long productId, Integer pageNo) {
-
-        pageNo = pageVaildation(pageNo);
-        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_POST_COUNT,
-                Sort.by(Sort.Direction.DESC, "reviewCreatedDate"));
-        // 상품 번호, 상품 별점, 리뷰 개수 조회, 존재하지 않는 상품 번호의 경우 예외 발생
-        ProductDto product = findProductByProductId(productId);
-        // 상품의 리뷰 목록 불러오기
-        Page<ProductReviewDto> reviewList = productReviewRepository.findReviewByProductId(pageable, productId);
-        return new ProductReviewListResDto(product, reviewList.getTotalPages(), reviewList.getContent());
     }
 
 
     // 추천 상품 조회
-    public List<RecommendProductResDto> recommendProduct(Long productId) {
-        findProductById(productId);
+    public List<ProductResDto.RecommendProductResDto> recommendProduct(Long productId) {
         // PageRequest의 pageSize 4로 지정 최신 4개만 조회
         return productRepository.findProduct(productId,
                 PageRequest.of(0, 4, Sort.by(Sort.Direction.DESC, "productCreatedDate")));
@@ -193,7 +199,7 @@ public class ProductService {
         productReviewRepository.save(productReview);
     }
 
-    public ProductDto findProductByProductId(Long productId) {
+    public ProductCommonDto.ProductDto findProductByProductId(Long productId) {
         return  productRepository.findProductByProductId(productId)
                 .orElseThrow(() -> new NotFoundException(PRODUCT_NOT_FOUND));
     }
@@ -239,4 +245,8 @@ public class ProductService {
         return star;
     }
 
+    public ProductOption findOptionByOptionId(Long productOptionId) {
+        return productOptionRepository.findById(productOptionId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 옵션입니다."));
+    }
 }

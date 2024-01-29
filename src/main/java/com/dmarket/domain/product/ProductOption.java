@@ -34,4 +34,10 @@ public class ProductOption {
         this.optionValue = optionValue;
         this.optionQuantity = optionQuantity;
     }
+
+    // 재고 추가 SETTER
+    public void setOptionQuantity(Integer optionQuantity) {
+        this.optionQuantity = optionQuantity;
+    }
+
 }

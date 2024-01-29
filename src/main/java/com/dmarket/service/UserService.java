@@ -3,18 +3,22 @@ package com.dmarket.service;
 import com.dmarket.constant.MileageContents;
 import com.dmarket.constant.MileageReqState;
 import com.dmarket.constant.OrderDetailState;
+import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.board.Inquiry;
 import com.dmarket.domain.order.Order;
+import com.dmarket.domain.order.Return;
 import com.dmarket.domain.user.*;
 import com.dmarket.dto.common.*;
-import com.dmarket.dto.request.JoinReqDto;
-import com.dmarket.dto.request.UserAddressReqDto;
+import com.dmarket.dto.request.UserReqDto;
 import com.dmarket.dto.response.*;
-import com.dmarket.exception.*;
+import com.dmarket.exception.BadRequestException;
+import com.dmarket.exception.ConflictException;
+import com.dmarket.exception.NotFoundException;
 import com.dmarket.jwt.JWTUtil;
 import com.dmarket.repository.board.InquiryRepository;
 import com.dmarket.repository.order.OrderDetailRepository;
 import com.dmarket.repository.order.OrderRepository;
+import com.dmarket.repository.order.ReturnRepository;
 import com.dmarket.repository.product.QnaRepository;
 import com.dmarket.repository.user.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,6 +35,7 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.dmarket.exception.ErrorCode.*;
@@ -54,6 +59,7 @@ public class UserService {
     private final JWTUtil jwtUtil;
     private final MailService mailService;
     private final RedisService redisService;
+    private final ReturnRepository returnRepository;
 
     @Value("${spring.mail.auth-code-expiration-millis}")
     private long authCodeExpirationMillis;
@@ -67,7 +73,7 @@ public class UserService {
      * @Return userId
      */
     @Transactional
-    public Long join(JoinReqDto dto) {
+    public Long join(UserReqDto.Join dto) {
 
         User user = User.builder()
                 .userEmail(dto.getUserEmail())
@@ -82,11 +88,12 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
+
         return user.getUserId();
     }
 
     //회원가입 유효성 확인
-    public void verifyJoin(JoinReqDto dto) {
+    public void verifyJoin(UserReqDto.Join dto) {
 
         String regExp = "^(?=.*[a-zA-Z])(?=.*[!@#$%^])(?=.*[0-9]).{8,25}$";
         String userEmail = dto.getUserEmail();
@@ -156,8 +163,8 @@ public class UserService {
         }
     }
 
-    public List<CartListDto> getCartsfindByUserId(Long userId) {
-        List<CartListDto> originalList = cartRepository.getCartsfindByUserId(userId);
+    public List<CartCommonDto.CartListDto> getCartsfindByUserId(Long userId) {
+        List<CartCommonDto.CartListDto> originalList = cartRepository.getCartsfindByUserId(userId);
         return originalList;
     }
 
@@ -168,7 +175,7 @@ public class UserService {
     }
 
     //작성한 qna 조회
-    public Page<QnaResDto> getQnasfindByUserId(Long userId, int pageNo) {
+    public Page<QnaResDto.QnaTotalListResDto> getQnasfindByUserId(Long userId, int pageNo) {
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "qnaId"));
         return qnaRepository.getQnasfindByUserId(userId, pageable);
@@ -210,7 +217,7 @@ public class UserService {
     }
 
     // 사용자 정보 조회
-    public UserInfoResDto getUserInfoByUserId(Long userId) {
+    public UserResDto.UserInfo getUserInfoByUserId(Long userId) {
         return userRepository.findUserInfoByUserId(userId);
     }
 
@@ -226,13 +233,12 @@ public class UserService {
     }
 
     // 장바구니 상품 개수 조회
-    public CartCountResDto getCartCount(Long userId) {
+    public CartResDto.CartCountResDto getCartCount(Long userId) {
         return cartRepository.findCountByUserId(userId);
     }
 
     // 마이페이지 서브헤더 사용자 정보 및 마일리지 조회
-    public UserHeaderInfoResDto getSubHeader(Long userId) {
-
+    public UserResDto.UserHeaderInfo getSubHeader(Long userId) {
         return userRepository.findUserHeaderInfoByUserId(userId);
     }
 
@@ -242,7 +248,7 @@ public class UserService {
         // 위시리스트에 있는지 확인 -> 있으면 에러 처리
         Boolean isWish = wishlistRepository.existsByUserIdAndProductId(userId, productId);
         if(isWish){
-            throw new ConflictException(ErrorCode.ALREADY_SAVED_WISH);
+            throw new ConflictException(ALREADY_SAVED_WISH);
         }
         // 위시리스트 저장
         Wishlist wishlist = Wishlist.builder()
@@ -267,27 +273,34 @@ public class UserService {
     // 장바구니 추가
     @Transactional
     public void addCart(Long userId, Long productId, Long optionId, Integer productCount) {
-        // 위시리스트 저장
-        Cart cart = Cart.builder()
-                .userId(userId)
-                .productId(productId)
-                .optionId(optionId)
-                .cartCount(productCount)
-                .build();
-        cartRepository.save(cart);
+        // 장바구니에 존재하는 상품과 옵션인지 확인
+        Optional<Cart> existingCart = cartRepository.findByUserIdAndOptionId(userId, optionId);
+        if (existingCart.isPresent()){
+            // 수량만 추가
+            existingCart.get().updateCartCount(productCount);
+        } else {
+            // 장바구니에 저장
+            Cart cart = Cart.builder()
+                    .userId(userId)
+                    .productId(productId)
+                    .optionId(optionId)
+                    .cartCount(productCount)
+                    .build();
+            cartRepository.save(cart);
+        }
     }
 
     //사용자 배송지 변경
     @Transactional
-    public UserAddressResDto updateAddress(HttpServletRequest request,
-                              Long userId, UserAddressReqDto userAddressReqDto){
+    public UserResDto.UserAddress updateAddress(HttpServletRequest request,
+                                                Long userId, UserReqDto.UserAddress userAddressDto){
         String header = jwtUtil.getAuthHeader(request);
         String token = jwtUtil.getToken(header);
 
         String email = jwtUtil.getEmail(token);
         User user = userRepository.findByUserEmail(email);
-        user.updateAddress(userAddressReqDto);
-        return new UserAddressResDto(user);
+        user.updateAddress(userAddressDto);
+        return new UserResDto.UserAddress(user);
     }
 
     //사용자 비밀번호 확인
@@ -320,21 +333,21 @@ public class UserService {
     }
 
     // 마일리지 사용(충전) 내역 조회
-    public MileageListResDto getMileageUsage(Long userId, int pageNo) {
+    public MileageResDto.MileageListResDto getMileageUsage(Long userId, int pageNo) {
         findUserById(userId);
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "mileageDate"));
         Page<Mileage> mileages = mileageRepository.findByUserId(pageable, userId);
 
-        List<MileageDto> mileageChageList = mileages.getContent().stream().map(
-                (o) -> MileageDto.builder()
+        List<MileageCommonDto.MileageDto> mileageChageList = mileages.getContent().stream().map(
+                (o) -> MileageCommonDto.MileageDto.builder()
                         .mileageChangeDate(o.getMileageDate())
                         .mileageContents(o.getMileageInfo())
                         .changeMileage(o.getChangeMileage())
                         .remainMileage(o.getRemainMileage())
                         .build()).collect(Collectors.toList());
 
-        return new MileageListResDto(mileages.getTotalPages(), mileageChageList);
+        return new MileageResDto.MileageListResDto(mileages.getTotalPages(), mileageChageList);
     }
 
     // 마일리지 충전 요청
@@ -352,22 +365,22 @@ public class UserService {
     }
 
     // 사용자 문의 전체 조회
-    public List<UserInquiryAllResDto> getUserInquiryAllbyUserId(Long userId) {
+    public List<InquiryResDto.UserInquiryAllResDto> getUserInquiryAllbyUserId(Long userId) {
         findUserById(userId);
         return inquiryRepository.findUserInquiryAllByUserId(userId);
     }
 
     // 사용자 주문 내역 상세 조회
-    public OrderDetailListResDto getOrderDetailListByOrderId(Long orderId,Long userId) {
-        List<ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(orderId);
+    public OrderResDto.OrderDetailListResDto getOrderDetailListByOrderId(Long orderId,Long userId) {
+        List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(orderId);
         Order order = orderRepository.findByOrderId(orderId);
         User user = userRepository.findByUserId(userId);
-        return new OrderDetailListResDto(order, user, productDetailList);
+        return new OrderResDto.OrderDetailListResDto(order, user, productDetailList);
     }
 
     // 주문 / 배송 내역 조회
-    public OrderListResDto getOrderListResByUserId(Long userId) {
-        List<OrderListDto> orderList = new ArrayList<>();
+    public OrderResDto.OrderListResDto getOrderListResByUserId(Long userId) {
+        List<OrderCommonDto.OrderListDto> orderList = new ArrayList<>();
         List<Order> orders = orderRepository.findByUserId(userId);
 
         Long confPayCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_COMPLETE);
@@ -378,11 +391,11 @@ public class UserService {
         Long returnCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_REQUEST) +
                 orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_COMPLETE);
         for (Order order : orders) {
-            List<ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
-            orderList.add(new OrderListDto(order, productDetailListDtos));
+            List<ProductCommonDto.ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
+            orderList.add(new OrderCommonDto.OrderListDto(order, productDetailListDtos));
         }
 
-        OrderListResDto orderListResDto = new OrderListResDto();
+        OrderResDto.OrderListResDto orderListResDto = new OrderResDto.OrderListResDto();
 
         if (confPayCount == null) {
             orderListResDto.setConfPayCount(0L);
@@ -417,6 +430,53 @@ public class UserService {
         orderListResDto.setOrderList(orderList);
 
         return orderListResDto;
+    }
+
+    // 주문 취소
+//    @Transactional
+//    public Long postOrderCancel(Long orderId, Long orderDetailId){
+//
+//    }
+
+    // 환불 요청
+    @Transactional
+    public OrderResDto.OrderDetailListResDto postOrderReturn(Long orderDetailId, String returnContents){
+        // orderstate를 환불 요청으로 바꾸고 시간 현재시간으로 변경
+        orderDetailRepository.updateOrderDetailUpdateDateAndOrderDetailStateByOrderDetailId(orderDetailId, OrderDetailState.RETURN_REQUEST);
+
+        // 환불 테이블에 저장
+        Return returns = Return.builder()
+                .orderDetailId(orderDetailId)
+                .returnReason(returnContents)
+                .returnState(ReturnState.RETURN_REQUEST)
+                .build();
+        Return saveReturn = returnRepository.save(returns);
+
+
+
+        // Response 저장..?
+        Order order = orderRepository.findByOrderDetailId(orderDetailId);
+        User user = userRepository.findByUserId(order.getUserId());
+        List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
+        return new OrderResDto.OrderDetailListResDto(order, user, productDetailList);
+    }
+
+    @Transactional
+    public OrderResDto.OrderDetailListResDto postOrderCancel(Long orderId, Long orderDetailId, Long userId) {
+        // orderstate를 주문취소로 바꾸고 시간 현재시간으로 변경
+        orderDetailRepository.updateOrderDetailUpdateDateAndOrderDetailStateByOrderDetailId(orderDetailId, OrderDetailState.ORDER_CANCEL);
+
+        // 계산값 적용
+        Integer orderDetailSalePrice = orderDetailRepository.orderDetailTotalSalePrice(orderDetailId);
+        Integer orderDetailPrice = orderDetailRepository.orderDetailTotalPrice(orderDetailId);
+        orderRepository.updateOrderTotalPrice(orderId,  orderDetailSalePrice, orderDetailPrice);
+        // 마일리지 적립
+        userRepository.updateUserMileageByCancel(userId, orderDetailSalePrice);
+
+        Order order = orderRepository.findByOrderDetailId(orderDetailId);
+        User user = userRepository.findByUserId(userId);
+        List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
+        return new OrderResDto.OrderDetailListResDto(order, user, productDetailList);
     }
 
     //사용 id로 조회
