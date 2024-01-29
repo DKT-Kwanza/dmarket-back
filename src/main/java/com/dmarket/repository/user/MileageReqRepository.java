@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MileageReqRepository extends JpaRepository<MileageReq, Long> {
+
     @Query("select new com.dmarket.dto.common.MileageCommonDto" +
             "(m.mileageReqId, m.mileageReqDate, m.userId, u.userName, u.userEmail, m.mileageReqReason, m.mileageReqAmount, m.mileageReqState) " +
             "from MileageReq m " +

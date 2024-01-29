@@ -10,7 +10,7 @@ public enum MileageReqState {
 
     private final String label;
 
-    private MileageReqState(String label){
+    private MileageReqState(String label) {
         this.label = label;
     }
 }

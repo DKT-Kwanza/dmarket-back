@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 public class CartResDto {
+
     @Data
     @NoArgsConstructor
     public static class TotalCartResDto {
@@ -30,7 +31,7 @@ public class CartResDto {
     public static class CartCountResDto {
         private Integer cartCount;
 
-        public CartCountResDto(Long cartCount){
+        public CartCountResDto(Long cartCount) {
             this.cartCount = cartCount.intValue();
         }
     }

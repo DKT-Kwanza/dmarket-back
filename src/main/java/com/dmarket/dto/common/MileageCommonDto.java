@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MileageCommonDto {
+
     private Long mileageReqId;
     private LocalDateTime mileageReqDate;
     private Long userId;
@@ -29,7 +30,7 @@ public class MileageCommonDto {
         private Integer remainMileage;
 
         @Builder
-        public MileageDto(LocalDateTime mileageChangeDate, MileageContents mileageContents, Integer changeMileage, Integer remainMileage){
+        public MileageDto(LocalDateTime mileageChangeDate, MileageContents mileageContents, Integer changeMileage, Integer remainMileage) {
             this.mileageChangeDate = mileageChangeDate;
             this.mileageContents = mileageContents.getLabel();
             this.changeMileage = changeMileage;
@@ -50,7 +51,7 @@ public class MileageCommonDto {
         private Integer mileageCharge;
         private String mileageReqStatus;
 
-        public MileageReqListDto(MileageCommonDto mileageReqDto){
+        public MileageReqListDto(MileageCommonDto mileageReqDto) {
             this.mileageReqId = mileageReqDto.getMileageReqId();
             this.mileageReqDate = mileageReqDto.getMileageReqDate();
             this.userId = mileageReqDto.getUserId();

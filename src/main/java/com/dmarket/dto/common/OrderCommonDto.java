@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class OrderCommonDto {
+
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
@@ -32,7 +33,7 @@ public class OrderCommonDto {
         private LocalDateTime orderDate;
         private List<ProductCommonDto.ProductDetailListDto> productDetailList;
 
-        public OrderListDto(Order order, List<ProductCommonDto.ProductDetailListDto> productDetailList){
+        public OrderListDto(Order order, List<ProductCommonDto.ProductDetailListDto> productDetailList) {
             this.orderId = order.getOrderId();
             this.orderDate = order.getOrderDate();
             this.productDetailList = productDetailList;

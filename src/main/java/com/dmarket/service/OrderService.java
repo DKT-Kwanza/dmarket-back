@@ -48,8 +48,8 @@ public class OrderService {
             productDetail.setProductOption(productService.findOptionByOptionId(optionId).getOptionValue());
             productDetail.setProductCount(productCount);
             productDetail.setProductImg(productImgsRepository.findFirstByProductId(productId).getImgAddress());
-            productDetail.setProductTotalPrice(product.getProductPrice()*productCount);
-            productDetail.setProductTotalSalePrice(product.getProductSalePrice()*productCount);
+            productDetail.setProductTotalPrice(product.getProductPrice() * productCount);
+            productDetail.setProductTotalSalePrice(product.getProductSalePrice() * productCount);
 
             totalPrice += product.getProductPrice() * productCount;
             totalPay += product.getProductSalePrice() * productCount;

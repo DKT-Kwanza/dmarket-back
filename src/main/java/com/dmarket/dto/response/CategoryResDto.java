@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class CategoryResDto {
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -18,7 +19,7 @@ public class CategoryResDto {
         private String categoryName;
         private List<CategoryListResDto> child;
 
-        public CategoryListResDto(Category category){
+        public CategoryListResDto(Category category) {
             this.categoryId = category.getCategoryId();
             this.categoryDepth = category.getCategoryDepth();
             this.categoryName = category.getCategoryName();

@@ -13,6 +13,7 @@ import java.util.List;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
+
     @Query(value = "select c from Category c where c.categoryDepth = :categoryDepth")
     List<CategoryResDto.CategoryListResDto> findByCategoryDepth(Integer categoryDepth);
 
@@ -22,8 +23,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     Category findByCategoryName(String categoryName);
 
     // 상품 옵션 조회 status 추가
-
-
 
 
     // 상품 옵션 조회 status 추가

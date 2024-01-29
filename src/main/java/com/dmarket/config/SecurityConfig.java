@@ -118,7 +118,7 @@ public class SecurityConfig {
 
         // 커스텀 필터 적용
         http
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil,refreshTokenRepository), UsernamePasswordAuthenticationFilter.class);
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshTokenRepository), UsernamePasswordAuthenticationFilter.class);
 
         // 로그아웃 접근 경로 설정, 접근 시 동작할 서비스(logoutService) 지정
         http

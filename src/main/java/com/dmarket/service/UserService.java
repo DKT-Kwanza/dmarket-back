@@ -71,6 +71,7 @@ public class UserService {
 
     /**
      * 회원가입
+     *
      * @Return userId
      */
     @Transactional
@@ -225,7 +226,7 @@ public class UserService {
     private final InquiryRepository inquiryRepository;
 
     // 위시리스트 조회
-    public WishlistResDto getWishlistByUserId(Long userId,int pageNo) {
+    public WishlistResDto getWishlistByUserId(Long userId, int pageNo) {
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE);
         Page<WishlistItemDto> wishlistItems = wishlistRepository.findWishlistItemsByUserId(pageable, userId);
@@ -250,7 +251,7 @@ public class UserService {
     public void addWish(Long userId, Long productId) {
         // 위시리스트에 있는지 확인 -> 있으면 에러 처리
         Boolean isWish = wishlistRepository.existsByUserIdAndProductId(userId, productId);
-        if(isWish){
+        if (isWish) {
             throw new ConflictException(ALREADY_SAVED_WISH);
         }
         // 위시리스트 저장
@@ -278,7 +279,7 @@ public class UserService {
     public void addCart(Long userId, Long productId, Long optionId, Integer productCount) {
         // 장바구니에 존재하는 상품과 옵션인지 확인
         Optional<Cart> existingCart = cartRepository.findByUserIdAndOptionId(userId, optionId);
-        if (existingCart.isPresent()){
+        if (existingCart.isPresent()) {
             // 수량만 추가
             existingCart.get().updateCartCount(productCount);
         } else {
@@ -296,7 +297,7 @@ public class UserService {
     //사용자 배송지 변경
     @Transactional
     public UserResDto.UserAddress updateAddress(HttpServletRequest request,
-                                                Long userId, UserReqDto.UserAddress userAddressDto){
+                                                Long userId, UserReqDto.UserAddress userAddressDto) {
         String header = jwtUtil.getAuthHeader(request);
         String token = jwtUtil.getToken(header);
 
@@ -308,7 +309,7 @@ public class UserService {
 
     //사용자 비밀번호 확인
     @Transactional
-    public User validatePassword(HttpServletRequest request, String currentPassword){
+    public User validatePassword(HttpServletRequest request, String currentPassword) {
         String header = jwtUtil.getAuthHeader(request);
         String token = jwtUtil.getToken(header);
 
@@ -322,7 +323,7 @@ public class UserService {
 
     //사용자 비밀번호 변경
     @Transactional
-    public void updatePassword(String newPassword, User user){
+    public void updatePassword(String newPassword, User user) {
         String regExp = "^(?=.*[a-zA-Z])(?=.*[!@#$%^])(?=.*[0-9]).{8,25}$";
         //비밀번호 유효성 검사
         if (!newPassword.matches(regExp)) {
@@ -330,7 +331,7 @@ public class UserService {
         }
         if (isPasswordSame(newPassword, user.getUserPassword())) {
             throw new BadRequestException(USER_MODIFY_PASSWORD_FAILURE);
-        } else{
+        } else {
             user.updatePassword(passwordEncoder.encode(newPassword));
         }
     }
@@ -370,15 +371,15 @@ public class UserService {
     // 사용자 문의 전체 조회
     public Page<InquiryResDto.UserInquiryAllResDto> getUserInquiryAllbyUserId(Long userId, int pageNo) {
         pageNo = pageVaildation(pageNo);
-        Pageable pageable = PageRequest.of(pageNo,DEFAULT_PAGE_SIZE);
+        Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE);
         findUserById(userId);
         return inquiryRepository.findUserInquiryAllByUserId(pageable, userId);
     }
 
     // 사용자 주문 내역 상세 조회
-    public Page<OrderResDto.OrderDetailListResDto> getOrderDetailListByOrderId(Long userId,Long orderId, int pageNo) {
+    public Page<OrderResDto.OrderDetailListResDto> getOrderDetailListByOrderId(Long userId, Long orderId, int pageNo) {
         pageNo = pageVaildation(pageNo);
-        Pageable pageable = PageRequest.of(pageNo,DEFAULT_PAGE_SIZE);
+        Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE);
         List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(pageable, orderId);
         Order order = orderRepository.findByOrderId(orderId);
         User user = userRepository.findByUserId(userId);
@@ -387,9 +388,9 @@ public class UserService {
     }
 
     // 주문 / 배송 내역 조회
-    public OrderResDto.OrderListResDto getOrderListResByUserId(Long userId,int pageNo) {
+    public OrderResDto.OrderListResDto getOrderListResByUserId(Long userId, int pageNo) {
         pageNo = pageVaildation(pageNo);
-        Pageable pageable = PageRequest.of(pageNo,DEFAULT_PAGE_SIZE);
+        Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE);
 
         List<OrderCommonDto.OrderListDto> orderList = new ArrayList<>();
         List<Order> orders = orderRepository.findByUserId(userId);
@@ -403,7 +404,7 @@ public class UserService {
                 orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_COMPLETE);
         for (int i = orders.size() - 1; i >= 0; i--) {
             Order order = orders.get(i);
-            List<ProductCommonDto.ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByOrderId(pageable ,order.getOrderId());
+            List<ProductCommonDto.ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByOrderId(pageable, order.getOrderId());
             orderList.add(new OrderCommonDto.OrderListDto(order, productDetailListDtos));
         }
 
@@ -420,22 +421,22 @@ public class UserService {
         } else {
             orderListResDto.setPreShipCount(preShipCount);
         }
-        if(inTransitCount == null) {
+        if (inTransitCount == null) {
             orderListResDto.setInTransitCount(0L);
         } else {
             orderListResDto.setInTransitCount(inTransitCount);
         }
-        if(cmpltDilCount == null) {
+        if (cmpltDilCount == null) {
             orderListResDto.setCmpltDilCount(0L);
         } else {
             orderListResDto.setCmpltDilCount(cmpltDilCount);
         }
-        if(orderCancelCount == null) {
+        if (orderCancelCount == null) {
             orderListResDto.setOrderCancelCount(0L);
         } else {
             orderListResDto.setOrderCancelCount(orderCancelCount);
         }
-        if(returnCount == null) {
+        if (returnCount == null) {
             orderListResDto.setReturnCount(0L);
         } else {
             orderListResDto.setReturnCount(returnCount);
@@ -453,9 +454,9 @@ public class UserService {
 
     // 환불 요청
     @Transactional
-    public OrderResDto.OrderDetailListResDto postOrderReturn(Long orderDetailId, String returnContents,int pageNo){
+    public OrderResDto.OrderDetailListResDto postOrderReturn(Long orderDetailId, String returnContents, int pageNo) {
         pageNo = pageVaildation(pageNo);
-        Pageable pageable = PageRequest.of(pageNo,DEFAULT_PAGE_SIZE);
+        Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE);
         // orderstate를 환불 요청으로 바꾸고 시간 현재시간으로 변경
         orderDetailRepository.updateOrderDetailUpdateDateAndOrderDetailStateByOrderDetailId(orderDetailId, OrderDetailState.RETURN_REQUEST);
         OrderDetail orderDetail = orderDetailRepository.findByOrderDetailId(orderDetailId);
@@ -470,7 +471,6 @@ public class UserService {
         Return saveReturn = returnRepository.save(returns);
 
 
-
         // Response 저장..?
         Order order = orderRepository.findByOrderDetailId(orderDetailId);
         User user = userRepository.findByUserId(order.getUserId());
@@ -481,7 +481,7 @@ public class UserService {
     @Transactional
     public OrderResDto.OrderDetailListResDto postOrderCancel(Long orderId, Long orderDetailId, Long userId, int pageNo) {
         pageNo = pageVaildation(pageNo);
-        Pageable pageable = PageRequest.of(pageNo,DEFAULT_PAGE_SIZE);
+        Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE);
         // orderstate를 주문취소로 바꾸고 시간 현재시간으로 변경
         orderDetailRepository.updateOrderDetailUpdateDateAndOrderDetailStateByOrderDetailId(orderDetailId, OrderDetailState.ORDER_CANCEL);
         OrderDetail orderDetail = orderDetailRepository.findByOrderDetailId(orderDetailId);
@@ -490,13 +490,13 @@ public class UserService {
         // 계산값 적용
         Integer orderDetailSalePrice = orderDetailRepository.orderDetailTotalSalePrice(orderDetailId);
         Integer orderDetailPrice = orderDetailRepository.orderDetailTotalPrice(orderDetailId);
-        orderRepository.updateOrderTotalPrice(orderId,  orderDetailSalePrice, orderDetailPrice);
+        orderRepository.updateOrderTotalPrice(orderId, orderDetailSalePrice, orderDetailPrice);
         // 마일리지 적립
         userRepository.updateUserMileageByCancel(userId, orderDetailSalePrice);
 
         Order order = orderRepository.findByOrderDetailId(orderDetailId);
         User user = userRepository.findByUserId(userId);
-        List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(pageable ,order.getOrderId());
+        List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(pageable, order.getOrderId());
         return new OrderResDto.OrderDetailListResDto(order, user, productDetailList);
     }
 
@@ -505,6 +505,7 @@ public class UserService {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
     }
+
     public boolean isPasswordSame(String pwd, String originPwd) {
         return passwordEncoder.matches(pwd, originPwd);
     }
@@ -518,7 +519,7 @@ public class UserService {
     }
 
     // 페이지 예외처리
-    public int pageVaildation(int page){
-        return page = page > 0 ? page-1 : 0;
+    public int pageVaildation(int page) {
+        return page = page > 0 ? page - 1 : 0;
     }
 }

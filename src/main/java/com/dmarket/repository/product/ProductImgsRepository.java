@@ -1,7 +1,6 @@
 package com.dmarket.repository.product;
 
 import com.dmarket.domain.product.ProductImgs;
-import com.dmarket.domain.product.ProductOption;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
