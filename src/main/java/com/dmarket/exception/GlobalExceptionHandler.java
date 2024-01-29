@@ -11,9 +11,12 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -54,6 +57,14 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.NOT_FOUND);
     }
 
+    //Path Value가 없거나 잘못 입력되었을 때 404
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<?> handleNoHandlerFoundException(NoResourceFoundException e, HttpServletRequest request){
+        log.error("[NoResourceFoundException] message: {}", e.getMessage());
+        ErrorCode errorCode = ErrorCode.NOT_VALID_PATH_VALUE;
+        return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.NOT_FOUND);
+    }
+
     // Http Method 에러
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<?> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
@@ -62,6 +73,21 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.METHOD_NOT_ALLOWED);
     }
 
+    // reqeust param 없을 때
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<?> handleMissingServletRequestParameterException(MissingServletRequestParameterException e){
+        log.error("[MissingServletRequestParameterException] message: {}", e.getMessage());
+        ErrorCode errorCode = ErrorCode.MISSING_REQUEST_PARAM;
+        return new ResponseEntity<>(CMResDto.errorWithMsgRes(errorCode, e.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    // reqeust param 타입이 안 맞을 때
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<?> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e){
+        log.error("[MethodArgumentTypeMismatchException] message: {}", e.getMessage());
+        ErrorCode errorCode = ErrorCode.INVALID_TYPE_REQUEST_VALUE;
+        return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.BAD_REQUEST);
+    }
 
     // request body의 유효성 에러
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -73,12 +99,29 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(CMResDto.errorWithMsgRes(errorCode, message), HttpStatus.BAD_REQUEST);
     }
 
+    // IllegalArgumentException
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> handleIllegalArgumentException(IllegalArgumentException e){
+        log.error("[IllegalArgumentException] message: {}", e.getMessage());
+        ErrorCode errorCode = ErrorCode.BAD_REQUEST;
+        String message = e.getMessage();
+        return  new ResponseEntity<>(CMResDto.errorWithMsgRes(errorCode, message), HttpStatus.BAD_REQUEST);
+    }
+
     // 각종 400 에러
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<?> handleBadRequestException(BadRequestException e) {
         log.error("[BadRequestException] message: {}", e.getMessage());
         ErrorCode errorCode = e.getErrorCode();
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.BAD_REQUEST);
+    }
+
+    // 각종 404 에러
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<?> handleNotFoundException(NotFoundException e) {
+        log.error("[NotFoundException] message: {}", e.getMessage());
+        ErrorCode errorCode = e.getErrorCode();
+        return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.NOT_FOUND);
     }
 
     // 각종 409 에러
