@@ -708,4 +708,12 @@ public class AdminService {
         return page;
     }
 
+    // 문의 내역 상세 조회
+    @Transactional
+    public InquiryResDto.InquiryDetailResDto getInquiryDetail(Long inquiryId) {
+        return inquiryRepository.findInquiryDetailById(inquiryId)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 문의 ID: " + inquiryId));
+    }
+
+
 }

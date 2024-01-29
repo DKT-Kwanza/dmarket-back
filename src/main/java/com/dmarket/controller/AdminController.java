@@ -350,7 +350,7 @@ public class AdminController {
     // 배송 목록 조회
     @GetMapping("/orders")
     public ResponseEntity<?> getOrdersByStatus(@RequestParam String status,
-                                                                           @RequestParam(required = false, defaultValue = "0") int pageNo){
+                                               @RequestParam(required = false, defaultValue = "0") int pageNo){
         OrderCommonDto.OrderDetailStateCountsDto statusCounts = adminService.getOrderDetailStateCounts();
         Page<OrderListAdminResDto> orderList = adminService.getOrdersByStatus(status, pageNo);
         Map<String, Object> responseData = new HashMap<>();
@@ -365,5 +365,15 @@ public class AdminController {
 
         return new ResponseEntity<>(CMResDto.successDataRes(responseData), HttpStatus.OK);
     }
+
+    // 문의 내역 상세 조회
+    @GetMapping("/board/inquiry/{inquiryId}")
+    public ResponseEntity<?> getInquiryDetail(@PathVariable Long inquiryId) {
+        InquiryResDto.InquiryDetailResDto inquiryDetail = adminService.getInquiryDetail(inquiryId);
+        CMResDto<?> response = CMResDto.successDataRes(inquiryDetail);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
 
 }
