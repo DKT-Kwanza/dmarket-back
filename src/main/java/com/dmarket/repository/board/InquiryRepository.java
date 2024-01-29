@@ -31,7 +31,8 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
     @Query(value = "select new com.dmarket.dto.response.InquiryResDto$UserInquiryAllResDto(i.inquiryId, i.inquiryType, i.inquiryTitle, i.inquiryContents, i.inquiryImg, i.inquiryCreatedDate, i.inquiryState, ir.inquiryReplyContents, ir.inquiryReplyDate)" +
             " from Inquiry i " +
             " left join InquiryReply ir on ir.inquiryId = i.inquiryId" +
-            " where i.userId = :userId")
+            " where i.userId = :userId" +
+            " order by i.inquiryCreatedDate desc")
     List<InquiryResDto.UserInquiryAllResDto> findUserInquiryAllByUserId(@Param("userId") Long userId);
 
     //문의 답변 등록
