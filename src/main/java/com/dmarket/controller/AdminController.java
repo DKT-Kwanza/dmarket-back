@@ -1,35 +1,30 @@
 package com.dmarket.controller;
 
 import com.dmarket.constant.InquiryType;
-import com.dmarket.domain.board.InquiryReply;
-import com.dmarket.dto.common.InquiryDetailsDto;
 import com.dmarket.constant.FaqType;
+import com.dmarket.domain.board.InquiryReply;
 import com.dmarket.domain.board.Faq;
-import com.dmarket.constant.ReturnState;
+import com.dmarket.dto.common.InquiryCommonDto;
+import com.dmarket.dto.common.OrderCommonDto;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
 import com.dmarket.service.AdminService;
+import java.util.*;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import org.springframework.security.core.parameters.P;
-import org.springframework.web.bind.annotation.*;
-
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-
-import java.util.*;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 
 @Slf4j
@@ -96,7 +91,7 @@ public class AdminController {
     @GetMapping("/admin-user")
     public ResponseEntity<?> getUsers(@RequestParam(value = "q", required = true) Integer dktNum) {
         try {
-            List<UserResDto> userResDtos = adminService.getUsersFindByDktNum(dktNum);
+            List<UserResDto.Search> userResDtos = adminService.getUsersFindByDktNum(dktNum);
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("사용자 목록 조회 완료").data(userResDtos).build(), HttpStatus.OK);
 
@@ -223,7 +218,7 @@ public class AdminController {
                                                 Pageable pageable){
         try{
             pageNo = pageNo > 0 ? pageNo-1 : pageNo;
-            MileageReqListResDto requests = adminService.getMileageRequests(pageable, status, pageNo);
+            MileageResDto.MileageReqListResDto requests = adminService.getMileageRequests(pageable, status, pageNo);
 
             log.info("데이터 조회 완료");
             return new ResponseEntity<>(CMResDto.builder()
@@ -297,9 +292,9 @@ public class AdminController {
                         .code(400).msg("유효하지 않은 페이지 또는 크기").build(), HttpStatus.BAD_REQUEST);
             }
             Page<Faq> faqsPage = adminService.getAllFaqs(faqType, PageRequest.of(pageNo, pageSize));
-            Page<FaqListResDto> mappedFaqs = adminService.mapToFaqListResDto(faqsPage);
+            Page<FaqResDto.FaqListResDto> mappedFaqs = adminService.mapToFaqListResDto(faqsPage);
 
-            CMResDto<Page<FaqListResDto>> response = CMResDto.<Page<FaqListResDto>>builder().code(200).msg("FAQ 조회 성공")
+            CMResDto<Page<FaqResDto.FaqListResDto>> response = CMResDto.<Page<FaqResDto.FaqListResDto>>builder().code(200).msg("FAQ 조회 성공")
                     .data(mappedFaqs).build();
 
             return new ResponseEntity<>(response, HttpStatus.OK);
@@ -355,7 +350,7 @@ public class AdminController {
             String faqAnswer = faqReqDto.getFaqContents();
             Long faqId = adminService.postFaq(faqType, faqQuestion, faqAnswer);
 
-            FaqListResDto faqListResDto = new FaqListResDto(faqId, faqType, faqQuestion, faqAnswer);
+            FaqResDto.FaqListResDto faqListResDto = new FaqResDto.FaqListResDto(faqId, faqType, faqQuestion, faqAnswer);
 
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("FAQ 등록 완료").data(faqListResDto).build(), HttpStatus.OK);
@@ -397,7 +392,7 @@ public class AdminController {
     public ResponseEntity<?> getProductInfo(@PathVariable Long productId) {
         try {
             Long userId = 1L;
-            ProductInfoResDto res = adminService.getProductInfo(productId, userId);
+            ProductResDto.ProductInfoResDto res = adminService.getProductInfo(productId, userId);
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("상품 정보 가져오기 완료").data(res).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
@@ -420,7 +415,7 @@ public class AdminController {
                         HttpStatus.BAD_REQUEST);
             }
             Pageable pageable = PageRequest.of(page, size);
-            Page<AdminReviewsResDto> adminReviewsResDtos = adminService.getProductReviews(pageable);
+            Page<AdminResDto.AdminReviewsResDto> adminReviewsResDtos = adminService.getProductReviews(pageable);
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("상품 리뷰 조회 완료").data(adminReviewsResDtos).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
@@ -438,7 +433,7 @@ public class AdminController {
             @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
         try {
             pageNo = pageNo > 0 ? pageNo - 1 : pageNo;
-            QnaListResDto qnaList = adminService.getQnaList(pageNo);
+            QnaResDto.QnaListResDto qnaList = adminService.getQnaList(pageNo);
             return new ResponseEntity<>(CMResDto.builder().code(200).msg("성공").data(qnaList).build(), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(CMResDto.builder().code(200).msg(e.getMessage()).build(), HttpStatus.OK);
@@ -448,18 +443,18 @@ public class AdminController {
     // 상품 QnA 상세 + 답변 조회 api
     @GetMapping("/products/qna/{qnaId}")
     public ResponseEntity<?> getQnADetailed(@PathVariable Long qnaId) {
-        QnaDetailResDto qnaDetail = adminService.getQnADetail(qnaId);
+        QnaResDto.QnaDetailResDto qnaDetail = adminService.getQnADetail(qnaId);
         return new ResponseEntity<>(CMResDto.builder()
                 .code(200).msg("성공").data(qnaDetail).build(), HttpStatus.OK);
     }
 
     // 상품 QnA 답변 작성 api
     @PostMapping("/products/qna/{qnaId}")
-    public ResponseEntity<?> writeQnaReply(@PathVariable Long qnaId ,@Valid @RequestBody QnaReplyReqDto qnaReplyReqDto, BindingResult bindingResult){
+    public ResponseEntity<?> writeQnaReply(@PathVariable Long qnaId , @Valid @RequestBody QnaReqDto.QnaReplyReqDto qnaReplyReqDto, BindingResult bindingResult){
         try {
             bindingResultErrorsCheck(bindingResult);
 
-            QnaDetailResDto qnaDetail = adminService.createQnaReply(qnaId, qnaReplyReqDto.getQnaReplyContents());
+            QnaResDto.QnaDetailResDto qnaDetail = adminService.createQnaReply(qnaId, qnaReplyReqDto.getQnaReplyContents());
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("성공").data(qnaDetail).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
@@ -472,7 +467,7 @@ public class AdminController {
     @DeleteMapping("/products/qna/reply/{qnaReplyId}")
     public ResponseEntity<?> writeQnaReply(@PathVariable Long qnaReplyId){
         try {
-            QnaDetailResDto qnaDetail = adminService.deleteQnaReply(qnaReplyId);
+            QnaResDto.QnaDetailResDto qnaDetail = adminService.deleteQnaReply(qnaReplyId);
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("성공").data(qnaDetail).build(), HttpStatus.OK);
         } catch (Exception e) {
@@ -483,9 +478,10 @@ public class AdminController {
 
     // 반품 상태 변경
     @PutMapping("/orders/returns/{returnId}")
-    public ResponseEntity<?> changeReturnStatus(@PathVariable Long returnId, @RequestParam String returnStatus) {
+    public ResponseEntity<?> changeReturnStatus(@PathVariable Long returnId, @RequestBody ReturnReqDto.ChangeReturnStateDto changeReturnStateDto) {
         try {
-            adminService.updateReturnState(returnId, ReturnState.valueOf(returnStatus));
+            String returnState = changeReturnStateDto.getReturnStatus();
+            adminService.updateReturnState(returnId, returnState);
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("반품 상태 변경 완료").build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
@@ -510,7 +506,7 @@ public class AdminController {
 
     // 새로운 상품 추가
     @PostMapping("/product")
-    public ResponseEntity<?> addNewProduct(@RequestBody List<ProductListDto> productList) {
+    public ResponseEntity<?> addNewProduct(@RequestBody List<ProductReqDto.ProductListDto> productList) {
         try {
             adminService.saveProductList(productList);
             return new ResponseEntity<>(CMResDto.builder()
@@ -538,19 +534,26 @@ public class AdminController {
     // 문의 목록 조회(카테고리별)
     @GetMapping("/board/inquiry")
     public ResponseEntity<?> getInquiries(
-            @RequestParam(required = false, value = "type") InquiryType inquiryType,
+            @RequestParam(required = false, value = "type") String type,
             @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
             @RequestParam(required = false, value = "size", defaultValue = "10") int pageSize) {
         try {
+            InquiryType inquiryType = null;
+            if (type != null) {
+                inquiryType = InquiryType.fromLabel(type);
+                if(inquiryType == null) {
+                    throw new IllegalArgumentException("유효하지 않은 문의 유형: " + type);
+                }
+            }
             if (pageNo < 0 || pageSize <= 0) {
                 return new ResponseEntity<>(CMResDto.builder()
                         .code(400).msg("검증되지 않은 페이지").build(), HttpStatus.BAD_REQUEST);
             }
 
-            Page<InquiryListResDto> mappedInquiries = adminService.getAllInquiriesByType(inquiryType,
+            Page<InquiryResDto.InquiryListResDto> mappedInquiries = adminService.getAllInquiriesByType(inquiryType,
                     PageRequest.of(pageNo, pageSize));
 
-            CMResDto<Page<InquiryListResDto>> response = CMResDto.<Page<InquiryListResDto>>builder()
+            CMResDto<Page<InquiryResDto.InquiryListResDto>> response = CMResDto.<Page<InquiryResDto.InquiryListResDto>>builder()
                     .code(200).msg("문의 목록").data(mappedInquiries).build();
 
             return new ResponseEntity<>(response, HttpStatus.OK);
@@ -592,27 +595,26 @@ public class AdminController {
 
     // 문의 답변 등록
     @PostMapping("/board/inquiry/reply/{inquiryId}")
-    public ResponseEntity<?> postInquiryReply(
+    public ResponseEntity<CMResDto<InquiryCommonDto.InquiryDetailsDto>> postInquiryReply(
             @PathVariable Long inquiryId,
-            @RequestBody InquiryReplyRequestDto inquiryReplyRequestDto) {
+            @RequestBody InquiryReqDto.InquiryReplyRequestDto inquiryReplyRequestDto) {
         try {
             InquiryReply inquiryReply = InquiryReply.builder()
                     .inquiryId(inquiryId)
                     .inquiryReplyContents(inquiryReplyRequestDto.getInquiryReplyContents())
                     .build();
 
-            InquiryReply createdInquiryReply = adminService.createInquiryReply(inquiryReply);
+            InquiryReply savedInquiryReply = adminService.createInquiryReply(inquiryReply);
+            InquiryCommonDto.InquiryDetailsDto inquiryDetails = adminService.getInquiryDetails(savedInquiryReply.getInquiryReplyId());
 
-            InquiryDetailsDto inquiryDetails = adminService.getInquiryDetails(inquiryId);
-
-            return ResponseEntity.ok(CMResDto.builder()
-                    .code(HttpStatus.OK.value())
-                    .msg("답변 작성 완료")
-                    .data(inquiryDetails)
-                    .build());
+            return ResponseEntity.ok(CMResDto.<InquiryCommonDto.InquiryDetailsDto>builder().code(200).msg("답변 작성 완료").data(inquiryDetails).build());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(CMResDto.<InquiryCommonDto.InquiryDetailsDto>builder().code(400).msg("유효하지 않은 요청 메시지").build());
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CMResDto.<InquiryCommonDto.InquiryDetailsDto>builder().code(401).msg("유효하지 않은 인증").build());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error while processing the request.");
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CMResDto.<InquiryCommonDto.InquiryDetailsDto>builder().code(500).msg("서버 내부 오류").build());
         }
     }
 
@@ -650,10 +652,10 @@ public class AdminController {
 
 
 
-    // 배송 상태 변경
+    // 배송 상태 변경경
     @PutMapping("/orders/{detailId}")
     public ResponseEntity<?> updateOrderStatus(@PathVariable Long detailId,
-            @Valid @RequestBody OrderStatusReqDto requestDto, BindingResult bindingResult) {
+                                               @Valid @RequestBody OrderReqDto.OrderStatusReqDto requestDto, BindingResult bindingResult) {
         try {
             // request body 유효성 확인
             bindingResultErrorsCheck(bindingResult);
@@ -705,7 +707,7 @@ public class AdminController {
     @GetMapping("/products/categories/{categoryId}")
     public ResponseEntity<?> getProductsListAdmin(@PathVariable(name = "categoryId") Long categoryId) {
         try {
-            List<ProductListAdminResDto> productListAdminResDto = adminService.getProductListByCateogryId(categoryId);
+            List<ProductResDto.ProductListAdminResDto> productListAdminResDto = adminService.getProductListByCateogryId(categoryId);
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("관리자 상품 목록 조회 완료").data(productListAdminResDto).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
@@ -734,11 +736,11 @@ public class AdminController {
     public ResponseEntity<?> getAdmins(@RequestParam(value = "q", required = false) Integer dktNum) {
         try {
             if (dktNum != null){
-                SearchUserResDto searchUserRes = adminService.searchUser(dktNum);
+                UserResDto.SearchUser searchUserRes = adminService.searchUser(dktNum);
                 return new ResponseEntity<>(CMResDto.builder()
                         .code(200).msg("사원 검색").data(searchUserRes).build(), HttpStatus.OK);
             }else {
-                TotalAdminResDto adminUserResponse = adminService.getAdminUserDetails();
+                UserResDto.TotalAdminResDto adminUserResponse = adminService.getAdminUserDetails();
                 return new ResponseEntity<>(CMResDto.builder()
                         .code(200).msg("관리자 조회 성공").data(adminUserResponse).build(), HttpStatus.OK);
             }
@@ -752,11 +754,11 @@ public class AdminController {
         }
     }
 
-    // 권한 부여
-    // 사용힌 ChangeRoleReqDto
+    // 권한 부여한
+    // 사용힌 ChangeRoleReqDto -> UserReqDto.ChangeRole로 변경
     @PutMapping("/admin-users/{userId}")
     public ResponseEntity<?> changeRole(@PathVariable Long userId,
-                                        @RequestBody ChangeRoleReqDto newRole){
+                                        @RequestBody UserReqDto.ChangeRole newRole){
         try {
             adminService.changeRole(userId,newRole);
             return new ResponseEntity<>(CMResDto.builder()
@@ -783,7 +785,7 @@ public class AdminController {
                         HttpStatus.BAD_REQUEST);
             }
             Pageable pageable = PageRequest.of(page, size);
-            ReturnListResDto returnListResDto = adminService.getReturns(returnStatus, pageable);
+            ReturnResDto.ReturnListResDto returnListResDto = adminService.getReturns(returnStatus, pageable);
 
             return new ResponseEntity<>(CMResDto.builder()
                     .code(200).msg("관리자 상품 목록 조회 완료").data(returnListResDto).build(), HttpStatus.OK);
@@ -837,13 +839,15 @@ public class AdminController {
     }
 
 
+    // 주문 취소 목록 조회
     ///api/admin/cancel-order-details
+
     @GetMapping("/cancel-order-details")
     public ResponseEntity<?> getCancledOrder(){
         try {
-            List<OrderCancelResDto> orderCancleList = adminService.orderCancle();
+            List<OrderResDto.OrderCancelResDto> orderCancleList = adminService.orderCancle();
             return new ResponseEntity<>(CMResDto.builder()
-                    .code(200).msg("관리자 상품 목록 조회 완료").data(orderCancleList).build(), HttpStatus.OK);
+                    .code(200).msg("취소 목록 조회 완료").data(orderCancleList).build(), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             // 잘못된 요청에 대한 예외 처리
             log.warn("유효하지 않은 요청 메시지: " + e.getMessage());
@@ -863,5 +867,69 @@ public class AdminController {
                     .code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+    //재고 추가
+    @PutMapping("/products/stock")
+    public ResponseEntity<?> addProductStock(@RequestBody ProductReqDto.StockReqDto stockReqDto) {
+        try {
+            adminService.addProductStock(stockReqDto);
+
+            // Retrieve and return updated product information
+            Long productId = stockReqDto.getProductId();
+            ProductResDto.ProductInfoOptionResDto productInfoOptionResDto = adminService.getProductInfoWithOption(productId);
+
+            return ResponseEntity.ok(CMResDto.builder()
+                    .code(200)
+                    .msg("상품 재고 추가 완료")
+                    .data(Collections.singletonList(productInfoOptionResDto))
+                    .build());
+        }
+        catch (IllegalArgumentException e) {
+            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Error deleting Inquiry Reply: " + e.getMessage());
+            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+    // 배송 목록 조회
+    @GetMapping("/api/admin/orders")
+    public ResponseEntity<CMResDto<Map<String, Object>>> getOrdersByStatus(@RequestParam String status) {
+        try {
+            OrderCommonDto.OrderDetailStateCountsDto statusCounts = adminService.getOrderDetailStateCounts();
+            List<OrderListAdminResDto> orderList = adminService.getOrdersByStatus(status);
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("confPayCount", statusCounts.getOrderCompleteCount());
+            responseData.put("preShipCount", statusCounts.getDeliveryReadyCount());
+            responseData.put("InTransitCount", statusCounts.getDeliveryIngCount());
+            responseData.put("delivCompCount", statusCounts.getDeliveryCompleteCount());
+            responseData.put("OrderCancelCount", statusCounts.getOrderCancelCount());
+            responseData.put("ReturnRequestCount", statusCounts.getReturnRequestCount());
+            responseData.put("ReturnCompleteCount", statusCounts.getReturnCompleteCount());
+            responseData.put("orderList", orderList);
+
+            return ResponseEntity.ok(CMResDto.<Map<String, Object>>builder()
+                    .code(200)
+                    .msg("배송 조회 완료")
+                    .data(responseData)
+                    .build());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(CMResDto.<Map<String, Object>>builder()
+                    .code(400)
+                    .msg("유효하지 않은 요청 메시지")
+                    .build());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CMResDto.<Map<String, Object>>builder()
+                    .code(500)
+                    .msg("서버 내부 오류")
+                    .build());
+        }
+    }
+    // ---배송 목록 조회---
+
 
 }

@@ -26,4 +26,8 @@ public class Cart {
         this.optionId = optionId;
         this.cartCount = cartCount;
     }
+
+    public void updateCartCount(Integer productCount){
+        this.cartCount += productCount;
+    }
 }

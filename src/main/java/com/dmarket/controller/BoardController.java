@@ -3,8 +3,8 @@ package com.dmarket.controller;
 import com.dmarket.domain.board.Faq;
 import com.dmarket.domain.board.Notice;
 import com.dmarket.dto.response.CMResDto;
-import com.dmarket.dto.response.FaqListResDto;
-import com.dmarket.dto.response.NoticeListResDto;
+import com.dmarket.dto.response.FaqResDto;
+import com.dmarket.dto.response.NoticeResDto;
 import com.dmarket.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,9 +33,9 @@ public class BoardController {
             }
 
             Page<Notice> noticesPage = boardService.getAllNotices(PageRequest.of(pageNo, pageSize));
-            Page<NoticeListResDto> mappedNotices = boardService.mapToNoticeListResDto(noticesPage);
+            Page<NoticeResDto> mappedNotices = boardService.mapToNoticeResDto(noticesPage);
 
-            CMResDto<Page<NoticeListResDto>> response = CMResDto.<Page<NoticeListResDto>>builder().code(200).msg("공지사항 목록 불러오기 완료").data(mappedNotices).build();
+            CMResDto<Page<NoticeResDto>> response = CMResDto.<Page<NoticeResDto>>builder().code(200).msg("공지사항 목록 불러오기 완료").data(mappedNotices).build();
 
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
@@ -57,9 +57,9 @@ public class BoardController {
             }
 
             Page<Faq> faqsPage = boardService.getAllFaqs(PageRequest.of(pageNo, pageSize));
-            Page<FaqListResDto> mappedFaqs = boardService.mapToFaqListResDto(faqsPage);
+            Page<FaqResDto.FaqListResDto> mappedFaqs = boardService.mapToFaqListResDto(faqsPage);
 
-            CMResDto<Page<FaqListResDto>> response = CMResDto.<Page<FaqListResDto>>builder().code(200).msg("FAQ 조회 성공").data(mappedFaqs).build();
+            CMResDto<Page<FaqResDto.FaqListResDto>> response = CMResDto.<Page<FaqResDto.FaqListResDto>>builder().code(200).msg("FAQ 조회 성공").data(mappedFaqs).build();
 
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (IllegalArgumentException e) {

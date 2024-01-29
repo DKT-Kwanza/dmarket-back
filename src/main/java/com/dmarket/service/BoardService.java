@@ -2,18 +2,20 @@ package com.dmarket.service;
 
 import com.dmarket.domain.board.Faq;
 import com.dmarket.domain.board.Notice;
-import com.dmarket.dto.response.FaqListResDto;
-import com.dmarket.dto.response.NoticeListResDto;
+import com.dmarket.dto.response.FaqResDto;
+import com.dmarket.dto.response.NoticeResDto;
 import com.dmarket.repository.board.FaqRepository;
 import com.dmarket.repository.board.NoticeRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -25,15 +27,17 @@ public class BoardService {
 
     // 공지사항 목록 조회
     public Page<Notice> getAllNotices(Pageable pageable) {
-        return noticeRepository.findAll(pageable);
+        return noticeRepository.findAll(PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "noticeCreatedDate")));
     }
-    public Page<NoticeListResDto> mapToNoticeListResDto(Page<Notice> noticesPage) {
-        return noticesPage.map(notice -> new NoticeListResDto(
-                notice.getNoticeId(),
-                notice.getNoticeTitle(),
-                notice.getNoticeContents(),
-                notice.getNoticeCreatedDate()
-        ));
+
+
+
+
+    public Page<NoticeResDto> mapToNoticeResDto(Page<Notice> noticesPage) {
+        return noticesPage.map(no -> new NoticeResDto(no));
     }
 
 
@@ -41,13 +45,12 @@ public class BoardService {
     public Page<Faq> getAllFaqs(Pageable pageable) {
         return faqRepository.findAll(pageable);
     }
-    public Page<FaqListResDto> mapToFaqListResDto(Page<Faq> faqsPage) {
-        return faqsPage.map(faq -> new FaqListResDto(
+    public Page<FaqResDto.FaqListResDto> mapToFaqListResDto(Page<Faq> faqsPage) {
+        return faqsPage.map(faq -> new FaqResDto.FaqListResDto(
                 faq.getFaqId(),
                 faq.getFaqType(),
                 faq.getFaqQuestion(),
                 faq.getFaqAnswer()
         ));
     }
-
 }
