@@ -6,16 +6,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 public class NoticeReqDto {
     @NotNull
     private Long userId;
-
     @NotEmpty
     private String noticeTitle;
-
     @NotEmpty
     private String noticeContents;
-    
 }

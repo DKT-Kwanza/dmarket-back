@@ -1,11 +1,12 @@
 package com.dmarket.dto.request;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 public class InquiryReqDto {
     @Getter
-    @Setter
+    @AllArgsConstructor
     public static class InquiryReplyRequestDto {
         private String inquiryReplyContents;
     }

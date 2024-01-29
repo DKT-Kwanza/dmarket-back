@@ -24,7 +24,6 @@ public class AdminResDto {
         private String reviewContents;
         private LocalDateTime reviewCreatedDate;
 
-
         public AdminReviewsResDto(ProductReview productReview, ProductOption productOption, User user, Product product){
             this.productId = productReview.getProductId();
             this.reviewId = productReview.getReviewId();
@@ -35,7 +34,6 @@ public class AdminResDto {
             this.reviewContents = productReview.getReviewContents();
             this.reviewCreatedDate = productReview.getReviewCreatedDate();
         }
-
     }
 
     @Getter
@@ -56,7 +54,5 @@ public class AdminResDto {
             this.userRole = userRole.name();
             this.userJoinDate = userJoinDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         }
-
-        // Getters and Setters 생략
     }
 }

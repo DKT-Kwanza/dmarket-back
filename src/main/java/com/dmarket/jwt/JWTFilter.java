@@ -24,6 +24,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Objects;
 
 
@@ -58,9 +59,13 @@ public class JWTFilter extends OncePerRequestFilter {
         //Authorization 헤더 검증
         if (authorization == null || !authorization.startsWith("Bearer ")) {
 
-            System.out.println("token null");
-            filterChain.doFilter(request, response);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            CMResDto<Void> cmRespDto = CMResDto.<Void>builder()
+                    .code(HttpServletResponse.SC_UNAUTHORIZED) // 401 Unauthorized
+                    .msg("토큰이 잘 못되었습니다.")
+                    .build();
 
+            writeResponse(response, cmRespDto);
             //조건이 해당되면 메소드 종료 (필수)
             return;
         }
@@ -93,20 +98,19 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // 타입이 refresh 인 경우 검증해서 재발급
         if(Objects.equals(type, "RTK")){
+            Long userId = userRepository.findUserIdByUserEmail(email);
             if(refreshTokenRepository.existsById(token)){
                 refreshTokenRepository.deleteById(token);
                 String newAccessToken = jwtUtil.createAccessJwt(email,role);
                 String newRefreshtoken = jwtUtil.createRefreshJwt();
                 refreshTokenRepository.save(new RefreshToken(newRefreshtoken,newAccessToken,email));
 
-                UserCommonDto.TokenResponseDto tokenResponseDto = new UserCommonDto.TokenResponseDto();
-                tokenResponseDto.setAccesstoken(newAccessToken);
-                tokenResponseDto.setRefreshtoken(newRefreshtoken);
+                UserCommonDto.TokenResponseDto tokenResponseDto = new UserCommonDto.TokenResponseDto(newAccessToken,newRefreshtoken,userId);
 
                 CMResDto<UserCommonDto.TokenResponseDto> cmRespDto = CMResDto.<UserCommonDto.TokenResponseDto>builder()
                         .code(200)
                         .msg("새로운 토큰 발급 Success")
-                        .data(tokenResponseDto)
+                        //.data(tokenResponseDto)
                         .build();
 
                 writeResponse(response, cmRespDto);
@@ -161,10 +165,10 @@ public class JWTFilter extends OncePerRequestFilter {
         }
     }
 
-    // refresh 토큰 저장 메서드
-//    private void saveRefreshTokenToDatabase(String userEmail, String refreshToken) {
-//        RefreshToken refreshTokendata = new RefreshToken(userEmail,refreshToken);
-//
-//        refreshTokenRepository.save(refreshTokendata);
-//    }
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String[] excludePath = {"/api/users/login", "/api/users/join"};
+        String path = request.getRequestURI();
+        return Arrays.stream(excludePath).anyMatch(path::startsWith);
+    }
 }
