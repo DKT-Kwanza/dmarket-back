@@ -83,7 +83,7 @@ public class InquiryResDto {
         private String inquiryReplyDate;
 
         public InquiryDetailResDto(Long inquiryId, String inquiryTitle, String inquiryContents, InquiryType inquiryType,
-                                 Boolean inquiryStatus, String inquiryImg, LocalDateTime inquiryCreateDate, String inquiryWriter,
+                                   Boolean inquiryStatus, String inquiryImg, LocalDateTime inquiryCreateDate, String inquiryWriter,
                                    Long inquiryReplyId, String inquiryReplyContents, LocalDateTime inquiryReplyDate) {
             this.inquiryId = inquiryId;
             this.inquiryTitle = inquiryTitle;
@@ -95,8 +95,15 @@ public class InquiryResDto {
             this.inquiryWriter = inquiryWriter;
             this.inquiryReplyId = inquiryReplyId;
             this.inquiryReplyContents = inquiryReplyContents;
-            this.inquiryReplyDate = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(inquiryReplyDate);;
+
+            // inquiryReplyDate가 null이 아닌 경우에만 날짜 형식으로 변환
+            if (inquiryReplyDate != null) {
+                this.inquiryReplyDate = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(inquiryReplyDate);
+            } else {
+                this.inquiryReplyDate = null;
+            }
         }
+
     }
 
 }
