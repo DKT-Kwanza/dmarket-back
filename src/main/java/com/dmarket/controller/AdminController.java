@@ -898,10 +898,14 @@ public class AdminController {
 
     // 배송 목록 조회
     @GetMapping("/api/admin/orders")
-    public ResponseEntity<CMResDto<Map<String, Object>>> getOrdersByStatus(@RequestParam String status) {
+    public ResponseEntity<CMResDto<Map<String, Object>>> getOrdersByStatus(@RequestParam String status,
+                                                                           @RequestParam(required = false, defaultValue = "0") int pageNo,
+                                                                           @RequestParam(required = false, defaultValue = "10") int pageSize){
         try {
+            Pageable pageable = PageRequest.of(pageNo, pageSize);
+
             OrderCommonDto.OrderDetailStateCountsDto statusCounts = adminService.getOrderDetailStateCounts();
-            List<OrderListAdminResDto> orderList = adminService.getOrdersByStatus(status);
+            Page<OrderListAdminResDto> orderList = adminService.getOrdersByStatus(status, pageable);
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("confPayCount", statusCounts.getOrderCompleteCount());
             responseData.put("preShipCount", statusCounts.getDeliveryReadyCount());
@@ -930,6 +934,33 @@ public class AdminController {
         }
     }
     // ---배송 목록 조회---
+
+//    @GetMapping("/board/faq")
+//    public ResponseEntity<?> getFaqs(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
+//                                     @RequestParam(required = false, value = "size", defaultValue = "10") int pageSize,
+//                                     @RequestParam(required = false, value = "type") FaqType faqType) {
+//        try {
+//            if (pageNo < 0 || pageSize <= 0) {
+//                return new ResponseEntity<>(CMResDto.builder()
+//                        .code(400).msg("유효하지 않은 페이지 또는 크기").build(), HttpStatus.BAD_REQUEST);
+//            }
+//            Page<Faq> faqsPage = adminService.getAllFaqs(faqType, PageRequest.of(pageNo, pageSize));
+//            Page<FaqResDto.FaqListResDto> mappedFaqs = adminService.mapToFaqListResDto(faqsPage);
+//
+//            CMResDto<Page<FaqResDto.FaqListResDto>> response = CMResDto.<Page<FaqResDto.FaqListResDto>>builder().code(200).msg("FAQ 조회 성공")
+//                    .data(mappedFaqs).build();
+//
+//            return new ResponseEntity<>(response, HttpStatus.OK);
+//        } catch (IllegalArgumentException e) {
+//            log.warn("유효하지 않은 요청 메시지:" + e.getMessage());
+//            return new ResponseEntity<>(CMResDto.builder().code(400).msg("유효하지 않은 요청 메시지").build(),
+//                    HttpStatus.BAD_REQUEST);
+//        } catch (Exception e) {
+//            log.error("Error retrieving FAQs: " + e.getMessage());
+//            return new ResponseEntity<>(CMResDto.builder().code(500).msg("서버 내부 오류").build(),
+//                    HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
 
 
 }
