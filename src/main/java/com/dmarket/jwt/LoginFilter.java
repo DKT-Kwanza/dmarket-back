@@ -65,6 +65,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         UserResDto.CustomUserDetails customUserDetails = (UserResDto.CustomUserDetails) authentication.getPrincipal();
 
         String email = customUserDetails.getEmail();
+        Long userId = customUserDetails.getUserId();
 
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
@@ -78,14 +79,9 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         // RefreshToken 만료 시간 240시간
         String refreshtoken = jwtUtil.createRefreshJwt();
 
-        // RefreshToken 저장
-        //saveRefreshTokenToDatabase(email,refreshtoken);
         refreshTokenRepository.save(new RefreshToken(refreshtoken,accesstoken,email));
 
-
-        UserCommonDto.TokenResponseDto tokenResponseDto = new UserCommonDto.TokenResponseDto();
-        tokenResponseDto.setAccesstoken(accesstoken);
-        tokenResponseDto.setRefreshtoken(refreshtoken);
+        UserCommonDto.TokenResponseDto tokenResponseDto = new UserCommonDto.TokenResponseDto(accesstoken,refreshtoken,userId);
 
         CMResDto<UserCommonDto.TokenResponseDto> cmRespDto = CMResDto.<UserCommonDto.TokenResponseDto>builder()
                 .code(200)

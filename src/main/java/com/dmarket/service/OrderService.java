@@ -38,7 +38,7 @@ public class OrderService {
             Long productId = productToOrder.getProductId();
             Integer productCount = productToOrder.getProductCount();
             Long optionId = productToOrder.getOptionId();
-            Product product = productService.findByProductId(productId);
+            Product product = productService.findProductById(productId);
 
             ProductResDto.ProductToOrderRespDto.ProductToOrder productDetail = new ProductResDto.ProductToOrderRespDto.ProductToOrder();
             productDetail.setProductId(productId);
@@ -56,7 +56,7 @@ public class OrderService {
             productList.add(productDetail);
         }
 
-        User user = userService.findById(dto.getUserId());
+        User user = userService.findUserById(dto.getUserId());
         respDto.setUserName(user.getUserName());
         respDto.setUserPhoneNum(user.getUserPhoneNum());
         respDto.setUserEmail(user.getUserEmail());

@@ -1,17 +1,19 @@
 package com.dmarket.service;
 
+import com.dmarket.domain.product.*;
+import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.*;
 import com.dmarket.dto.request.ReviewReqDto;
-import com.dmarket.dto.response.*;
-import com.dmarket.domain.user.User;
-import com.dmarket.domain.product.*;
+import com.dmarket.dto.response.CategoryResDto;
+import com.dmarket.dto.response.ProductResDto;
+import com.dmarket.dto.response.QnaResDto;
+import com.dmarket.exception.BadRequestException;
+import com.dmarket.exception.NotFoundException;
+import com.dmarket.repository.product.*;
 import com.dmarket.repository.user.UserRepository;
 import com.dmarket.repository.user.WishlistRepository;
-import com.dmarket.repository.product.*;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.dmarket.exception.ErrorCode.*;
+
 
 @Slf4j
 @Service
@@ -39,30 +44,53 @@ public class ProductService {
     private final ProductReviewRepository productReviewRepository;
 
     private static final int PRODUCT_PAGE_POST_COUNT = 16;
+    private static final int QNA_PAGE_POST_COUNT = 10;
     private static final int REVIEW_PAGE_POST_COUNT = 5;
+    private static final Integer MAX_VALUE = 9999999;
+
     // 카테고리 전체 목록 depth별로 조회
     public List<CategoryResDto.CategoryListResDto> getCategories(Integer categoryDepthLevel) {
         return categoryRepository.findByCategoryDepth(categoryDepthLevel);
     }
 
     // 카테고리별 상품 목록 필터링 조회
-    public ProductResDto.ProductListResDto getCategoryProducts(Pageable pageable, int pageNo, Long cateId,
-                                                               String sorter, Integer minPrice, Integer maxPrice, Float star) {
-        pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
-        Page<ProductCommonDto.ProductListDto> productList = productRepository.findByCateId(pageable, cateId, minPrice, maxPrice, star);
+    public ProductResDto.ProductListResDto getCategoryProducts(int pageNo, Long cateId,
+                                                 String sorter, Integer minPrice, Integer maxPrice, Float star) {
+        findCategoryById(cateId);
+        sorter = sorterValidation(sorter);
+        pageNo = pageVaildation(pageNo);
+        minPrice = minPrice > MAX_VALUE ? MAX_VALUE : minPrice;
+        maxPrice = maxPrice < 0 ? MAX_VALUE : maxPrice;
+        star = starValidation(star);
 
+        Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
+        Page<ProductCommonDto.ProductListDto> productList = productRepository.findByCateId(pageable, cateId, minPrice, maxPrice, star);
         return new ProductResDto.ProductListResDto(productList.getTotalPages(), productList.getContent());
     }
 
-
     // 상품 목록 조건 검색
-    public ProductResDto.ProductListResDto getSearchProducts(Pageable pageable, int pageNo, String query,
-                                                             String sorter, Integer minPrice, Integer maxPrice, Float star) {
+    public ProductResDto.ProductListResDto getSearchProducts(int pageNo, String query,
+                                                     String sorter, Integer minPrice, Integer maxPrice, Float star) {
+        if (query.isEmpty()) {
+            throw new BadRequestException(INVALID_SEARCH_VALUE);
+        }
+        sorter = sorterValidation(sorter);
+        pageNo = pageVaildation(pageNo);
+        minPrice = minPrice > MAX_VALUE ? MAX_VALUE : minPrice;
+        maxPrice = maxPrice < 0 ? MAX_VALUE : maxPrice;
+        star = starValidation(star);
 
-        pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
+        Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
         Page<ProductCommonDto.ProductListDto> productList = productRepository.findByQuery(pageable, query, minPrice, maxPrice, star);
-
         return new ProductResDto.ProductListResDto(productList.getTotalPages(), productList.getContent());
+    }
+
+    // 상품 별 Q&A 리스트 조회
+    public Page<QnaResDto.QnaProductIdListResDto> findQnasByProductId(Long productId, int pageNo) {
+        findProductById(productId);
+        pageNo = pageVaildation(pageNo);
+        Pageable pageable = PageRequest.of(pageNo, QNA_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "qnaId"));
+        return qnaRepository.findQnasByProductId(productId, pageable);
     }
 
     // 최신 상품 조회
@@ -73,7 +101,7 @@ public class ProductService {
     // 최신 상품 조회 - 매핑
     public List<Object> mapToResponseFormat(List<ProductResDto.NewProductResDto> latestProducts) {
         return latestProducts.stream()
-                .limit(8).map(product -> new Object() {
+                .limit(16).map(product -> new Object() {
                     public final Long productId = product.getProductId();
                     public final String productBrand = product.getProductBrand();
                     public final String productName = product.getProductName();
@@ -105,27 +133,22 @@ public class ProductService {
 
     // 상품별 사용자 리뷰 조회
     public ProductResDto.ProductReviewListResDto getReviewList(Long productId, Integer pageNo) {
+        pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_POST_COUNT,
                 Sort.by(Sort.Direction.DESC, "reviewCreatedDate"));
         // 상품 번호, 상품 별점, 리뷰 개수 조회, 존재하지 않는 상품 번호의 경우 예외 발생
-        ProductCommonDto.ProductDto product = productRepository.findProductByProductId(productId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품"));
+        ProductCommonDto.ProductDto product = findProductByProductId(productId);
         // 상품의 리뷰 목록 불러오기
         Page<ProductCommonDto.ProductReviewDto> reviewList = productReviewRepository.findReviewByProductId(pageable, productId);
         return new ProductResDto.ProductReviewListResDto(product, reviewList.getTotalPages(), reviewList.getContent());
     }
 
-    // 상품 별 Q&A 리스트 조회
-    public Page<QnaResDto.QnaProductIdListResDto> findQnasByProductId(Long productId, Pageable pageable) {
-        return qnaRepository.findQnasByProductId(productId, pageable);
-    }
-
     // Q&A 작성
     @Transactional
     public QnaResDto.QnaWriteResponseDto qnaWrite(Long productId, Long userId, String qnaTitle, String qnaContents,
-            Boolean qnaIsSecret) {
+                                                    Boolean qnaIsSecret) {
         // userId로 회원 이름 가져오기
-        User userdata = userRepository.findUserNameByUserId(userId);
+        User userdata = findUserById(userId);
         String qnaWriter = userdata.getUserName();
 
         // qna 정보 저장
@@ -145,6 +168,7 @@ public class ProductService {
                 savedQna.getQnaCreatedDate(), savedQna.getQnaState());
     }
 
+
     // 추천 상품 조회
     public List<ProductResDto.RecommendProductResDto> recommendProduct(Long productId) {
         // PageRequest의 pageSize 4로 지정 최신 4개만 조회
@@ -152,14 +176,18 @@ public class ProductService {
                 PageRequest.of(0, 4, Sort.by(Sort.Direction.DESC, "productCreatedDate")));
     }
 
+    //리뷰 삭제
     @Transactional
     public void deleteReviewByReviewId(Long productId, Long reviewId) {
+        findProductById(productId);
+        findReviewById(reviewId);
         productReviewRepository.deleteByReviewId(reviewId);
     }
 
     // 리뷰 작성
     @Transactional
     public void saveReview(ReviewReqDto reviewReqDto, Long productId) {
+        findProductById(productId);
         ProductReview productReview = ProductReview.builder()
                 .optionId(reviewReqDto.getOptionId())
                 .productId(productId)
@@ -171,9 +199,50 @@ public class ProductService {
         productReviewRepository.save(productReview);
     }
 
-    public Product findByProductId(Long productId) {
+    public ProductCommonDto.ProductDto findProductByProductId(Long productId) {
+        return  productRepository.findProductByProductId(productId)
+                .orElseThrow(() -> new NotFoundException(PRODUCT_NOT_FOUND));
+    }
+
+    public Product findProductById(Long productId) {
         return productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
+                .orElseThrow(() -> new NotFoundException(PRODUCT_NOT_FOUND));
+    }
+
+    public Category findCategoryById(Long cateId) {
+        return categoryRepository.findById(cateId)
+                .orElseThrow(() -> new NotFoundException(CATEGORY_NOT_FOUND));
+    }
+
+    public User findUserById(Long userId){
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
+    }
+
+    public ProductReview findReviewById(Long reviewId){
+        return productReviewRepository.findById(reviewId)
+                .orElseThrow(() -> new NotFoundException(REVIEW_NOT_FOUND));
+    }
+
+    // 페이지 예외처리
+    public int pageVaildation(int page){
+        return page = page > 0 ? page-1 : 0;
+    }
+
+    // 정렬 예외처리
+    public String sorterValidation(String sorter){
+        if(!sorter.equals("productId") && !sorter.equals("reviewCnt") && !sorter.equals("productRating")){
+            sorter = "reviewCnt";
+        }
+        return sorter;
+    }
+
+    // 상품 평점 예외처리
+    public Float starValidation(Float star){
+        if (star < 0 || star > 5) {
+            throw new BadRequestException(INVALID_RATING_PARAM);
+        }
+        return star;
     }
 
     public ProductOption findOptionByOptionId(Long productOptionId) {
