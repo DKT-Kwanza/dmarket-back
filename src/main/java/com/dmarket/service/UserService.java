@@ -409,10 +409,12 @@ public class UserService {
         Long orderCancelCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_CANCEL);
         Long returnCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_REQUEST) +
                 orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_COMPLETE);
-        for (Order order : orders) {
+        for (int i = orders.size() - 1; i >= 0; i--) {
+            Order order = orders.get(i);
             List<ProductCommonDto.ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
             orderList.add(new OrderCommonDto.OrderListDto(order, productDetailListDtos));
         }
+
 
         OrderResDto.OrderListResDto orderListResDto = new OrderResDto.OrderListResDto();
 
