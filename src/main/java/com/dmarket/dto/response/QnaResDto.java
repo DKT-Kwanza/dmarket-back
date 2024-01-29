@@ -99,13 +99,6 @@ public class QnaResDto {
     }
 
     @Getter
-    @AllArgsConstructor
-    public static class QnaListResDto {
-        private Integer totalPage;
-        private List<QnaDto> qnaList;
-    }
-
-    @Getter
     @NoArgsConstructor
     public static class QnaDetailResDto {
         private Long qnaId;

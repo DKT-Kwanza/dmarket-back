@@ -54,7 +54,7 @@ public class ProductService {
     }
 
     // 카테고리별 상품 목록 필터링 조회
-    public ProductResDto.ProductListResDto getCategoryProducts(int pageNo, Long cateId,
+    public Page<ProductResDto.ProductListResDto> getCategoryProducts(int pageNo, Long cateId,
                                                  String sorter, Integer minPrice, Integer maxPrice, Float star) {
         findCategoryById(cateId);
         sorter = sorterValidation(sorter);
@@ -64,12 +64,11 @@ public class ProductService {
         star = starValidation(star);
 
         Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
-        Page<ProductCommonDto.ProductListDto> productList = productRepository.findByCateId(pageable, cateId, minPrice, maxPrice, star);
-        return new ProductResDto.ProductListResDto(productList.getTotalPages(), productList.getContent());
+        return productRepository.findByCateId(pageable, cateId, minPrice, maxPrice, star);
     }
 
     // 상품 목록 조건 검색
-    public ProductResDto.ProductListResDto getSearchProducts(int pageNo, String query,
+    public Page<ProductResDto.ProductListResDto> getSearchProducts(int pageNo, String query,
                                                      String sorter, Integer minPrice, Integer maxPrice, Float star) {
         if (query.isEmpty()) {
             throw new BadRequestException(INVALID_SEARCH_VALUE);
@@ -81,8 +80,7 @@ public class ProductService {
         star = starValidation(star);
 
         Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
-        Page<ProductCommonDto.ProductListDto> productList = productRepository.findByQuery(pageable, query, minPrice, maxPrice, star);
-        return new ProductResDto.ProductListResDto(productList.getTotalPages(), productList.getContent());
+        return productRepository.findByQuery(pageable, query, minPrice, maxPrice, star);
     }
 
     // 상품 별 Q&A 리스트 조회

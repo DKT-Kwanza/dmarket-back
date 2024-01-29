@@ -334,21 +334,11 @@ public class UserService {
     }
 
     // 마일리지 사용(충전) 내역 조회
-    public MileageResDto.MileageListResDto getMileageUsage(Long userId, int pageNo) {
+    public Page<MileageCommonDto.MileageDto> getMileageUsage(Long userId, int pageNo) {
         findUserById(userId);
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "mileageDate"));
-        Page<Mileage> mileages = mileageRepository.findByUserId(pageable, userId);
-
-        List<MileageCommonDto.MileageDto> mileageChageList = mileages.getContent().stream().map(
-                (o) -> MileageCommonDto.MileageDto.builder()
-                        .mileageChangeDate(o.getMileageDate())
-                        .mileageContents(o.getMileageInfo())
-                        .changeMileage(o.getChangeMileage())
-                        .remainMileage(o.getRemainMileage())
-                        .build()).collect(Collectors.toList());
-
-        return new MileageResDto.MileageListResDto(mileages.getTotalPages(), mileageChageList);
+        return mileageRepository.findByUserId(pageable, userId);
     }
 
     // 마일리지 충전 요청

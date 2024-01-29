@@ -41,7 +41,7 @@ public class ProductController {
                                                          @RequestParam(required = false, value = "max-price", defaultValue = "9999999") Integer maxPrice,
                                                          @RequestParam(required = false, value = "star", defaultValue = "0.0F") Float star,
                                                          @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo){
-        ProductResDto.ProductListResDto products = productService.getCategoryProducts(pageNo , cateId,
+        Page<ProductResDto.ProductListResDto> products = productService.getCategoryProducts(pageNo , cateId,
                 sorter, minPrice, maxPrice, star);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(products), HttpStatus.OK);
@@ -55,7 +55,7 @@ public class ProductController {
                                                        @RequestParam(required = false, value = "max-price", defaultValue = "9999999") Integer maxPrice,
                                                        @RequestParam(required = false, value = "star", defaultValue = "0") Float star,
                                                        @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo){
-        ProductResDto.ProductListResDto products = productService.getSearchProducts(pageNo , query,
+        Page<ProductResDto.ProductListResDto> products = productService.getSearchProducts(pageNo , query,
                 sorter, minPrice, maxPrice, star);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(products), HttpStatus.OK);

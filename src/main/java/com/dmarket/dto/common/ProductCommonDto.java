@@ -53,19 +53,6 @@ public class ProductCommonDto {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ProductListDto {
-        private Long productId;
-        private String productBrand;
-        private String productName;
-        private String productImg;
-        private Integer productSalePrice;
-        private Float productRating;
-        private Long productReviewCount;
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
 
     public static class ProductOptionDto {
         private Long optionId;
