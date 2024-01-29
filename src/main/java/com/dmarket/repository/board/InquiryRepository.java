@@ -33,7 +33,7 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
             " left join InquiryReply ir on ir.inquiryId = i.inquiryId" +
             " where i.userId = :userId" +
             " order by i.inquiryCreatedDate desc")
-    List<InquiryResDto.UserInquiryAllResDto> findUserInquiryAllByUserId(@Param("userId") Long userId);
+    Page<InquiryResDto.UserInquiryAllResDto> findUserInquiryAllByUserId(Pageable pageable, @Param("userId") Long userId);
 
     //문의 답변 등록
     @Query("SELECT NEW com.dmarket.dto.common.InquiryCommonDto$InquiryDetailsDto(" +

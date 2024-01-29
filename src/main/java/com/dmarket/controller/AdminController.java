@@ -117,10 +117,27 @@ public class AdminController {
     }
 
     // faq 조회
+//    @GetMapping("/board/faq")
+//    public ResponseEntity<?> getFaqs(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
+//                                     @RequestParam(required = false, value = "type") FaqType faqType) {
+//        Page<Faq> faqsPage = adminService.getAllFaqs(faqType, pageNo);
+//        Page<FaqResDto.FaqListResDto> mappedFaqs = adminService.mapToFaqListResDto(faqsPage);
+//
+//        CMResDto<?> response = CMResDto.successDataRes(mappedFaqs);
+//        return new ResponseEntity<>(response, HttpStatus.OK);
+//    }
+
     @GetMapping("/board/faq")
     public ResponseEntity<?> getFaqs(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
-                                     @RequestParam(required = false, value = "type") FaqType faqType) {
-        Page<Faq> faqsPage = adminService.getAllFaqs(faqType, pageNo);
+                                     @RequestParam(required = false, value = "type") String type) {
+        FaqType faqType = null;
+        if (type != null) {
+            faqType = FaqType.fromLabel(type);
+            if(faqType == null) {
+                throw new IllegalArgumentException("유효하지 않은 문의 유형: " + type);
+            }
+        }
+        Page<Faq> faqsPage = adminService.getAllFaqs(FaqType.fromLabel(type) , pageNo);
         Page<FaqResDto.FaqListResDto> mappedFaqs = adminService.mapToFaqListResDto(faqsPage);
 
         CMResDto<?> response = CMResDto.successDataRes(mappedFaqs);
@@ -285,8 +302,9 @@ public class AdminController {
 
     // 상품 목록 조회
     @GetMapping("/products/categories/{categoryId}")
-    public ResponseEntity<?> getProductsListAdmin(@PathVariable(name = "categoryId") Long categoryId) {
-        List<ProductResDto.ProductListAdminResDto> productListAdminResDto = adminService.getProductListByCateogryId(categoryId);
+    public ResponseEntity<?> getProductsListAdmin(@PathVariable(name = "categoryId") Long categoryId,
+                                                  @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
+        Page<ProductResDto.ProductListAdminResDto> productListAdminResDto = adminService.getProductListByCateogryId(categoryId, pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(productListAdminResDto), HttpStatus.OK);
     }
 

@@ -30,10 +30,7 @@ import com.dmarket.repository.user.UserRepository;
 import com.dmarket.repository.user.WishlistRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -531,18 +528,19 @@ public class AdminService {
     }
 
     // 상품 목록 조회
-    public List<ProductResDto.ProductListAdminResDto> getProductListByCateogryId(Long categoryId) {
+    public Page<ProductResDto.ProductListAdminResDto> getProductListByCateogryId(Long categoryId,int pageNo) {
         List<Product> products = categoryRepository.findProductsByCategoryId(categoryId);
         Category category = categoryRepository.findByCategoryId(categoryId);
-        List<ProductCommonDto.ProductOptionListDto> options = categoryRepository.findOptionsByCategoryId(categoryId);
         List<String> imgs = categoryRepository.findImgsByCategoryId(categoryId);
 
         // 제품 목록을 처리하고 DTO 목록을 만듭니다.
         List<ProductResDto.ProductListAdminResDto> result = new ArrayList<>();
         for (Product product : products) {
+            List<ProductCommonDto.ProductOptionListDto> options = categoryRepository.findOptionsByCategoryId(product.getProductId());
             result.add(new ProductResDto.ProductListAdminResDto(product, category, options, imgs));
         }
-        return result;
+        return new PageImpl<>(result);
+
     }
 
     // 관리자 전체 조회

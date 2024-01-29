@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class FaqReqDto {
     @NotNull
