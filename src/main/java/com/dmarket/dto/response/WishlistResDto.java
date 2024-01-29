@@ -14,7 +14,7 @@ import com.dmarket.dto.common.WishlistItemDto;
 @AllArgsConstructor
 @Builder
 public class WishlistResDto {
-    private int wishCount;
+    private long wishCount;
     private List<WishlistItemDto> wishListItem;
     public int getWishCount() {
         return wishListItem.size();

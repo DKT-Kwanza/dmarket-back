@@ -225,11 +225,13 @@ public class UserService {
     private final InquiryRepository inquiryRepository;
 
     // 위시리스트 조회
-    public WishlistResDto getWishlistByUserId(Long userId) {
-        findUserById(userId);
-        List<WishlistItemDto> wishlistItems = wishlistRepository.findWishlistItemsByUserId(userId);
+    public WishlistResDto getWishlistByUserId(Long userId,int pageNo) {
+        pageNo = pageVaildation(pageNo);
+        Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE);
+        Page<WishlistItemDto> wishlistItems = wishlistRepository.findWishlistItemsByUserId(pageable, userId);
         return WishlistResDto.builder()
-                .wishListItem(wishlistItems)
+                .wishCount(wishlistItems.getTotalElements())
+                .wishListItem(wishlistItems.getContent())
                 .build();
     }
 

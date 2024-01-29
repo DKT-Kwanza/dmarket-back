@@ -73,9 +73,10 @@ public class UserController {
 
     // 위시리스트 조회
     @GetMapping("/{userId}/wish")
-    public ResponseEntity<?> getWishlistByUserId(@PathVariable(name = "userId") Long userId) {
+    public ResponseEntity<?> getWishlistByUserId(@PathVariable(name = "userId") Long userId ,
+                                                 @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
 
-        WishlistResDto wishlist = userService.getWishlistByUserId(userId);
+        WishlistResDto wishlist = userService.getWishlistByUserId(userId, pageNo);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(wishlist), HttpStatus.OK);
     }
