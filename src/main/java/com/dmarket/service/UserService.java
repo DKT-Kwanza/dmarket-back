@@ -368,9 +368,11 @@ public class UserService {
     }
 
     // 사용자 문의 전체 조회
-    public List<InquiryResDto.UserInquiryAllResDto> getUserInquiryAllbyUserId(Long userId) {
+    public Page<InquiryResDto.UserInquiryAllResDto> getUserInquiryAllbyUserId(Long userId, int pageNo) {
+        pageNo = pageVaildation(pageNo);
+        Pageable pageable = PageRequest.of(pageNo,DEFAULT_PAGE_SIZE);
         findUserById(userId);
-        return inquiryRepository.findUserInquiryAllByUserId(userId);
+        return inquiryRepository.findUserInquiryAllByUserId(pageable, userId);
     }
 
     // 사용자 주문 내역 상세 조회

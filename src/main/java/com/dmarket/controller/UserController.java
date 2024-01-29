@@ -239,9 +239,10 @@ public class UserController {
 
     // 작성한 고객 문의 목록
     @GetMapping("/{userId}/mypage/inquiry")
-    public ResponseEntity<?> getUserInquiryAllByUserId(@PathVariable(name = "userId") Long userId) {
+    public ResponseEntity<?> getUserInquiryAllByUserId(@PathVariable(name = "userId") Long userId,
+                                                       @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
 
-        List<InquiryResDto.UserInquiryAllResDto> userInquiryAllResDtos = userService.getUserInquiryAllbyUserId(userId);
+        Page<InquiryResDto.UserInquiryAllResDto> userInquiryAllResDtos = userService.getUserInquiryAllbyUserId(userId, pageNo);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(userInquiryAllResDtos), HttpStatus.OK);
     }
