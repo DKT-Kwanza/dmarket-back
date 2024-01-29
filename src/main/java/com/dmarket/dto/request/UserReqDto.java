@@ -9,7 +9,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
-import lombok.Data;
 
 import java.time.LocalDate;
 
@@ -48,13 +47,8 @@ public class UserReqDto {
         @NotNull
         private LocalDate userJoinDate; // 입사일
 
-        @NotNull
         private Integer userPostalCode; // 우편번호
-
-        @NotBlank
         private String userAddress; // 주소
-
-        @NotBlank
         private String userDetailedAddress; // 상세주소
     }
 

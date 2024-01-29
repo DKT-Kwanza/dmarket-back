@@ -5,6 +5,7 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 application-*.properties
+build_script.sh
 
 ### STS ###
 .apt_generated
