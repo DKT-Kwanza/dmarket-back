@@ -1,37 +1,35 @@
 package com.dmarket.service;
 
-import com.dmarket.domain.order.Order;
-import com.dmarket.domain.order.OrderDetail;
+import com.dmarket.constant.*;
+import com.dmarket.domain.board.Faq;
+import com.dmarket.domain.board.Inquiry;
+import com.dmarket.domain.board.InquiryReply;
+import com.dmarket.domain.board.Notice;
 import com.dmarket.domain.order.Refund;
-import com.dmarket.dto.common.*;
+import com.dmarket.domain.order.Return;
+import com.dmarket.domain.product.*;
 import com.dmarket.domain.user.MileageReq;
 import com.dmarket.domain.user.User;
-import com.dmarket.domain.product.*;
-import com.dmarket.constant.*;
-import com.dmarket.constant.FaqType;
-import com.dmarket.repository.order.RefundRepository;
-import com.dmarket.repository.product.CategoryRepository;
-import com.dmarket.repository.product.ProductImgsRepository;
-import com.dmarket.repository.product.ProductOptionRepository;
-import com.dmarket.repository.product.ProductRepository;
-import com.dmarket.dto.common.QnaDto;
-import com.dmarket.dto.common.ReturnDto;
-import com.dmarket.repository.product.*;
-import com.dmarket.constant.OrderDetailState;
-import com.dmarket.constant.ReturnState;
-import com.dmarket.domain.order.Return;
-import com.dmarket.domain.board.*;
-
+import com.dmarket.dto.common.*;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
-import com.dmarket.repository.order.OrderRepository;
-import com.dmarket.repository.board.*;
-import com.dmarket.repository.user.*;
+import com.dmarket.exception.BadRequestException;
+import com.dmarket.exception.ConflictException;
+import com.dmarket.exception.NotFoundException;
+import com.dmarket.repository.board.FaqRepository;
+import com.dmarket.repository.board.InquiryReplyRepository;
+import com.dmarket.repository.board.InquiryRepository;
+import com.dmarket.repository.board.NoticeRepository;
 import com.dmarket.repository.order.OrderDetailRepository;
+import com.dmarket.repository.order.OrderRepository;
+import com.dmarket.repository.order.RefundRepository;
 import com.dmarket.repository.order.ReturnRepository;
+import com.dmarket.repository.product.*;
+import com.dmarket.repository.user.MileageReqRepository;
+import com.dmarket.repository.user.UserRepository;
+import com.dmarket.repository.user.WishlistRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,8 +38,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.dmarket.exception.ErrorCode.*;
 
 @Slf4j
 @Service
@@ -71,11 +73,15 @@ public class AdminService {
     private final RefundRepository refundRepository;
     private final OrderRepository orderRepository;
 
-
     private static final int PAGE_POST_COUNT = 10;
 
     @Transactional
     public void deleteUserByUserId(Long userId) {
+        // 존재하지 않는 사용자의 경우 에러
+        boolean isUser = userRepository.existsById(userId);
+        if (!isUser) {
+            throw new NotFoundException(USER_NOT_FOUND);
+        }
         userRepository.deleteByUserId(userId);
     }
 
@@ -86,13 +92,17 @@ public class AdminService {
             .collect(Collectors.toList());
     }
 
-    public Page<NoticeResDto> getNotices(Pageable pageable) {
+    public Page<NoticeResDto> getNotices(int pageNo) {
+        pageNo = pageVaildation(pageNo);
+        Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
         return noticeRepository.getNotices(pageable);
     }
 
     @Transactional
-    public Page<NoticeResDto> postNotice(Long userId, String noticeTitle, String noticeContents,
-            Pageable pageable) {
+    public Page<NoticeResDto> postNotice(Long userId, String noticeTitle, String noticeContents, int pageNo) {
+        pageNo = pageVaildation(pageNo);
+        Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
+
         Notice notice = Notice.builder()
                 .userId(userId)
                 .noticeTitle(noticeTitle)
@@ -106,15 +116,17 @@ public class AdminService {
 
     // 마일리지 충전 요청 내역
     @Transactional
-    public MileageResDto.MileageReqListResDto getMileageRequests(Pageable pageable, String status, int pageNo){
-        pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "mileageReqDate"));
+    public MileageResDto.MileageReqListResDto getMileageRequests(String status, int pageNo){
+        pageNo = pageVaildation(pageNo);
+        Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "mileageReqDate"));
         Page<MileageCommonDto> dtos;
+
         if(status.equals("PROCESSING")){
             dtos = mileageReqRepository.findAllByProcessing(pageable);
         }else if(status.equals("PROCESSED")){
             dtos = mileageReqRepository.findAllByProcessed(pageable);
         }else{
-            throw new IllegalArgumentException("올바르지 않은 경로입니다.");
+            throw new BadRequestException(INVALID_STATE_PARAM);
         }
         List<MileageCommonDto.MileageReqListDto> mileageRequests = dtos.getContent().stream()
                 .map(MileageCommonDto.MileageReqListDto::new).toList();
@@ -143,16 +155,19 @@ public class AdminService {
     //사용자 ID로 찾기
     public User findUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원 입니다."));
+                .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
     }
 
     //사용자 마일리지 요청 찾기
     public MileageReq findMileageReqById(Long mileageReqId) {
         return mileageReqRepository.findById(mileageReqId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 마일리지 요청 입니다."));
+                .orElseThrow(() -> new NotFoundException(REQUEST_NOT_FOUND));
     }
+
     // FAQ 조회
-    public Page<Faq> getAllFaqs(FaqType faqType, Pageable pageable) {
+    public Page<Faq> getAllFaqs(FaqType faqType, int pageNo) {
+        pageNo = pageVaildation(pageNo);
+        Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
         return faqRepository.findFaqType(faqType, pageable);
     }
 
@@ -247,7 +262,7 @@ public class AdminService {
     public ProductResDto.ProductInfoResDto getProductInfo(Long productId, Long userId) {
         // 싱품 정보 조회
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
+                .orElseThrow(() -> new NotFoundException(PRODUCT_NOT_FOUND));
         // 상품의 카테고리 depth 1, depth2 조회 후 합치기
         Category category = categoryRepository.findByCategoryId(product.getCategoryId());
         String productCategory = category.getParent().getCategoryName() + " / " + category.getCategoryName();
@@ -263,12 +278,15 @@ public class AdminService {
         return new ProductResDto.ProductInfoResDto(product, productCategory, reviewCnt, isWish, opts, imgs);
     }
 
-    public Page<AdminResDto.AdminReviewsResDto> getProductReviews(Pageable pageable) {
+    public Page<AdminResDto.AdminReviewsResDto> getProductReviews(int pageNo) {
+        pageNo = pageVaildation(pageNo);
+        Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
         return productReviewRepository.getProductReviews(pageable);
     }
 
     // 상품 QnA 조회
     public QnaResDto.QnaListResDto getQnaList(int pageNo) {
+        pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "qnaCreatedDate"));
         Page<QnaDto> qnaList = qnaRepository.findAllQna(pageable);
         return new QnaResDto.QnaListResDto(qnaList.getTotalPages(), qnaList.getContent());
@@ -276,15 +294,19 @@ public class AdminService {
 
     // 상품 QnA 상세(개별) 조회
     public QnaResDto.QnaDetailResDto getQnADetail(Long qnaId) {
-        return qnaRepository.findQnaAndReply(qnaId);
+        return qnaRepository.findQnaAndReply(qnaId)
+                .orElseThrow(()-> new NotFoundException(QNA_NOT_FOUND));
     }
 
     // 상품 QnA 답변 작성
     @Transactional
     public QnaResDto.QnaDetailResDto createQnaReply(Long qnaId, String qnaReplyContents) {
         // QnA 존재 확인
-        Qna qna = qnaRepository.findById(qnaId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Qna"));
-
+        Qna qna = qnaRepository.findById(qnaId).orElseThrow(() -> new NotFoundException(QNA_NOT_FOUND));
+        // 답변 있는지 확인
+        if(qna.getQnaState()){
+            throw new ConflictException(ALREADY_SAVED_REPLY);
+        }
         // 답변 저장
         QnaReply qnaReply = QnaReply.builder()
                 .qnaId(qnaId)
@@ -295,7 +317,7 @@ public class AdminService {
         // QnA 답변 상태 변경 -> 답변 대기
         qna.updateState(true);
 
-        return qnaRepository.findQnaAndReply(qnaId);
+        return getQnADetail(qnaId);
     }
 
     // 상품 QnA 답변 삭제
@@ -304,9 +326,14 @@ public class AdminService {
         // QnA 번호 가져오기
         Long qnaId = qnaReplyRepository.findQnaIdByQnaReplyId(qnaReplyId);
 
+        // 답변 존재하지 않으면 에러
+        if (qnaId == null){
+            throw new NotFoundException(REPLY_NOT_FOUND);
+        }
+
         // QnA 존재 확인
         Qna qna = qnaRepository.findById(qnaId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Qna"));
+                .orElseThrow(() -> new NotFoundException(QNA_NOT_FOUND));
 
         // QnA 답변 삭제
         qnaReplyRepository.deleteById(qnaReplyId);
@@ -314,12 +341,14 @@ public class AdminService {
         // 답변 상태 변경 -> 답변 대기
         qna.updateState(false);
 
-        return qnaRepository.findQnaAndReply(qnaId);
+        return getQnADetail(qnaId);
     }
 
     // 반품 상태 리스트
-    public ReturnResDto.ReturnListResDto getReturns(String returnStatus, Pageable pageable) {
+    public ReturnResDto.ReturnListResDto getReturns(String returnStatus, int pageNo) {
+        Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
         ReturnState returnState = null;
+
         switch (returnStatus) {
             case "반품 요청":
                 returnState = ReturnState.RETURN_REQUEST;
@@ -331,8 +360,9 @@ public class AdminService {
                 returnState = ReturnState.COLLECT_COMPLETE;
                 break;
             default:
-                throw new IllegalArgumentException("Unknown return state: " + returnStatus);
+                throw new NotFoundException(STATE_NOT_FOUND);
         }
+
         Page<ReturnDto> returnDto = returnRepository.getReturnsByReturnState(returnState, pageable);
         ReturnResDto.ReturnListResDto returnListResDto = returnRepository.getReturnsCount();
         returnListResDto.setReturnList(returnDto);
@@ -344,7 +374,7 @@ public class AdminService {
     @Transactional
     public void updateReturnState(Long returnId, String returnState) {
         Return returnEntity = returnRepository.findById(returnId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 returnId가 존재하지 않습니다. returnId: " + returnId));
+                .orElseThrow(() -> new NotFoundException(RETURN_NOT_FOUND));
 
         // returnState 가 " 완료" 상태인 경우 환불 테이블에 state = 0으로 추가
         if(returnState == ReturnState.COLLECT_COMPLETE.label){
@@ -352,7 +382,6 @@ public class AdminService {
             refundRepository.save(refund);
         }
         ReturnState state = ReturnState.fromLabel(returnState);
-
         returnEntity.updateReturnState(state);
     }
 
@@ -425,21 +454,19 @@ public class AdminService {
 
     // 문의 목록 조회(카테고리별)
     @Transactional
-    public Page<InquiryResDto.InquiryListResDto> getAllInquiriesByType(InquiryType inquiryType, Pageable pageable) {
+    public Page<InquiryResDto.InquiryListResDto> getAllInquiriesByType(InquiryType inquiryType, int pageNo) {
+        pageNo = pageVaildation(pageNo);
+        Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
         return inquiryRepository.findByInquiryType(inquiryType, pageable);
     }
 
     // 문의 삭제
     @Transactional
-    public boolean deleteInquiry(Long inquiryId) {
-        Optional<Inquiry> inquiryOptional = inquiryRepository.findById(inquiryId);
+    public void deleteInquiry(Long inquiryId) {
+        Inquiry inquiryOptional = inquiryRepository.findById(inquiryId)
+                .orElseThrow(()-> new NotFoundException(INQUIRY_NOT_FOUND));
 
-        if (inquiryOptional.isPresent()) {
-            inquiryRepository.deleteById(inquiryId);
-            return true;
-        } else {
-            return false; // 삭제 대상이 없음
-        }
+        inquiryRepository.deleteById(inquiryId);
     }
 
     // 문의 답변 등록
@@ -450,9 +477,9 @@ public class AdminService {
                 .orElseThrow(() -> new IllegalArgumentException("Invalid inquiry ID: " + inquiryReply.getInquiryId()));
 
         inquiry.updateStatus(true);  // 문의 상태를 1 (답변 완료)로 변경
-
         return inquiryReplyRepository.save(inquiryReply);
     }
+
     // 문의 답변 등록 - response
     public InquiryCommonDto.InquiryDetailsDto getInquiryDetails(Long inquiryReplyId) {
         return inquiryRepository.findInquiryDetailsByInquiryReplyId(inquiryReplyId);
@@ -460,15 +487,10 @@ public class AdminService {
 
     // 문의 답변 삭제
     @Transactional
-    public boolean deleteInquiryReply(Long inquiryReplyId) {
-        Optional<InquiryReply> inquiryReplyOptional = inquiryReplyRepository.findById(inquiryReplyId);
-
-        if (inquiryReplyOptional.isPresent()) {
-            inquiryReplyRepository.deleteById(inquiryReplyId);
-            return true;
-        } else {
-            return false; // 삭제 대상이 없을 때
-        }
+    public void deleteInquiryReply(Long inquiryReplyId) {
+        InquiryReply inquiryReply = inquiryReplyRepository.findById(inquiryReplyId)
+                .orElseThrow(()-> new NotFoundException(REPLY_NOT_FOUND));
+        inquiryReplyRepository.deleteById(inquiryReplyId);
     }
 
     @Transactional
@@ -497,10 +519,9 @@ public class AdminService {
                 orderDetailState = OrderDetailState.RETURN_COMPLETE;
                 break;
             default:
-                System.out.println("잘못된 주문 상태입니다.");
+                throw new NotFoundException(STATE_NOT_FOUND);
         }
         orderDetailRepository.updateOrderDetailState(detailId, orderDetailState);
-
     }
 
     // 옵션 삭제
@@ -521,7 +542,6 @@ public class AdminService {
         for (Product product : products) {
             result.add(new ProductResDto.ProductListAdminResDto(product, category, options, imgs));
         }
-
         return result;
     }
 
@@ -559,9 +579,7 @@ public class AdminService {
 
         // String -> Enum 으로 형변환
         Role role = Role.valueOf(newRole.getNewRole().toUpperCase());
-
         user.changeRole(role);
-
         userRepository.save(user); // 변경된 역할을 저장
     }
 
@@ -668,7 +686,9 @@ public class AdminService {
         return orderRepository.getOrderDetailStateCounts();
     }
 
-    public Page<OrderListAdminResDto> getOrdersByStatus(String status, Pageable pageable) {
+    public Page<OrderListAdminResDto> getOrdersByStatus(String status, int pageNo) {
+        pageNo = pageVaildation(pageNo);
+        Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
         try {
             OrderDetailState orderStatus = OrderDetailState.fromLabel(status);
             if(orderStatus == null) {
@@ -681,6 +701,11 @@ public class AdminService {
             throw new RuntimeException("주문 목록 조회 중 오류 발생", e);
         }
     }
-    // --- 배송 목록 조회 ---
+
+    // 페이지 번호 유효성 검사 메소드
+    public int pageVaildation(int page){
+        page = page > 0 ? page - 1 : page;
+        return page;
+    }
 
 }

@@ -4,12 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+
+import static com.dmarket.exception.ErrorCode.UNAUTHORIZED;
 
 @Component
 public class JWTUtil {
@@ -42,7 +45,9 @@ public class JWTUtil {
     }
 
     public String getToken(String header) {
-        if (header == null) throw new IllegalArgumentException("헤더에 Authorization이 없습니다.");
+        if (header == null) {
+            throw new IllegalArgumentException("헤더에 Authorization이 없습니다.");
+        }
         if (!header.startsWith("Bearer")) throw new IllegalArgumentException("토큰이 Bearer로 시작하지 않습니다.");
 
         return header.substring("Bearer ".length());
