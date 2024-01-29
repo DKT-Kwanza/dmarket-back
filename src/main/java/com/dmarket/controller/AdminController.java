@@ -138,7 +138,10 @@ public class AdminController {
     @PostMapping("/board/faq")
     public ResponseEntity<?> postFaq(@Valid @RequestBody FaqReqDto faqReqDto) {
         // FAQ 등록
-        FaqType faqType = faqReqDto.getFaqType();
+        FaqType faqType = FaqType.fromLabel(faqReqDto.getFaqType());
+        if(faqType == null) {
+            throw new IllegalArgumentException("유효하지 않은 문의 유형: " + faqReqDto.getFaqType());
+        }
         String faqQuestion = faqReqDto.getFaqTitle();
         String faqAnswer = faqReqDto.getFaqContents();
         Long faqId = adminService.postFaq(faqType, faqQuestion, faqAnswer);

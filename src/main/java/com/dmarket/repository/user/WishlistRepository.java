@@ -21,7 +21,8 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
             " join Product p on w.productId = p.productId " +
             " join ProductImgs pi on p.productId = pi.productId " +
             " where w.userId = :userId" +
-            " group by p.productId, w.wishlistId, p.productName, p.productBrand, p.productSalePrice")
+            " group by p.productId, w.wishlistId, p.productName, p.productBrand, p.productSalePrice" +
+            " order by w.wishlistId desc")
     List<WishlistItemDto> findWishlistItemsByUserId(@Param("userId") Long userId);
 
     void deleteById(@Param("wishlistId") Long wishlistId);

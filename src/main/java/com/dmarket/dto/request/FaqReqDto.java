@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class FaqReqDto {
     @NotNull
-    private FaqType faqType;
+    private String faqType;
     @NotNull
     private String faqTitle;
     @NotNull

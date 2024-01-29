@@ -6,6 +6,7 @@ import com.dmarket.constant.OrderDetailState;
 import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.board.Inquiry;
 import com.dmarket.domain.order.Order;
+import com.dmarket.domain.order.OrderDetail;
 import com.dmarket.domain.order.Return;
 import com.dmarket.domain.user.*;
 import com.dmarket.dto.common.*;
@@ -371,7 +372,7 @@ public class UserService {
     }
 
     // 사용자 주문 내역 상세 조회
-    public OrderResDto.OrderDetailListResDto getOrderDetailListByOrderId(Long orderId,Long userId) {
+    public OrderResDto.OrderDetailListResDto getOrderDetailListByOrderId(Long userId,Long orderId) {
         List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(orderId);
         Order order = orderRepository.findByOrderId(orderId);
         User user = userRepository.findByUserId(userId);
@@ -390,10 +391,12 @@ public class UserService {
         Long orderCancelCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_CANCEL);
         Long returnCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_REQUEST) +
                 orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_COMPLETE);
-        for (Order order : orders) {
+        for (int i = orders.size() - 1; i >= 0; i--) {
+            Order order = orders.get(i);
             List<ProductCommonDto.ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
             orderList.add(new OrderCommonDto.OrderListDto(order, productDetailListDtos));
         }
+
 
         OrderResDto.OrderListResDto orderListResDto = new OrderResDto.OrderListResDto();
 
@@ -443,6 +446,8 @@ public class UserService {
     public OrderResDto.OrderDetailListResDto postOrderReturn(Long orderDetailId, String returnContents){
         // orderstate를 환불 요청으로 바꾸고 시간 현재시간으로 변경
         orderDetailRepository.updateOrderDetailUpdateDateAndOrderDetailStateByOrderDetailId(orderDetailId, OrderDetailState.RETURN_REQUEST);
+        OrderDetail orderDetail = orderDetailRepository.findByOrderDetailId(orderDetailId);
+        orderDetail.updateOrderDetailUpdateDate();
 
         // 환불 테이블에 저장
         Return returns = Return.builder()
@@ -465,6 +470,8 @@ public class UserService {
     public OrderResDto.OrderDetailListResDto postOrderCancel(Long orderId, Long orderDetailId, Long userId) {
         // orderstate를 주문취소로 바꾸고 시간 현재시간으로 변경
         orderDetailRepository.updateOrderDetailUpdateDateAndOrderDetailStateByOrderDetailId(orderDetailId, OrderDetailState.ORDER_CANCEL);
+        OrderDetail orderDetail = orderDetailRepository.findByOrderDetailId(orderDetailId);
+        orderDetail.updateOrderDetailUpdateDate();
 
         // 계산값 적용
         Integer orderDetailSalePrice = orderDetailRepository.orderDetailTotalSalePrice(orderDetailId);
