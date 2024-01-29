@@ -117,10 +117,27 @@ public class AdminController {
     }
 
     // faq 조회
+//    @GetMapping("/board/faq")
+//    public ResponseEntity<?> getFaqs(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
+//                                     @RequestParam(required = false, value = "type") FaqType faqType) {
+//        Page<Faq> faqsPage = adminService.getAllFaqs(faqType, pageNo);
+//        Page<FaqResDto.FaqListResDto> mappedFaqs = adminService.mapToFaqListResDto(faqsPage);
+//
+//        CMResDto<?> response = CMResDto.successDataRes(mappedFaqs);
+//        return new ResponseEntity<>(response, HttpStatus.OK);
+//    }
+
     @GetMapping("/board/faq")
     public ResponseEntity<?> getFaqs(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
-                                     @RequestParam(required = false, value = "type") FaqType faqType) {
-        Page<Faq> faqsPage = adminService.getAllFaqs(faqType, pageNo);
+                                     @RequestParam(required = false, value = "type") String type) {
+        FaqType faqType = null;
+        if (type != null) {
+            faqType = FaqType.fromLabel(type);
+            if(faqType == null) {
+                throw new IllegalArgumentException("유효하지 않은 문의 유형: " + type);
+            }
+        }
+        Page<Faq> faqsPage = adminService.getAllFaqs(FaqType.fromLabel(type) , pageNo);
         Page<FaqResDto.FaqListResDto> mappedFaqs = adminService.mapToFaqListResDto(faqsPage);
 
         CMResDto<?> response = CMResDto.successDataRes(mappedFaqs);
