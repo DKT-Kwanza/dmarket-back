@@ -12,6 +12,7 @@ import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.OrderCommonDto;
 import com.dmarket.dto.common.ProductCommonDto;
 import lombok.*;
+import org.springframework.data.domain.Page;
 
 @Data
 @Getter
