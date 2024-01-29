@@ -6,6 +6,7 @@ import com.dmarket.constant.OrderDetailState;
 import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.board.Inquiry;
 import com.dmarket.domain.order.Order;
+import com.dmarket.domain.order.OrderDetail;
 import com.dmarket.domain.order.Return;
 import com.dmarket.domain.user.*;
 import com.dmarket.dto.common.*;
