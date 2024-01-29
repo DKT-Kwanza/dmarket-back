@@ -340,28 +340,31 @@ public class AdminController {
     @PostMapping("/board/faq")
     public ResponseEntity<?> postFaq(@Valid @RequestBody FaqReqDto faqReqDto,
             BindingResult bindingResult) {
-        try {
-            // request body 유효성 확인
-            bindingResultErrorsCheck(bindingResult);
+                try {
+                    FaqType faqType = FaqType.fromLabel(faqReqDto.getFaqType());
+                    if(faqType == null) {
+                        throw new IllegalArgumentException("유효하지 않은 문의 유형: " + faqReqDto.getFaqType());
+                    }
+                    // request body 유효성 확인
+                    bindingResultErrorsCheck(bindingResult);
 
-            // FAQ 등록
-            FaqType faqType = faqReqDto.getFaqType();
-            String faqQuestion = faqReqDto.getFaqTitle();
-            String faqAnswer = faqReqDto.getFaqContents();
-            Long faqId = adminService.postFaq(faqType, faqQuestion, faqAnswer);
+                    // FAQ 등록
+                    String faqQuestion = faqReqDto.getFaqTitle();
+                    String faqAnswer = faqReqDto.getFaqContents();
+                    Long faqId = adminService.postFaq(faqType, faqQuestion, faqAnswer);
 
-            FaqResDto.FaqListResDto faqListResDto = new FaqResDto.FaqListResDto(faqId, faqType, faqQuestion, faqAnswer);
+                    FaqResDto.FaqListResDto faqListResDto = new FaqResDto.FaqListResDto(faqId, faqType, faqQuestion, faqAnswer);
 
-            return new ResponseEntity<>(CMResDto.builder()
-                    .code(200).msg("FAQ 등록 완료").data(faqListResDto).build(), HttpStatus.OK);
-        } catch (RuntimeException e) {
-            log.warn(e.getMessage(), e.getCause());
-            return new ResponseEntity<>(CMResDto.builder()
-                    .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            return new ResponseEntity<>(CMResDto.builder()
-                    .code(400).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
-        }
+                    return new ResponseEntity<>(CMResDto.builder()
+                            .code(200).msg("FAQ 등록 완료").data(faqListResDto).build(), HttpStatus.OK);
+                } catch (RuntimeException e) {
+                    log.warn(e.getMessage(), e.getCause());
+                    return new ResponseEntity<>(CMResDto.builder()
+                            .code(400).msg("유효하지 않은 요청 메시지").data(e.getMessage()).build(), HttpStatus.BAD_REQUEST);
+                } catch (Exception e) {
+                    return new ResponseEntity<>(CMResDto.builder()
+                            .code(400).msg("서버 내부 오류").build(), HttpStatus.BAD_REQUEST);
+                }
     }
 
     // 상품 수정
