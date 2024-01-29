@@ -463,6 +463,9 @@ public class AdminService {
         Inquiry inquiryOptional = inquiryRepository.findById(inquiryId)
                 .orElseThrow(() -> new NotFoundException(INQUIRY_NOT_FOUND));
 
+        // 해당 문의의 답변을 모두 삭제
+        inquiryReplyRepository.deleteByInquiryId(inquiryId);
+
         inquiryRepository.deleteById(inquiryId);
     }
 
@@ -471,7 +474,12 @@ public class AdminService {
     public InquiryReply createInquiryReply(InquiryReply inquiryReply) {
         // 문의 아이디와 일치하지 않으면 등록하지 않음
         Inquiry inquiry = inquiryRepository.findById(inquiryReply.getInquiryId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid inquiry ID: " + inquiryReply.getInquiryId()));
+                .orElseThrow(() -> new IllegalArgumentException("문의 아이디와 일치하지 않음, inquiry ID: " + inquiryReply.getInquiryId()));
+
+        // 이미 답변이 등록된 문의인지 확인
+        if (inquiry.getInquiryState()) {
+            throw new IllegalArgumentException("이미 답변이 등록된 문의, inquiry ID: " + inquiryReply.getInquiryId());
+        }
 
         inquiry.updateStatus(true);  // 문의 상태를 1 (답변 완료)로 변경
         return inquiryReplyRepository.save(inquiryReply);
@@ -487,6 +495,12 @@ public class AdminService {
     public void deleteInquiryReply(Long inquiryReplyId) {
         InquiryReply inquiryReply = inquiryReplyRepository.findById(inquiryReplyId)
                 .orElseThrow(() -> new NotFoundException(REPLY_NOT_FOUND));
+
+        // inquiry State false 로 변경
+        Inquiry inquiry = inquiryRepository.findById(inquiryReply.getInquiryId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid inquiry ID: " + inquiryReply.getInquiryId()));
+        inquiry.updateStatus(false);
+
         inquiryReplyRepository.deleteById(inquiryReplyId);
     }
 
@@ -704,5 +718,13 @@ public class AdminService {
         page = page > 0 ? page - 1 : page;
         return page;
     }
+
+    // 문의 내역 상세 조회
+    @Transactional
+    public InquiryResDto.InquiryDetailResDto getInquiryDetail(Long inquiryId) {
+        return inquiryRepository.findInquiryDetailById(inquiryId)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 문의 ID: " + inquiryId));
+    }
+
 
 }

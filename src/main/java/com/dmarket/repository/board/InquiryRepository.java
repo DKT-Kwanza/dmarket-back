@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
 
@@ -43,4 +45,15 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
             "LEFT JOIN User u ON i.userId = u.userId " +
             "WHERE ir.inquiryReplyId = :inquiryReplyId")
     InquiryCommonDto.InquiryDetailsDto findInquiryDetailsByInquiryReplyId(@Param("inquiryReplyId") Long inquiryReplyId);
+
+    //문의 내역 상세 조회
+    @Query("SELECT new com.dmarket.dto.response.InquiryResDto$InquiryDetailResDto(" +
+            "i.inquiryId, i.inquiryTitle, i.inquiryContents, i.inquiryType, i.inquiryState, i.inquiryImg, i.inquiryCreatedDate, u.userName, ir.inquiryReplyId," +
+            "ir.inquiryReplyContents, ir.inquiryReplyDate) " +
+            "FROM Inquiry i " +
+            "LEFT JOIN InquiryReply ir ON i.inquiryId = ir.inquiryId " +
+            "LEFT JOIN User u ON i.userId = u.userId " +
+            "WHERE i.inquiryId = :inquiryId")
+    Optional<InquiryResDto.InquiryDetailResDto> findInquiryDetailById(@Param("inquiryId") Long inquiryId);
+
 }

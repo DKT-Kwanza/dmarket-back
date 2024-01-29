@@ -382,4 +382,14 @@ public class AdminController {
         return new ResponseEntity<>(CMResDto.successDataRes(responseData), HttpStatus.OK);
     }
 
+    // 문의 내역 상세 조회
+    @GetMapping("/board/inquiry/{inquiryId}")
+    public ResponseEntity<?> getInquiryDetail(@PathVariable Long inquiryId) {
+        InquiryResDto.InquiryDetailResDto inquiryDetail = adminService.getInquiryDetail(inquiryId);
+        CMResDto<?> response = CMResDto.successDataRes(inquiryDetail);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+
 }
