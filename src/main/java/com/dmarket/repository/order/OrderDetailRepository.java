@@ -12,8 +12,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> {
@@ -95,6 +97,25 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
         List<Object[]> findOrderCancelResDtosByOrderDetailState(@Param("orderCancelState") OrderDetailState orderCancelState);
 
 
+        // 시간업데이트 및 상태변경
+        @Modifying
+        @Query(value = "update OrderDetail od " +
+                "set od.orderDetailState = :orderDetailState " +
+                "where od.orderDetailId = :orderDetailId")
+        void updateOrderDetailUpdateDateAndOrderDetailStateByOrderDetailId(@Param("orderDetailId") Long orderDetailId, @Param("orderDetailState") OrderDetailState orderDetailState);
+
+
+        // 주문 상세 번호에 따른 상품 판매가격
+        @Query(value = "select od.orderDetailSalePrice " +
+                "from OrderDetail od " +
+                "where od.orderDetailId = :orderDetailId")
+        Integer orderDetailTotalSalePrice(@Param("orderDetailId") Long orderDetailId);
+
+        // 주문 상세 번호에 따른 상품 정상가
+        @Query(value = "select od.orderDetailPrice " +
+                "from OrderDetail od " +
+                "where od.orderDetailId = :orderDetailId")
+        Integer orderDetailTotalPrice(@Param("orderDetailId") Long orderDetailId);
 
         // null 값 처리를 위해 메서드 수정
         default Long safeCountOrderDetailByUserIdAndOrderDetailState(Long userId, OrderDetailState orderDetailState) {

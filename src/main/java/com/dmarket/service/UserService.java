@@ -1,10 +1,16 @@
 package com.dmarket.service;
 
+import com.dmarket.domain.order.Order;
 import com.dmarket.jwt.JWTUtil;
 import com.dmarket.constant.MileageReqState;
 import com.dmarket.constant.MileageContents;
 import com.dmarket.constant.OrderDetailState;
+import com.dmarket.constant.ReturnState;
+import com.dmarket.domain.order.OrderDetail;
+import com.dmarket.domain.order.Return;
+import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.*;
+//import com.dmarket.dto.request.UserAddressReqDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.dto.request.*;
 import com.dmarket.domain.board.Inquiry;
@@ -12,8 +18,8 @@ import com.dmarket.domain.user.Mileage;
 import com.dmarket.domain.user.MileageReq;
 import com.dmarket.domain.user.Cart;
 import com.dmarket.domain.user.Wishlist;
-import com.dmarket.domain.order.Order;
-import com.dmarket.domain.user.User;
+//import com.dmarket.dto.request.JoinReqDto;
+import com.dmarket.repository.order.ReturnRepository;
 import com.dmarket.repository.user.*;
 import com.dmarket.repository.board.InquiryRepository;
 import com.dmarket.repository.order.OrderDetailRepository;
@@ -22,8 +28,11 @@ import com.dmarket.repository.product.QnaRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.CurrentTimestamp;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.auditing.CurrentDateTimeProvider;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -59,6 +68,7 @@ public class UserService {
     private final JWTUtil jwtUtil;
     private final MailService mailService;
     private final RedisService redisService;
+    private final ReturnRepository returnRepository;
 
     @Value("${spring.mail.auth-code-expiration-millis}")
     private long authCodeExpirationMillis;
@@ -441,4 +451,50 @@ public class UserService {
         return orderListResDto;
     }
 
+    // 주문 취소
+//    @Transactional
+//    public Long postOrderCancel(Long orderId, Long orderDetailId){
+//
+//    }
+
+    // 환불 요청
+    @Transactional
+    public OrderResDto.OrderDetailListResDto postOrderReturn(Long orderDetailId, String returnContents){
+        // orderstate를 환불 요청으로 바꾸고 시간 현재시간으로 변경
+        orderDetailRepository.updateOrderDetailUpdateDateAndOrderDetailStateByOrderDetailId(orderDetailId, OrderDetailState.RETURN_REQUEST);
+
+        // 환불 테이블에 저장
+        Return returns = Return.builder()
+                .orderDetailId(orderDetailId)
+                .returnReason(returnContents)
+                .returnState(ReturnState.RETURN_REQUEST)
+                .build();
+        Return saveReturn = returnRepository.save(returns);
+
+
+
+        // Response 저장..?
+        Order order = orderRepository.findByOrderDetailId(orderDetailId);
+        User user = userRepository.findByUserId(order.getUserId());
+        List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
+        return new OrderResDto.OrderDetailListResDto(order, user, productDetailList);
+    }
+
+    @Transactional
+    public OrderResDto.OrderDetailListResDto postOrderCancel(Long orderId, Long orderDetailId, Long userId) {
+        // orderstate를 주문취소로 바꾸고 시간 현재시간으로 변경
+        orderDetailRepository.updateOrderDetailUpdateDateAndOrderDetailStateByOrderDetailId(orderDetailId, OrderDetailState.ORDER_CANCEL);
+
+        // 계산값 적용
+        Integer orderDetailSalePrice = orderDetailRepository.orderDetailTotalSalePrice(orderDetailId);
+        Integer orderDetailPrice = orderDetailRepository.orderDetailTotalPrice(orderDetailId);
+        orderRepository.updateOrderTotalPrice(orderId,  orderDetailSalePrice, orderDetailPrice);
+        // 마일리지 적립
+        userRepository.updateUserMileageByCancel(userId, orderDetailSalePrice);
+
+        Order order = orderRepository.findByOrderDetailId(orderDetailId);
+        User user = userRepository.findByUserId(userId);
+        List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
+        return new OrderResDto.OrderDetailListResDto(order, user, productDetailList);
+    }
 }
