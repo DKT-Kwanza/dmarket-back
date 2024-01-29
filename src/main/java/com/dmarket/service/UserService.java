@@ -390,7 +390,7 @@ public class UserService {
     }
 
     // 사용자 주문 내역 상세 조회
-    public OrderResDto.OrderDetailListResDto getOrderDetailListByOrderId(Long orderId,Long userId) {
+    public OrderResDto.OrderDetailListResDto getOrderDetailListByOrderId(Long userId,Long orderId) {
         List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(orderId);
         Order order = orderRepository.findByOrderId(orderId);
         User user = userRepository.findByUserId(userId);
