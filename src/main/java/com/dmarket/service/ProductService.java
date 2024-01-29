@@ -73,7 +73,7 @@ public class ProductService {
     // 최신 상품 조회 - 매핑
     public List<Object> mapToResponseFormat(List<ProductResDto.NewProductResDto> latestProducts) {
         return latestProducts.stream()
-                .limit(8).map(product -> new Object() {
+                .limit(16).map(product -> new Object() {
                     public final Long productId = product.getProductId();
                     public final String productBrand = product.getProductBrand();
                     public final String productName = product.getProductName();

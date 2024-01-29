@@ -668,13 +668,13 @@ public class AdminService {
         return orderRepository.getOrderDetailStateCounts();
     }
 
-    public List<OrderListAdminResDto> getOrdersByStatus(String status) {
+    public Page<OrderListAdminResDto> getOrdersByStatus(String status, Pageable pageable) {
         try {
             OrderDetailState orderStatus = OrderDetailState.fromLabel(status);
             if(orderStatus == null) {
                 throw new IllegalArgumentException("유효하지 않은 주문 상태: " + status);
             }
-            return orderDetailRepository.findByStatus(orderStatus);
+            return orderDetailRepository.findByStatus(orderStatus, pageable);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("유효하지 않은 주문 상태: " + status);
         } catch (Exception e) {

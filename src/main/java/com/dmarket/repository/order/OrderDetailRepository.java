@@ -8,6 +8,8 @@ import com.dmarket.dto.response.OrderResDto;
 import com.dmarket.dto.response.ReviewResDto;
 import com.dmarket.dto.response.*;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -137,7 +139,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
                 "  (SELECT min(pi2.imgId) FROM ProductImgs pi2 WHERE pi2.productId = p.productId) " +
                 "WHERE od.orderDetailState = :status " +
                 "ORDER BY od.orderDetailUpdatedDate DESC")
-        List<OrderListAdminResDto> findByStatus(@Param("status") OrderDetailState status);
+        Page<OrderListAdminResDto> findByStatus(@Param("status") OrderDetailState status, Pageable pageable);
 
 
 
