@@ -1,16 +1,17 @@
 package com.dmarket.dto.request;
+
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.validator.constraints.URL;
 
 import java.util.List;
-
-import org.hibernate.validator.constraints.URL;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductReqDto {
+
     @NotNull
     private Long productId;
 

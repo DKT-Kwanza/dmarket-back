@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MileageRepository extends JpaRepository<Mileage, Long> {
+
     // 사용자의 마일리지 내역 조회
     Page<Mileage> findByUserId(Pageable pageable, Long userId);
 }

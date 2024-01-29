@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.springframework.data.domain.Page;
 
 public class ReturnResDto {
+
     @Data
     @Getter
     @Setter

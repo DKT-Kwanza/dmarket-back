@@ -73,9 +73,10 @@ public class UserController {
 
     // 위시리스트 조회
     @GetMapping("/{userId}/wish")
-    public ResponseEntity<?> getWishlistByUserId(@PathVariable(name = "userId") Long userId) {
+    public ResponseEntity<?> getWishlistByUserId(@PathVariable(name = "userId") Long userId,
+                                                 @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
 
-        WishlistResDto wishlist = userService.getWishlistByUserId(userId);
+        WishlistResDto wishlist = userService.getWishlistByUserId(userId, pageNo);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(wishlist), HttpStatus.OK);
     }
@@ -238,9 +239,10 @@ public class UserController {
 
     // 작성한 고객 문의 목록
     @GetMapping("/{userId}/mypage/inquiry")
-    public ResponseEntity<?> getUserInquiryAllByUserId(@PathVariable(name = "userId") Long userId) {
+    public ResponseEntity<?> getUserInquiryAllByUserId(@PathVariable(name = "userId") Long userId,
+                                                       @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
 
-        List<InquiryResDto.UserInquiryAllResDto> userInquiryAllResDtos = userService.getUserInquiryAllbyUserId(userId);
+        Page<InquiryResDto.UserInquiryAllResDto> userInquiryAllResDtos = userService.getUserInquiryAllbyUserId(userId, pageNo);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(userInquiryAllResDtos), HttpStatus.OK);
     }
@@ -248,17 +250,19 @@ public class UserController {
     // 사용자 주문 내역 상세 조회 USER-031
     @GetMapping("/{userId}/mypage/orders/{orderId}")
     public ResponseEntity<?> getUserOrderDetailListByOrderId(@PathVariable(name = "userId") Long userId,
-                                                             @PathVariable(name = "orderId") Long orderId) {
-        OrderResDto.OrderDetailListResDto userOrderDetailResDtos = userService.getOrderDetailListByOrderId(userId, orderId);
+                                                             @PathVariable(name = "orderId") Long orderId,
+                                                             @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
+        Page<OrderResDto.OrderDetailListResDto> userOrderDetailResDtos = userService.getOrderDetailListByOrderId(userId, orderId, pageNo);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(userOrderDetailResDtos), HttpStatus.OK);
     }
 
     // 주문 / 배송 내역 조회 : USER-030
     @GetMapping("/{userId}/mypage/orders")
-    public ResponseEntity<?> getUserOrderList(@PathVariable(name = "userId") Long userId) {
+    public ResponseEntity<?> getUserOrderList(@PathVariable(name = "userId") Long userId,
+                                              @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
 
-        OrderResDto.OrderListResDto userOrderListResDtos = userService.getOrderListResByUserId(userId);
+        OrderResDto.OrderListResDto userOrderListResDtos = userService.getOrderListResByUserId(userId, pageNo);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(userOrderListResDtos), HttpStatus.OK);
     }
@@ -266,10 +270,11 @@ public class UserController {
     // 주문 취소 요청
     @PostMapping("/{userId}/mypage/order/cancel")
     public ResponseEntity<?> postOrderCancel(@PathVariable(name = "userId") Long userId,
-                                             @Valid @RequestBody OrderCancelReqDto orderCancelReqDto) {
+                                             @Valid @RequestBody OrderCancelReqDto orderCancelReqDto,
+                                             @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
 
 
-        OrderResDto.OrderDetailListResDto orderDetailListResDto = userService.postOrderCancel(orderCancelReqDto.getOrderId(), orderCancelReqDto.getOrderDetailId(), userId);
+        OrderResDto.OrderDetailListResDto orderDetailListResDto = userService.postOrderCancel(orderCancelReqDto.getOrderId(), orderCancelReqDto.getOrderDetailId(), userId, pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(orderDetailListResDto), HttpStatus.OK);
 
     }
@@ -277,9 +282,10 @@ public class UserController {
     // 반품 요청(신청)
     @PostMapping("/{userId}/mypage/order/return")
     public ResponseEntity<?> postOrderReturn(@PathVariable(name = "userId") Long userId,
-                                             @Valid @RequestBody OrderReturnReqDto orderReturnReqDto) {
+                                             @Valid @RequestBody OrderReturnReqDto orderReturnReqDto,
+                                             @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
 
-        OrderResDto.OrderDetailListResDto orderDetailListResDto = userService.postOrderReturn(orderReturnReqDto.getOrderDetailId(), orderReturnReqDto.getReturnContents());
+        OrderResDto.OrderDetailListResDto orderDetailListResDto = userService.postOrderReturn(orderReturnReqDto.getOrderDetailId(), orderReturnReqDto.getReturnContents(), pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(orderDetailListResDto), HttpStatus.OK);
     }
 }

@@ -24,6 +24,7 @@ import java.util.Map;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
     // validation 체크
     private String bindingResultErrorsCheck(BindingResult bindingResult) {
         Map<String, String> errorMap = new HashMap<>();
@@ -51,7 +52,7 @@ public class GlobalExceptionHandler {
 
     // 잘못된 경로 에러 404
     @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<?> handleNoHandlerFoundException(NoHandlerFoundException e, HttpServletRequest request){
+    public ResponseEntity<?> handleNoHandlerFoundException(NoHandlerFoundException e, HttpServletRequest request) {
         log.error("[NoHandlerFoundException] message: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.NOT_FOUND;
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.NOT_FOUND);
@@ -59,7 +60,7 @@ public class GlobalExceptionHandler {
 
     //Path Value가 없거나 잘못 입력되었을 때 404
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<?> handleNoHandlerFoundException(NoResourceFoundException e, HttpServletRequest request){
+    public ResponseEntity<?> handleNoHandlerFoundException(NoResourceFoundException e, HttpServletRequest request) {
         log.error("[NoResourceFoundException] message: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.NOT_VALID_PATH_VALUE;
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.NOT_FOUND);
@@ -75,7 +76,7 @@ public class GlobalExceptionHandler {
 
     // reqeust param 없을 때
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<?> handleMissingServletRequestParameterException(MissingServletRequestParameterException e){
+    public ResponseEntity<?> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
         log.error("[MissingServletRequestParameterException] message: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.MISSING_REQUEST_PARAM;
         return new ResponseEntity<>(CMResDto.errorWithMsgRes(errorCode, e.getMessage()), HttpStatus.BAD_REQUEST);
@@ -83,7 +84,7 @@ public class GlobalExceptionHandler {
 
     // reqeust param 타입이 안 맞을 때 400
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<?> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e){
+    public ResponseEntity<?> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
         log.error("[MethodArgumentTypeMismatchException] message: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.INVALID_TYPE_REQUEST_VALUE;
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.BAD_REQUEST);
@@ -101,11 +102,11 @@ public class GlobalExceptionHandler {
 
     // IllegalArgumentException
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<?> handleIllegalArgumentException(IllegalArgumentException e){
+    public ResponseEntity<?> handleIllegalArgumentException(IllegalArgumentException e) {
         log.error("[IllegalArgumentException] message: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.BAD_REQUEST;
         String message = e.getMessage();
-        return  new ResponseEntity<>(CMResDto.errorWithMsgRes(errorCode, message), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(CMResDto.errorWithMsgRes(errorCode, message), HttpStatus.BAD_REQUEST);
     }
 
     // 각종 400 에러
@@ -134,7 +135,7 @@ public class GlobalExceptionHandler {
 
     // 위의 경우를 제외한 모든 에러 500
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleException(Exception e){
+    public ResponseEntity<?> handleException(Exception e) {
         log.error("[Exception] message: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.INTERNAL_SERVER_ERROR);

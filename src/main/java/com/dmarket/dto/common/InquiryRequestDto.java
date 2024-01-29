@@ -1,6 +1,5 @@
 package com.dmarket.dto.common;
 
-import com.dmarket.constant.InquiryType;
 import lombok.Data;
 
 @Data

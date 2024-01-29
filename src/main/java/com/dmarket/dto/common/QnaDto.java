@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @Getter
 @AllArgsConstructor
 public class QnaDto {
+
     private Long qnaId;
     private String productName;
     private String qnaTitle;
@@ -16,7 +17,7 @@ public class QnaDto {
     private String qnaStatus;
     private Boolean qnaIsSecret;
 
-    public QnaDto(Long qnaId, String productName, String qnaTitle, String qnaWriter, LocalDateTime qnaCreatedDate, Boolean qnaStatus, Boolean qnaIsSecret){
+    public QnaDto(Long qnaId, String productName, String qnaTitle, String qnaWriter, LocalDateTime qnaCreatedDate, Boolean qnaStatus, Boolean qnaIsSecret) {
         this.qnaId = qnaId;
         this.productName = productName;
         this.qnaTitle = qnaTitle;

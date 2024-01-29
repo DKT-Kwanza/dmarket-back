@@ -9,10 +9,12 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 public class InquiryCommonDto {
+
     @Getter
     @Builder
     @AllArgsConstructor
     public static class InquiryDetailsDto {
+
         private Long inquiryId;
         private String inquiryTitle;
         private String inquiryContents;
@@ -41,12 +43,12 @@ public class InquiryCommonDto {
     @Data
     public static class InquiryRequestDto {
 
-    //    private Long userId;
+        //    private Long userId;
         private InquiryType inquiryType;
         private String inquiryTitle;
         private String inquiryContents;
         private String inquiryImg;
-    //    private Boolean inquiryState;
+        //    private Boolean inquiryState;
 
     }
 }

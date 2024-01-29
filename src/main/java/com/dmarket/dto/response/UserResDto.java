@@ -1,15 +1,14 @@
 package com.dmarket.dto.response;
 
+import com.dmarket.domain.user.User;
+import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import com.dmarket.domain.user.User;
-
-import lombok.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 public class UserResDto {
 
@@ -87,7 +86,7 @@ public class UserResDto {
     }
 
     @RequiredArgsConstructor
-    public static class CustomUserDetails  implements UserDetails {
+    public static class CustomUserDetails implements UserDetails {
 
         private final User userEntity;
 
@@ -114,11 +113,11 @@ public class UserResDto {
             return userEntity.getUserName();
         }
 
-        public Long getUserId(){
+        public Long getUserId() {
             return userEntity.getUserId();
         }
 
-        public String getEmail(){
+        public String getEmail() {
             return userEntity.getUserEmail();
         }
 

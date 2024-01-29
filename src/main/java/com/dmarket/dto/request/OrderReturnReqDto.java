@@ -1,6 +1,5 @@
 package com.dmarket.dto.request;
 
-import com.dmarket.constant.ReturnState;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class OrderReturnReqDto {
+
     @NotNull
     private Long orderDetailId;
     @NotNull

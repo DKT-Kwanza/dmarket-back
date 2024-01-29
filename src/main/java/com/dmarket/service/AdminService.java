@@ -30,10 +30,7 @@ import com.dmarket.repository.user.UserRepository;
 import com.dmarket.repository.user.WishlistRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -86,10 +83,10 @@ public class AdminService {
     }
 
     public List<UserResDto.Search> getUsersFindByDktNum(Integer userDktNum) {
-            List<User> users = userRepository.getUsersFindByUserDktNum(userDktNum);
-    return users.stream()
-            .map(UserResDto.Search::new)
-            .collect(Collectors.toList());
+        List<User> users = userRepository.getUsersFindByUserDktNum(userDktNum);
+        return users.stream()
+                .map(UserResDto.Search::new)
+                .collect(Collectors.toList());
     }
 
     public Page<NoticeResDto> getNotices(int pageNo) {
@@ -116,16 +113,16 @@ public class AdminService {
 
     // 마일리지 충전 요청 내역
     @Transactional
-    public MileageResDto.MileageReqListResDto getMileageRequests(String status, int pageNo){
+    public MileageResDto.MileageReqListResDto getMileageRequests(String status, int pageNo) {
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "mileageReqDate"));
         Page<MileageCommonDto> dtos;
 
-        if(status.equals("PROCESSING")){
+        if (status.equals("PROCESSING")) {
             dtos = mileageReqRepository.findAllByProcessing(pageable);
-        }else if(status.equals("PROCESSED")){
+        } else if (status.equals("PROCESSED")) {
             dtos = mileageReqRepository.findAllByProcessed(pageable);
-        }else{
+        } else {
             throw new BadRequestException(INVALID_STATE_PARAM);
         }
         List<MileageCommonDto.MileageReqListDto> mileageRequests = dtos.getContent().stream()
@@ -136,9 +133,9 @@ public class AdminService {
 
     // 마일리지 충전 요청 처리
     @Transactional
-    public void approveMileageReq(Long mileageReqId, boolean request){
+    public void approveMileageReq(Long mileageReqId, boolean request) {
         MileageReq mileageReq = findMileageReqById(mileageReqId);
-        if(request){
+        if (request) {
             mileageReq.updateState(MileageReqState.APPROVAL);
             User user = findUserById(mileageReq.getUserId());
             user.updateMileage(mileageReq.getMileageReqAmount());
@@ -295,7 +292,7 @@ public class AdminService {
     // 상품 QnA 상세(개별) 조회
     public QnaResDto.QnaDetailResDto getQnADetail(Long qnaId) {
         return qnaRepository.findQnaAndReply(qnaId)
-                .orElseThrow(()-> new NotFoundException(QNA_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(QNA_NOT_FOUND));
     }
 
     // 상품 QnA 답변 작성
@@ -304,7 +301,7 @@ public class AdminService {
         // QnA 존재 확인
         Qna qna = qnaRepository.findById(qnaId).orElseThrow(() -> new NotFoundException(QNA_NOT_FOUND));
         // 답변 있는지 확인
-        if(qna.getQnaState()){
+        if (qna.getQnaState()) {
             throw new ConflictException(ALREADY_SAVED_REPLY);
         }
         // 답변 저장
@@ -322,12 +319,12 @@ public class AdminService {
 
     // 상품 QnA 답변 삭제
     @Transactional
-    public QnaResDto.QnaDetailResDto deleteQnaReply(Long qnaReplyId){
+    public QnaResDto.QnaDetailResDto deleteQnaReply(Long qnaReplyId) {
         // QnA 번호 가져오기
         Long qnaId = qnaReplyRepository.findQnaIdByQnaReplyId(qnaReplyId);
 
         // 답변 존재하지 않으면 에러
-        if (qnaId == null){
+        if (qnaId == null) {
             throw new NotFoundException(REPLY_NOT_FOUND);
         }
 
@@ -377,7 +374,7 @@ public class AdminService {
                 .orElseThrow(() -> new NotFoundException(RETURN_NOT_FOUND));
 
         // returnState 가 " 완료" 상태인 경우 환불 테이블에 state = 0으로 추가
-        if(returnState == ReturnState.COLLECT_COMPLETE.label){
+        if (returnState == ReturnState.COLLECT_COMPLETE.label) {
             Refund refund = new Refund(returnId, false); // 초기 refundState는 false로 설정
             refundRepository.save(refund);
         }
@@ -464,7 +461,7 @@ public class AdminService {
     @Transactional
     public void deleteInquiry(Long inquiryId) {
         Inquiry inquiryOptional = inquiryRepository.findById(inquiryId)
-                .orElseThrow(()-> new NotFoundException(INQUIRY_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(INQUIRY_NOT_FOUND));
 
         // 해당 문의의 답변을 모두 삭제
         inquiryReplyRepository.deleteByInquiryId(inquiryId);
@@ -497,7 +494,7 @@ public class AdminService {
     @Transactional
     public void deleteInquiryReply(Long inquiryReplyId) {
         InquiryReply inquiryReply = inquiryReplyRepository.findById(inquiryReplyId)
-                .orElseThrow(()-> new NotFoundException(REPLY_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(REPLY_NOT_FOUND));
 
         // inquiry State false 로 변경
         Inquiry inquiry = inquiryRepository.findById(inquiryReply.getInquiryId())
@@ -545,18 +542,19 @@ public class AdminService {
     }
 
     // 상품 목록 조회
-    public List<ProductResDto.ProductListAdminResDto> getProductListByCateogryId(Long categoryId) {
+    public Page<ProductResDto.ProductListAdminResDto> getProductListByCateogryId(Long categoryId, int pageNo) {
         List<Product> products = categoryRepository.findProductsByCategoryId(categoryId);
         Category category = categoryRepository.findByCategoryId(categoryId);
-        List<ProductCommonDto.ProductOptionListDto> options = categoryRepository.findOptionsByCategoryId(categoryId);
         List<String> imgs = categoryRepository.findImgsByCategoryId(categoryId);
 
         // 제품 목록을 처리하고 DTO 목록을 만듭니다.
         List<ProductResDto.ProductListAdminResDto> result = new ArrayList<>();
         for (Product product : products) {
+            List<ProductCommonDto.ProductOptionListDto> options = categoryRepository.findOptionsByCategoryId(product.getProductId());
             result.add(new ProductResDto.ProductListAdminResDto(product, category, options, imgs));
         }
-        return result;
+        return new PageImpl<>(result);
+
     }
 
     // 관리자 전체 조회
@@ -588,7 +586,7 @@ public class AdminService {
 
     // 권한 변경
     @Transactional
-    public void changeRole(Long userId, UserReqDto.ChangeRole newRole){
+    public void changeRole(Long userId, UserReqDto.ChangeRole newRole) {
         User user = userRepository.findByUserId(userId);
 
         // String -> Enum 으로 형변환
@@ -600,12 +598,12 @@ public class AdminService {
 
     // 사용자 검색
     @Transactional
-    public UserResDto.SearchUser searchUser(Integer dktNum){
+    public UserResDto.SearchUser searchUser(Integer dktNum) {
         User userdata = userRepository.findByUserDktNum(dktNum);
 
         UserResDto.SearchUser searchUserDto = userdata.toUserInfoRes();
 
-        return searchUserDto ;
+        return searchUserDto;
     }
 
     // 마일리지 환불
@@ -614,7 +612,7 @@ public class AdminService {
         Integer percent = refundReqDto.getRefundPercent();
         Long returnId = refundReqDto.getReturnId();
         Integer price = orderDetailRepository.getOrderDetailSalePriceFindByReturnId(returnId);
-        Integer amount = (int) (price * percent /100);
+        Integer amount = (int) (price * percent / 100);
         orderDetailRepository.updateReturnCompleteByReturnId(returnId, OrderDetailState.RETURN_COMPLETE);
         refundRepository.updateRefundCompleteByReturnId(returnId);
         userRepository.updateUserMileageByReturnId(returnId, amount);
@@ -622,7 +620,7 @@ public class AdminService {
 
     // 취소 목록 조회
     @Transactional
-    public List<OrderResDto.OrderCancelResDto> orderCancle(){
+    public List<OrderResDto.OrderCancelResDto> orderCancle() {
         return orderDetailRepository.findOrderCancelResDtosByOrderDetailState(OrderDetailState.ORDER_CANCEL)
                 .stream()
                 .map(row -> new OrderResDto.OrderCancelResDto(
@@ -694,7 +692,6 @@ public class AdminService {
     }
 
 
-
     // 배송 목록 조회
     public OrderCommonDto.OrderDetailStateCountsDto getOrderDetailStateCounts() {
         return orderRepository.getOrderDetailStateCounts();
@@ -705,7 +702,7 @@ public class AdminService {
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
         try {
             OrderDetailState orderStatus = OrderDetailState.fromLabel(status);
-            if(orderStatus == null) {
+            if (orderStatus == null) {
                 throw new IllegalArgumentException("유효하지 않은 주문 상태: " + status);
             }
             return orderDetailRepository.findByStatus(orderStatus, pageable);
@@ -717,7 +714,7 @@ public class AdminService {
     }
 
     // 페이지 번호 유효성 검사 메소드
-    public int pageVaildation(int page){
+    public int pageVaildation(int page) {
         page = page > 0 ? page - 1 : page;
         return page;
     }

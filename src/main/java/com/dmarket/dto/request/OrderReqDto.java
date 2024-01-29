@@ -6,13 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 public class OrderReqDto {
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-
     public static class OrderStatusReqDto {
+
         @NotNull
         private String orderStatus;
-
     }
 }

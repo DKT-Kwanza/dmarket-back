@@ -14,4 +14,3 @@ public enum MileageContents {
         this.label = label;
     }
 }
-

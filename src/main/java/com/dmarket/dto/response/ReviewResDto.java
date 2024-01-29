@@ -1,11 +1,13 @@
 package com.dmarket.dto.response;
+
 import com.dmarket.domain.order.*;
 import com.dmarket.domain.product.*;
-
-import java.time.LocalDateTime;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
 @Data
 @Getter
 @NoArgsConstructor
@@ -23,7 +25,7 @@ public class ReviewResDto {
     private LocalDateTime reviewCreatedDate;
     private String reviewImg;
 
-    public ReviewResDto(OrderDetail orderDetail, Product product, ProductImgs productImgs, ProductOption productOption, ProductReview productReview){
+    public ReviewResDto(OrderDetail orderDetail, Product product, ProductImgs productImgs, ProductOption productOption, ProductReview productReview) {
         this.orderDetailId = orderDetail.getOrderDetailId();
         this.orderBrand = product.getProductBrand();
         this.productName = product.getProductName();
