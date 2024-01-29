@@ -464,6 +464,8 @@ public class UserService {
     public OrderResDto.OrderDetailListResDto postOrderReturn(Long orderDetailId, String returnContents){
         // orderstate를 환불 요청으로 바꾸고 시간 현재시간으로 변경
         orderDetailRepository.updateOrderDetailUpdateDateAndOrderDetailStateByOrderDetailId(orderDetailId, OrderDetailState.RETURN_REQUEST);
+        OrderDetail orderDetail = orderDetailRepository.findByOrderDetailId(orderDetailId);
+        orderDetail.updateOrderDetailUpdateDate();
 
         // 환불 테이블에 저장
         Return returns = Return.builder()
@@ -486,6 +488,8 @@ public class UserService {
     public OrderResDto.OrderDetailListResDto postOrderCancel(Long orderId, Long orderDetailId, Long userId) {
         // orderstate를 주문취소로 바꾸고 시간 현재시간으로 변경
         orderDetailRepository.updateOrderDetailUpdateDateAndOrderDetailStateByOrderDetailId(orderDetailId, OrderDetailState.ORDER_CANCEL);
+        OrderDetail orderDetail = orderDetailRepository.findByOrderDetailId(orderDetailId);
+        orderDetail.updateOrderDetailUpdateDate();
 
         // 계산값 적용
         Integer orderDetailSalePrice = orderDetailRepository.orderDetailTotalSalePrice(orderDetailId);

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
 
@@ -31,4 +32,8 @@ public class OrderDetail {
     private Integer orderDetailPrice;
     private Integer orderDetailSalePrice;
     private LocalDateTime orderDetailUpdatedDate;
+
+    public void  updateOrderDetailUpdateDate(){
+        this.orderDetailUpdatedDate = LocalDateTime.now().withNano(0);
+    }
 }

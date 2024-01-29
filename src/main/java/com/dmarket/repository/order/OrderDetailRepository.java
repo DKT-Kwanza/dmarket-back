@@ -141,7 +141,5 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
         List<OrderListAdminResDto> findByStatus(@Param("status") OrderDetailState status);
 
 
-
-
-
+        OrderDetail findByOrderDetailId(Long orderDetailId);
 }
