@@ -388,7 +388,7 @@ public class UserService {
     }
 
     // 주문 / 배송 내역 조회
-    public OrderResDto.OrderListResDto getOrderListResByUserId(Long userId, int pageNo) {
+    public Page<OrderResDto.OrderListResDto> getOrderListResByUserId(Long userId, int pageNo) {
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE);
 
@@ -443,14 +443,9 @@ public class UserService {
         }
         orderListResDto.setOrderList(orderList);
 
-        return orderListResDto;
+        return new PageImpl<>(orderList.stream().map(
+                (o) -> new OrderResDto.OrderListResDto(confPayCount, preShipCount, inTransitCount, cmpltDilCount, orderCancelCount, returnCount, orderList)).collect(Collectors.toList()), pageable, orderList.size());
     }
-
-    // 주문 취소
-//    @Transactional
-//    public Long postOrderCancel(Long orderId, Long orderDetailId){
-//
-//    }
 
     // 환불 요청
     @Transactional

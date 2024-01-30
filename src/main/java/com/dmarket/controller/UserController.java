@@ -262,7 +262,7 @@ public class UserController {
     public ResponseEntity<?> getUserOrderList(@PathVariable(name = "userId") Long userId,
                                               @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
 
-        OrderResDto.OrderListResDto userOrderListResDtos = userService.getOrderListResByUserId(userId, pageNo);
+        Page<OrderResDto.OrderListResDto> userOrderListResDtos = userService.getOrderListResByUserId(userId, pageNo);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(userOrderListResDtos), HttpStatus.OK);
     }
