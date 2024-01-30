@@ -74,7 +74,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String role = auth.getAuthority();
 
         // AccessToken 만료 시간 6분 -> AccessToken 만료 시간 30분
-        String accesstoken = jwtUtil.createAccessJwt(email, role);
+        String accesstoken = jwtUtil.createAccessJwt(userId, email, role);
 
         // RefreshToken 만료 시간 240시간
         String refreshtoken = jwtUtil.createRefreshJwt();

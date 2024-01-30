@@ -27,6 +27,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Objects;
 
+
 public class JWTFilter extends OncePerRequestFilter {
 
     @Value("${application.security.jwt.expireT}")
@@ -94,17 +95,18 @@ public class JWTFilter extends OncePerRequestFilter {
         String type = jwtUtil.getType(token);
         String email = jwtUtil.getEmail(token);
         String role = jwtUtil.getRole(token);
+        Long tokenUserId = jwtUtil.getUserId(token);
+
 
         // 타입이 refresh 인 경우 검증해서 재발급
-        if (Objects.equals(type, "RTK")) {
-            Long userId = userRepository.findUserIdByUserEmail(email);
-            if (refreshTokenRepository.existsById(token)) {
+        if(Objects.equals(type, "RTK")){
+            if(refreshTokenRepository.existsById(token)){
                 refreshTokenRepository.deleteById(token);
-                String newAccessToken = jwtUtil.createAccessJwt(email, role);
+                String newAccessToken = jwtUtil.createAccessJwt(tokenUserId,email,role);
                 String newRefreshtoken = jwtUtil.createRefreshJwt();
                 refreshTokenRepository.save(new RefreshToken(newRefreshtoken, newAccessToken, email));
 
-                UserCommonDto.TokenResponseDto tokenResponseDto = new UserCommonDto.TokenResponseDto(newAccessToken, newRefreshtoken, userId);
+                UserCommonDto.TokenResponseDto tokenResponseDto = new UserCommonDto.TokenResponseDto(newAccessToken,newRefreshtoken,tokenUserId);
 
                 CMResDto<UserCommonDto.TokenResponseDto> cmRespDto = CMResDto.<UserCommonDto.TokenResponseDto>builder()
                         .code(200)
