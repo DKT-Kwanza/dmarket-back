@@ -9,6 +9,7 @@ import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.OrderCommonDto;
 import com.dmarket.dto.common.ProductCommonDto;
 import lombok.*;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -120,7 +121,7 @@ public class OrderResDto<T> {
         private Long cmpltDilCount;          // 배송 완료 상태 개수
         private Long orderCancelCount;       // 주문 취소 상태 개수
         private Long returnCount;            // 반품 상태 개수 RETURN_REQUEST + RETURN_COMPLETE
-        private List<OrderCommonDto.OrderListDto> orderList;   // 주문 리스트
+        private Page<OrderCommonDto.OrderListDto> orderList;   // 주문 리스트
     }
 
     @Data

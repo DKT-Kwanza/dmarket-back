@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 import com.dmarket.dto.common.WishlistItemDto;
+import org.springframework.data.domain.Page;
 
 @Getter
 @NoArgsConstructor
@@ -15,9 +16,14 @@ import com.dmarket.dto.common.WishlistItemDto;
 @Builder
 public class WishlistResDto {
     private long wishCount;
-    private List<WishlistItemDto> wishListItem;
+    private Page<WishlistItemDto> wishListItem;
 
-    public int getWishCount() {
-        return wishListItem.size();
+    public void setWishCount(Long aLong) {
+        this.wishCount = aLong;
+
+    }
+
+    public void setWishListItem(Page<WishlistItemDto> content) {
+        this.wishListItem = content;
     }
 }

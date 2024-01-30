@@ -325,7 +325,7 @@ public class UserController {
         if(authorization != null){
             return authorization;
         }
-        Page<OrderResDto.OrderDetailListResDto> userOrderDetailResDtos = userService.getOrderDetailListByOrderId(userId, orderId, pageNo);
+        OrderResDto.OrderDetailListResDto userOrderDetailResDtos = userService.getOrderDetailListByOrderId(userId, orderId, pageNo);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(userOrderDetailResDtos), HttpStatus.OK);
     }

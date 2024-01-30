@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
     // 위시리스트 존재 여부 확인
@@ -24,5 +26,11 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
             " order by w.wishlistId desc")
     Page<WishlistItemDto> findWishlistItemsByUserId(Pageable pageable, @Param("userId") Long userId);
 
+    // 위시리스트 개수 세기
+    @Query(value = "select count(w.wishlistId) from Wishlist w where w.userId = :userId")
+    Long countByUserId(@Param("userId") Long userId);
+
     void deleteById(@Param("wishlistId") Long wishlistId);
+
+
 }
