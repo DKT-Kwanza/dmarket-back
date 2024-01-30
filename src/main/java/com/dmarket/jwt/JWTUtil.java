@@ -21,6 +21,10 @@ public class JWTUtil {
         this.secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
     }
 
+    public Long getUserId(String token){
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("userId", Long.class);
+    }
+
     public String getUsername(String token) {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("username", String.class);
     }
@@ -65,9 +69,9 @@ public class JWTUtil {
         Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration();
     }
 
-
-    public String createAccessJwt(String email, String role) {
+    public String createAccessJwt(Long userId, String email, String role) {
         return Jwts.builder()
+                .claim("userId",userId)
                 .claim("role", role)
                 .claim("email", email)
                 .claim("type", "ATK")
