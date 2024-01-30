@@ -2,16 +2,27 @@ package com.dmarket.controller;
 
 import com.dmarket.constant.FaqType;
 import com.dmarket.constant.InquiryType;
+import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.board.Faq;
 import com.dmarket.domain.board.InquiryReply;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
 import com.dmarket.dto.common.InquiryCommonDto;
 import com.dmarket.dto.common.OrderCommonDto;
+import com.dmarket.exception.ErrorCode;
+import com.dmarket.jwt.JWTUtil;
 import com.dmarket.service.AdminService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.dmarket.dto.common.InquiryCommonDto;
+import com.dmarket.dto.common.OrderCommonDto;
+import com.dmarket.jwt.JWTUtil;
+
+import java.nio.file.AccessDeniedException;
+import java.util.*;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,7 +30,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.*;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -27,25 +38,15 @@ import java.util.*;
 @RequestMapping("/api/admin")
 public class AdminController {
     private final AdminService adminService;
-
-    @GetMapping("/GM")
-    public String adminGMP() {
-        return "Admin GM Page";
-    }
-
-    @GetMapping("/PM")
-    public String adminPMP() {
-        return "Admin PM Page";
-    }
-
-    @GetMapping("/SM")
-    public String adminSMP() {
-        return "Admin SM Page";
-    }
+    private final JWTUtil jwtUtil;
 
     // 사용자 삭제
     @DeleteMapping("/users/{userId}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId, HttpServletRequest request) {
+        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+        if(authorization != null){
+            return authorization;
+        }
         adminService.deleteUserByUserId(userId);
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
@@ -219,15 +220,14 @@ public class AdminController {
     // 반품 상태 변경
     @PutMapping("/orders/returns/{returnId}")
     public ResponseEntity<?> changeReturnStatus(@PathVariable Long returnId,
-                                                @Valid @RequestBody ReturnReqDto.ChangeReturnStateDto changeReturnStateDto) {
-        String returnState = changeReturnStateDto.getReturnStatus();
-        adminService.updateReturnState(returnId, returnState);
+                                                @Valid @RequestBody ReturnReqDto.ChangeReturnStateDto ChangeReturnStateDto) {
+        adminService.updateReturnState(returnId, ChangeReturnStateDto.getReturnStatus());
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
 
     // 새로운 상품 추가
     @PostMapping("/product")
-    public ResponseEntity<?> addNewProduct(@Valid @RequestBody List<ProductReqDto.ProductListDto> productList) {
+    public ResponseEntity<?> addNewProduct(@Valid @RequestBody ProductReqDto.ProductListDto productList) {
         adminService.saveProductList(productList);
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
@@ -319,7 +319,7 @@ public class AdminController {
         }
     }
 
-    // 권한 부여한
+    // 권한 부여
     // 사용힌 ChangeRoleReqDto -> UserReqDto.ChangeRole로 변경
     @PutMapping("/admin-users/{userId}")
     public ResponseEntity<?> changeRole(@PathVariable Long userId,
@@ -392,4 +392,15 @@ public class AdminController {
     }
 
 
+    private ResponseEntity<?> checkAuthorization(Long userId, HttpServletRequest request) {
+        String authorization = request.getHeader("Authorization");
+        System.out.println("userId = " + userId);
+        String token = authorization.split(" ")[1];
+        Long tokenUserId = jwtUtil.getUserId(token);
+        System.out.println("tokenUserId = " + tokenUserId);
+        if (!Objects.equals(tokenUserId, userId)) {
+            return new ResponseEntity<>(CMResDto.errorRes(ErrorCode.FORBIDDEN), HttpStatus.FORBIDDEN);
+        }
+        return null; // 인증 및 권한 검사가 성공한 경우
+    }
 }

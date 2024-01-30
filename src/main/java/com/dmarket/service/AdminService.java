@@ -198,7 +198,9 @@ public class AdminService {
 
     @Transactional
     public void updateProduct(ProductReqDto productReqDto) {
-        Long categoryId = categoryRepository.findByCategoryName(productReqDto.getCategoryName()).getCategoryId();
+        Category category = categoryRepository.findIdByCategoryName(productReqDto.getCategoryName());
+
+        Long categoryId = category.getCategoryId();
 
         // Product 엔티티를 찾거나 없으면 새로 생성 (업데이트 로직)
         Product product = productRepository.findById(productReqDto.getProductId())
@@ -384,25 +386,23 @@ public class AdminService {
 
     // 신상품 등록
     @Transactional
-    public void saveProductList(List<ProductReqDto.ProductListDto> productList) {
-        for (ProductReqDto.ProductListDto productitem : productList) {
+    public void saveProductList(ProductReqDto.ProductListDto productList) {
             // CategoryId 가져오기
-            Long categoryId = getCategoryByCategoryName(productitem.getCategoryName());
+            Long categoryId = getCategoryByCategoryName(productList.getCategoryName());
 
             // Product 저장
-            Product savedProduct = saveProduct(productitem, categoryId);
+            Product savedProduct = saveProduct(productList, categoryId);
 
             // OptionList 저장
-            saveProductOptions(savedProduct.getProductId(), productitem.getOptionList());
+            saveProductOptions(savedProduct.getProductId(), productList.getOptionList());
 
             // ProductImgs 저장
-            saveProductImgs(savedProduct.getProductId(), productitem.getImgList());
-        }
+            saveProductImgs(savedProduct.getProductId(), productList.getImgList());
     }
 
     @Transactional
     public Long getCategoryByCategoryName(String categoryName) {
-        Category category = categoryRepository.findByCategoryName(categoryName);
+        Category category = categoryRepository.findIdByCategoryName(categoryName);
         if (category != null) {
             return category.getCategoryId();
         }

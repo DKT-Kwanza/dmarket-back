@@ -20,7 +20,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     // 상품의 카테고리 1, 2 조회
     Category findByCategoryId(Long categoryId);
 
-    Category findByCategoryName(String categoryName);
+    Category findIdByCategoryName(String categoryName);
 
     // 상품 옵션 조회 status 추가
 

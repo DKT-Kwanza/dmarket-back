@@ -1,5 +1,6 @@
 package com.dmarket.controller;
 
+import com.dmarket.dto.request.QnaReqDto;
 import com.dmarket.dto.request.ReviewReqDto;
 import com.dmarket.dto.response.CMResDto;
 import com.dmarket.dto.response.CategoryResDto;
@@ -89,12 +90,8 @@ public class ProductController {
 
     //Q&A 작성 API
     @PostMapping("/{productId}/qna")
-    public ResponseEntity<?> saveQnaAboutProduct(@PathVariable Long productId,
-                                                 @RequestParam Long userId,
-                                                 @RequestParam String qnaTitle,
-                                                 @RequestParam String qnaContents,
-                                                 @RequestParam(defaultValue = "false") Boolean qnaIsSecret) {
-        QnaResDto.QnaWriteResponseDto qnaWriteRespone = productService.qnaWrite(productId, userId, qnaTitle, qnaContents, qnaIsSecret);
+    public ResponseEntity<?> saveQnaAboutProduct(@PathVariable Long productId, @RequestBody QnaReqDto.QnaWriteReqDto qnaWriteReqDto) {
+        QnaResDto.QnaWriteResponseDto qnaWriteRespone = productService.qnaWrite(productId,qnaWriteReqDto.getUserId(),qnaWriteReqDto.getQnaTitle(),qnaWriteReqDto.getQnaContents(),qnaWriteReqDto.getQnaIsSecret());
         log.info("QnA 저장 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(qnaWriteRespone), HttpStatus.OK);
     }

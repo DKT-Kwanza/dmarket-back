@@ -1,5 +1,6 @@
 package com.dmarket.dto.request;
 
+import com.dmarket.constant.ReturnState;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
