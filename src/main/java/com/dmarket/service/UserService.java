@@ -230,8 +230,10 @@ public class UserService {
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE);
         Page<WishlistItemDto> wishlistItems = wishlistRepository.findWishlistItemsByUserId(pageable, userId);
-        return new WishlistResDto(wishlistItems.getTotalElements(),wishlistItems.getContent());
-
+        WishlistResDto wishlistResDto = new WishlistResDto();
+        wishlistResDto.setWishCount(wishlistRepository.countByUserId(userId));
+        wishlistResDto.setWishListItem(wishlistItems);
+        return wishlistResDto;
     }
 
     // 장바구니 상품 개수 조회
