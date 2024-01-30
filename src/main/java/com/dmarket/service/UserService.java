@@ -230,10 +230,8 @@ public class UserService {
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE);
         Page<WishlistItemDto> wishlistItems = wishlistRepository.findWishlistItemsByUserId(pageable, userId);
-        return WishlistResDto.builder()
-                .wishCount(wishlistItems.getTotalElements())
-                .wishListItem(wishlistItems.getContent())
-                .build();
+        return new WishlistResDto(wishlistItems.getTotalElements(),wishlistItems.getContent());
+
     }
 
     // 장바구니 상품 개수 조회
@@ -377,18 +375,17 @@ public class UserService {
     }
 
     // 사용자 주문 내역 상세 조회
-    public Page<OrderResDto.OrderDetailListResDto> getOrderDetailListByOrderId(Long userId, Long orderId, int pageNo) {
+    public OrderResDto.OrderDetailListResDto getOrderDetailListByOrderId(Long userId, Long orderId, int pageNo) {
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE);
-        List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(pageable, orderId);
+        List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(orderId);
         Order order = orderRepository.findByOrderId(orderId);
         User user = userRepository.findByUserId(userId);
-        return new PageImpl<>(productDetailList.stream().map(
-                (o) -> new OrderResDto.OrderDetailListResDto(order, user, productDetailList)).collect(Collectors.toList()), pageable, productDetailList.size());
+        return new OrderResDto.OrderDetailListResDto(order, user, productDetailList);
     }
 
     // 주문 / 배송 내역 조회
-    public Page<OrderResDto.OrderListResDto> getOrderListResByUserId(Long userId, int pageNo) {
+    public OrderResDto.OrderListResDto getOrderListResByUserId(Long userId, int pageNo) {
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE);
 
@@ -404,7 +401,7 @@ public class UserService {
                 orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_COMPLETE);
         for (int i = orders.size() - 1; i >= 0; i--) {
             Order order = orders.get(i);
-            List<ProductCommonDto.ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByOrderId(pageable, order.getOrderId());
+            List<ProductCommonDto.ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
             orderList.add(new OrderCommonDto.OrderListDto(order, productDetailListDtos));
         }
 
@@ -443,8 +440,7 @@ public class UserService {
         }
         orderListResDto.setOrderList(orderList);
 
-        return new PageImpl<>(orderList.stream().map(
-                (o) -> new OrderResDto.OrderListResDto(confPayCount, preShipCount, inTransitCount, cmpltDilCount, orderCancelCount, returnCount, orderList)).collect(Collectors.toList()), pageable, orderList.size());
+        return orderListResDto;
     }
 
     // 환불 요청
@@ -469,7 +465,7 @@ public class UserService {
         // Response 저장..?
         Order order = orderRepository.findByOrderDetailId(orderDetailId);
         User user = userRepository.findByUserId(order.getUserId());
-        List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(pageable, order.getOrderId());
+        List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
         return new OrderResDto.OrderDetailListResDto(order, user, productDetailList);
     }
 
@@ -491,7 +487,7 @@ public class UserService {
 
         Order order = orderRepository.findByOrderDetailId(orderDetailId);
         User user = userRepository.findByUserId(userId);
-        List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(pageable, order.getOrderId());
+        List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
         return new OrderResDto.OrderDetailListResDto(order, user, productDetailList);
     }
 

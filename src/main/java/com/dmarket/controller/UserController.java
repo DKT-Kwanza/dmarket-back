@@ -252,7 +252,7 @@ public class UserController {
     public ResponseEntity<?> getUserOrderDetailListByOrderId(@PathVariable(name = "userId") Long userId,
                                                              @PathVariable(name = "orderId") Long orderId,
                                                              @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
-        Page<OrderResDto.OrderDetailListResDto> userOrderDetailResDtos = userService.getOrderDetailListByOrderId(userId, orderId, pageNo);
+        OrderResDto.OrderDetailListResDto userOrderDetailResDtos = userService.getOrderDetailListByOrderId(userId, orderId, pageNo);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(userOrderDetailResDtos), HttpStatus.OK);
     }
@@ -262,7 +262,7 @@ public class UserController {
     public ResponseEntity<?> getUserOrderList(@PathVariable(name = "userId") Long userId,
                                               @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
 
-        Page<OrderResDto.OrderListResDto> userOrderListResDtos = userService.getOrderListResByUserId(userId, pageNo);
+        OrderResDto.OrderListResDto userOrderListResDtos = userService.getOrderListResByUserId(userId, pageNo);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(userOrderListResDtos), HttpStatus.OK);
     }

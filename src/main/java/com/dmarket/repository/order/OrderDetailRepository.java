@@ -64,7 +64,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
             "select min(pi2.imgId) from ProductImgs pi2 where pi2.productId = od.productId" +
             ")" +
             "order by od.orderDetailId desc")
-    List<ProductCommonDto.ProductDetailListDto> findOrderDetailByOrderId(Pageable pageable, @Param("orderId") Long orderId);
+    List<ProductCommonDto.ProductDetailListDto> findOrderDetailByOrderId(@Param("orderId") Long orderId);
 
     // count (orderDetailState) by userId
     @Query(value = "SELECT COUNT(*) " +
