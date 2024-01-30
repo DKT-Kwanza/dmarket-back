@@ -389,10 +389,14 @@ public class UserService {
     // 주문 / 배송 내역 조회
     public OrderResDto.OrderListResDto getOrderListResByUserId(Long userId, int pageNo) {
         pageNo = pageVaildation(pageNo);
-        Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE);
+        Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE,Sort.by(Sort.Direction.DESC, "orderDate"));
 
-        List<OrderCommonDto.OrderListDto> orderList = new ArrayList<>();
-        List<Order> orders = orderRepository.findByUserId(userId);
+        Page<OrderCommonDto.OrderListDto> orderList = orderRepository.findByUserId(pageable, userId)
+                .map((o) -> {
+                    List<ProductCommonDto.ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByOrderId(o.getOrderId());
+                    return new OrderCommonDto.OrderListDto(o, productDetailListDtos);
+                });
+        Page<Order> orders = orderRepository.findByUserId(pageable ,userId);
 
         Long confPayCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_COMPLETE);
         Long preShipCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_READY);
@@ -401,11 +405,6 @@ public class UserService {
         Long orderCancelCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_CANCEL);
         Long returnCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_REQUEST) +
                 orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.RETURN_COMPLETE);
-        for (int i = orders.size() - 1; i >= 0; i--) {
-            Order order = orders.get(i);
-            List<ProductCommonDto.ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
-            orderList.add(new OrderCommonDto.OrderListDto(order, productDetailListDtos));
-        }
 
 
         OrderResDto.OrderListResDto orderListResDto = new OrderResDto.OrderListResDto();
@@ -470,7 +469,7 @@ public class UserService {
         List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
         return new OrderResDto.OrderDetailListResDto(order, user, productDetailList);
     }
-
+    // 주문 취소
     @Transactional
     public OrderResDto.OrderDetailListResDto postOrderCancel(Long orderId, Long orderDetailId, Long userId, int pageNo) {
         pageNo = pageVaildation(pageNo);

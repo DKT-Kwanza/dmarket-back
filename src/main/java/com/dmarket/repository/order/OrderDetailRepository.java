@@ -60,11 +60,19 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
             "join Product p on od.productId = p.productId " +
             "join ProductOption po on od.optionId = po.optionId " +
             "join ProductImgs pi on p.productId = pi.productId " +
+            "where od.orderId = :orderId and pi.imgId = (select min(pi2.imgId) from ProductImgs pi2 where pi2.productId = od.productId)")
+    List<ProductCommonDto.ProductDetailListDto> findOrderDetailByOrderId(@Param("orderId") Long orderId);
+
+    @Query(value = "select new com.dmarket.dto.common.ProductCommonDto$ProductDetailListDto(od, p, po, pi) " +
+            "from OrderDetail od " +
+            "join Product p on od.productId = p.productId " +
+            "join ProductOption po on od.optionId = po.optionId " +
+            "join ProductImgs pi on p.productId = pi.productId " +
             "where od.orderId = :orderId and pi.imgId = (" +
             "select min(pi2.imgId) from ProductImgs pi2 where pi2.productId = od.productId" +
             ")" +
             "order by od.orderDetailId desc")
-    List<ProductCommonDto.ProductDetailListDto> findOrderDetailByOrderId(@Param("orderId") Long orderId);
+    List<ProductCommonDto.ProductDetailListDto> findPageableOrderDetailByOrderId(Pageable pageable,@Param("orderId") Long orderId);
 
     // count (orderDetailState) by userId
     @Query(value = "SELECT COUNT(*) " +
