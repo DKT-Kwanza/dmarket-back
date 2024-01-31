@@ -60,8 +60,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // 같은 카테고리의 추천 상품(최신순 4개) 검색
     @Query("select new com.dmarket.dto.response.ProductResDto$RecommendProductResDto" +
-            "(p.categoryId, p.productId, p.productBrand, p.productName, p.productSalePrice, p.productRating, count(r.reviewId)) " +
+            "(p.categoryId, p.productId, p.productBrand, p.productName, MIN(i.imgAddress), p.productSalePrice, p.productRating, count(r.reviewId)) " +
             "from Product p " +
+            "left join ProductImgs i on i.productId = p.productId " +
             "left join ProductReview r on p.productId = r.productId " +
             "where p.productId != :productId and p.categoryId = (select sp.categoryId from Product sp where sp.productId = :productId) " +
             "group by p.productId")
