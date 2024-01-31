@@ -354,6 +354,7 @@ public class AdminService {
 
     // 반품 상태 리스트
     public ReturnResDto.ReturnListResDto getReturns(String returnStatus, int pageNo) {
+        pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
         ReturnState returnState = null;
 
