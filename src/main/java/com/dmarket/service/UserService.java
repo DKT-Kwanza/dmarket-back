@@ -226,11 +226,11 @@ public class UserService {
     private final InquiryRepository inquiryRepository;
 
     // 위시리스트 조회
-    public WishlistResDto getWishlistByUserId(Long userId, int pageNo) {
+    public WishResDto.WishlistResDto getWishlistByUserId(Long userId, int pageNo) {
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE);
         Page<WishlistItemDto> wishlistItems = wishlistRepository.findWishlistItemsByUserId(pageable, userId);
-        WishlistResDto wishlistResDto = new WishlistResDto();
+        WishResDto.WishlistResDto wishlistResDto = new WishResDto.WishlistResDto();
         wishlistResDto.setWishCount(wishlistRepository.countByUserId(userId));
         wishlistResDto.setWishListItem(wishlistItems);
         return wishlistResDto;
@@ -260,6 +260,10 @@ public class UserService {
                 .productId(productId)
                 .build();
         wishlistRepository.save(wishlist);
+    }
+
+    public WishResDto.IsWishResDto checkIsWish(Long userId, Long productId){
+        return new WishResDto.IsWishResDto(wishlistRepository.existsByUserIdAndProductId(userId, productId));
     }
 
     // 위시리스트 삭제

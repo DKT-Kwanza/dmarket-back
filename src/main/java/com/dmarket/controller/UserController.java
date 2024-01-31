@@ -82,6 +82,14 @@ public class UserController {
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
 
+    // 위시리스트에 담긴 상품인지 확인 api
+    @GetMapping("/{userId}/wish/{productId}")
+    public ResponseEntity<?> checkIsWish(@PathVariable Long userId,
+                                         @PathVariable Long productId){
+        WishResDto.IsWishResDto isWishResDto = userService.checkIsWish(userId, productId);
+        return new ResponseEntity<>(CMResDto.successDataRes(isWishResDto), HttpStatus.OK);
+    }
+
     // 위시리스트 조회
     @GetMapping("/{userId}/wish")
     public ResponseEntity<?> getWishlistByUserId(@PathVariable(name = "userId") Long userId,
@@ -90,7 +98,7 @@ public class UserController {
         if(authorization != null){
             return authorization;
         }
-        WishlistResDto wishlist = userService.getWishlistByUserId(userId,pageNo);
+        WishResDto.WishlistResDto wishlist = userService.getWishlistByUserId(userId,pageNo);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(wishlist), HttpStatus.OK);
     }

@@ -57,11 +57,10 @@ public class ProductResDto {
         private Integer productSalePrice;
         private Float productRating;
         private Long productReviewCount;
-        private Boolean productIsWish;
         private List<ProductCommonDto.ProductOptionDto> optionList;
         private List<String> imgList;
 
-        public ProductInfoResDto(Product product, String productCategory, Long reviewCount, Boolean isWish, List<ProductCommonDto.ProductOptionDto> options, List<String> imgs) {
+        public ProductInfoResDto(Product product, String productCategory, Long reviewCount, List<ProductCommonDto.ProductOptionDto> options, List<String> imgs) {
             this.productId = product.getProductId();
             this.productCategory = productCategory;
             this.productBrand = product.getProductBrand();
@@ -71,7 +70,6 @@ public class ProductResDto {
             this.productSalePrice = product.getProductPrice();
             this.productRating = product.getProductRating();
             this.productReviewCount = reviewCount;
-            this.productIsWish = isWish;
             this.optionList = options;
             this.imgList = imgs;
         }

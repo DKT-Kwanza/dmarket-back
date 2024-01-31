@@ -99,8 +99,7 @@ public class ProductController {
     // 상품 상세 조회 api
     @GetMapping("/{productId}")
     public ResponseEntity<?> getProductInfo(@PathVariable Long productId) {
-        Long userId = 1L;
-        ProductResDto.ProductInfoResDto res = productService.getProductInfo(productId, userId);
+        ProductResDto.ProductInfoResDto res = productService.getProductInfo(productId);
         return new ResponseEntity<>(CMResDto.successDataRes(res), HttpStatus.OK);
     }
 

@@ -2,13 +2,12 @@ package com.dmarket.controller;
 
 import com.dmarket.constant.FaqType;
 import com.dmarket.constant.InquiryType;
-import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.board.Faq;
 import com.dmarket.domain.board.InquiryReply;
-import com.dmarket.dto.request.*;
-import com.dmarket.dto.response.*;
 import com.dmarket.dto.common.InquiryCommonDto;
 import com.dmarket.dto.common.OrderCommonDto;
+import com.dmarket.dto.request.*;
+import com.dmarket.dto.response.*;
 import com.dmarket.exception.ErrorCode;
 import com.dmarket.jwt.JWTUtil;
 import com.dmarket.service.AdminService;
@@ -16,21 +15,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.dmarket.dto.common.InquiryCommonDto;
-import com.dmarket.dto.common.OrderCommonDto;
-import com.dmarket.jwt.JWTUtil;
-
-import java.nio.file.AccessDeniedException;
-import java.util.*;
-
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @RestController
@@ -177,8 +167,7 @@ public class AdminController {
     // 상품 상세 정보 조회 api
     @GetMapping("/products/{productId}")
     public ResponseEntity<?> getProductInfo(@PathVariable Long productId) {
-        Long userId = 1L;
-        ProductResDto.ProductInfoResDto res = adminService.getProductInfo(productId, userId);
+        ProductResDto.ProductInfoResDto res = adminService.getProductInfo(productId);
         return new ResponseEntity<>(CMResDto.successDataRes(res), HttpStatus.OK);
     }
 
