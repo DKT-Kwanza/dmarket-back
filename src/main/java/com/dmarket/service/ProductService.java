@@ -118,7 +118,7 @@ public class ProductService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
         // 상품의 카테고리 depth 1, depth2 조회 후 합치기
         Category category = categoryRepository.findByCategoryId(product.getCategoryId());
-        String productCategory = category.getParent().getCategoryName() + " / " + category.getCategoryName();
+        String productCategory = category.getParent().getCategoryName() + " > " + category.getCategoryName();
         // 상품의 리뷰 개수 조회
         Long reviewCnt = productReviewRepository.countByProductId(productId);
         // 사용자가 위시리스트에 등록한 상품인지 확인
