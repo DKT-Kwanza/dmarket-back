@@ -74,7 +74,7 @@ public class ProductController {
 
     // QnA
     // 상품 별 Q&A 리스트 조회
-    @GetMapping("/{productId}/qna")
+    @GetMapping("/{productId}/qnaList")
     public ResponseEntity<CMResDto<?>> getQnasByProdcutId(@PathVariable Long productId,
                                                           @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
         Page<QnaResDto.QnaProductIdListResDto> qnaList = productService.findQnasByProductId(productId, pageNo);

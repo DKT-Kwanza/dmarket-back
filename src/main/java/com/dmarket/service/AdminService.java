@@ -16,6 +16,7 @@ import com.dmarket.dto.response.*;
 import com.dmarket.exception.BadRequestException;
 import com.dmarket.exception.ConflictException;
 import com.dmarket.exception.NotFoundException;
+import com.dmarket.jwt.JWTUtil;
 import com.dmarket.repository.board.FaqRepository;
 import com.dmarket.repository.board.InquiryReplyRepository;
 import com.dmarket.repository.board.InquiryRepository;
@@ -69,6 +70,7 @@ public class AdminService {
     private final OrderDetailRepository orderDetailRepository;
     private final RefundRepository refundRepository;
     private final OrderRepository orderRepository;
+    private final JWTUtil jwtUtil;
 
     private static final int PAGE_POST_COUNT = 10;
 
@@ -586,13 +588,19 @@ public class AdminService {
 
     // 권한 변경
     @Transactional
-    public void changeRole(Long userId, UserReqDto.ChangeRole newRole) {
+    public UserCommonDto.TokenResponseDto changeRole(Long userId, UserReqDto.ChangeRole newRole) {
         User user = userRepository.findByUserId(userId);
 
         // String -> Enum 으로 형변환
         Role role = Role.valueOf(newRole.getNewRole().toUpperCase());
         user.changeRole(role);
         userRepository.save(user); // 변경된 역할을 저장
+
+        //토큰 재발급
+        String newaccessToken = jwtUtil.createAccessJwt(userId, newRole.getNewRole(), user.getUserEmail());
+        String newrefreshToken = jwtUtil.createRefreshJwt();
+
+        return new UserCommonDto.TokenResponseDto(newaccessToken,newrefreshToken,userId);
     }
 
 
