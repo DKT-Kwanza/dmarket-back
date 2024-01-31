@@ -18,6 +18,8 @@ public class OrderDetailResDto {
     private String productOption;
     private Integer productCount;
     private Integer productTotalSalePrice;
+    private Long optionId;
+    private Long productId;
 
     public OrderDetailResDto(OrderDetail orderDetail, Product product, ProductImgs productImgs, ProductOption productOption) {
         this.orderDetailId = orderDetail.getOrderDetailId();
@@ -27,6 +29,8 @@ public class OrderDetailResDto {
         this.productOption = productOption.getOptionValue();
         this.productCount = orderDetail.getOrderDetailCount();
         this.productTotalSalePrice = orderDetail.getOrderDetailSalePrice();
+        this.optionId = productOption.getOptionId();
+        this.productId = product.getProductId();
     }
 
 }
