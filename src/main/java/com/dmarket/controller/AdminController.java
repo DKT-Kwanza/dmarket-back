@@ -2,13 +2,14 @@ package com.dmarket.controller;
 
 import com.dmarket.constant.FaqType;
 import com.dmarket.constant.InquiryType;
-import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.board.Faq;
 import com.dmarket.domain.board.InquiryReply;
+import com.dmarket.dto.common.*;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
 import com.dmarket.dto.common.InquiryCommonDto;
 import com.dmarket.dto.common.OrderCommonDto;
+import com.dmarket.dto.common.QnaDto;
 import com.dmarket.exception.ErrorCode;
 import com.dmarket.jwt.JWTUtil;
 import com.dmarket.service.AdminService;
@@ -16,21 +17,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.dmarket.dto.common.InquiryCommonDto;
-import com.dmarket.dto.common.OrderCommonDto;
-import com.dmarket.jwt.JWTUtil;
-
-import java.nio.file.AccessDeniedException;
-import java.util.*;
-
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @RestController
@@ -91,7 +83,7 @@ public class AdminController {
     public ResponseEntity<?> getMileageRequests(@RequestParam(required = true, value = "status", defaultValue = "PROCESSING") String status,
                                                 @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
 
-        MileageResDto.MileageReqListResDto requests = adminService.getMileageRequests(status, pageNo);
+        Page<MileageResDto.MileageReqListResDto> requests = adminService.getMileageRequests(status, pageNo);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(requests), HttpStatus.OK);
     }
@@ -177,8 +169,7 @@ public class AdminController {
     // 상품 상세 정보 조회 api
     @GetMapping("/products/{productId}")
     public ResponseEntity<?> getProductInfo(@PathVariable Long productId) {
-        Long userId = 1L;
-        ProductResDto.ProductInfoResDto res = adminService.getProductInfo(productId, userId);
+        ProductResDto.ProductInfoResDto res = adminService.getProductInfo(productId);
         return new ResponseEntity<>(CMResDto.successDataRes(res), HttpStatus.OK);
     }
 
@@ -192,7 +183,7 @@ public class AdminController {
     // 상품 QnA 전체 조회 api
     @GetMapping("/products/qna")
     public ResponseEntity<?> getQnAList(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
-        QnaResDto.QnaListResDto qnaList = adminService.getQnaList(pageNo);
+        Page<QnaDto> qnaList = adminService.getQnaList(pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(qnaList), HttpStatus.OK);
     }
 
@@ -324,8 +315,9 @@ public class AdminController {
     @PutMapping("/admin-users/{userId}")
     public ResponseEntity<?> changeRole(@PathVariable Long userId,
                                         @Valid @RequestBody UserReqDto.ChangeRole newRole) {
-        adminService.changeRole(userId, newRole);
-        return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
+
+        UserCommonDto.TokenResponseDto tokenResponseDto = adminService.changeRole(userId, newRole);
+        return new ResponseEntity<>(CMResDto.successDataRes(tokenResponseDto), HttpStatus.OK);
     }
 
     // 상태별 반품 목록 조회

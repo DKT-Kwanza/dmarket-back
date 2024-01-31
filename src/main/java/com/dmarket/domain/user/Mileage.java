@@ -35,6 +35,7 @@ public class Mileage {
     @Column(nullable = false)
     private LocalDateTime mileageDate;
 
+
     @Builder
     public Mileage(Long userId, Integer remainMileage, Integer changeMileage, MileageContents mileageInfo) {
         this.userId = userId;
@@ -42,5 +43,14 @@ public class Mileage {
         this.changeMileage = changeMileage;
         this.mileageInfo = mileageInfo;
         this.mileageDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
+    }
+
+    public static Mileage MileageAutoCharge(Long userId){
+        return Mileage.builder()
+                .userId(userId)
+                .remainMileage(1200000)
+                .changeMileage(1200000)
+                .mileageInfo(MileageContents.AUTO_CHARGE)
+                .build();
     }
 }

@@ -8,14 +8,19 @@ import com.dmarket.domain.board.Notice;
 import com.dmarket.domain.order.Refund;
 import com.dmarket.domain.order.Return;
 import com.dmarket.domain.product.*;
+import com.dmarket.domain.user.Mileage;
 import com.dmarket.domain.user.MileageReq;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.*;
-import com.dmarket.dto.request.*;
+import com.dmarket.dto.request.OptionReqDto;
+import com.dmarket.dto.request.ProductReqDto;
+import com.dmarket.dto.request.RefundReqDto;
+import com.dmarket.dto.request.UserReqDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.exception.BadRequestException;
 import com.dmarket.exception.ConflictException;
 import com.dmarket.exception.NotFoundException;
+import com.dmarket.jwt.JWTUtil;
 import com.dmarket.repository.board.FaqRepository;
 import com.dmarket.repository.board.InquiryReplyRepository;
 import com.dmarket.repository.board.InquiryRepository;
@@ -25,6 +30,7 @@ import com.dmarket.repository.order.OrderRepository;
 import com.dmarket.repository.order.RefundRepository;
 import com.dmarket.repository.order.ReturnRepository;
 import com.dmarket.repository.product.*;
+import com.dmarket.repository.user.MileageRepository;
 import com.dmarket.repository.user.MileageReqRepository;
 import com.dmarket.repository.user.UserRepository;
 import com.dmarket.repository.user.WishlistRepository;
@@ -51,6 +57,7 @@ public class AdminService {
     // 조회가 아닌 메서드들은 꼭 @Transactional 넣어주세요 (CUD, 입력/수정/삭제)
     private final UserRepository userRepository;
     private final NoticeRepository noticeRepository;
+    private final MileageRepository mileageRepository;
     private final MileageReqRepository mileageReqRepository;
 
     private final FaqRepository faqRepository;
@@ -69,6 +76,7 @@ public class AdminService {
     private final OrderDetailRepository orderDetailRepository;
     private final RefundRepository refundRepository;
     private final OrderRepository orderRepository;
+    private final JWTUtil jwtUtil;
 
     private static final int PAGE_POST_COUNT = 10;
 
@@ -113,10 +121,10 @@ public class AdminService {
 
     // 마일리지 충전 요청 내역
     @Transactional
-    public MileageResDto.MileageReqListResDto getMileageRequests(String status, int pageNo) {
+    public Page<MileageResDto.MileageReqListResDto> getMileageRequests(String status, int pageNo){
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "mileageReqDate"));
-        Page<MileageCommonDto> dtos;
+        Page<MileageResDto.MileageReqListResDto> dtos;
 
         if (status.equals("PROCESSING")) {
             dtos = mileageReqRepository.findAllByProcessing(pageable);
@@ -125,10 +133,7 @@ public class AdminService {
         } else {
             throw new BadRequestException(INVALID_STATE_PARAM);
         }
-        List<MileageCommonDto.MileageReqListDto> mileageRequests = dtos.getContent().stream()
-                .map(MileageCommonDto.MileageReqListDto::new).toList();
-
-        return new MileageResDto.MileageReqListResDto(dtos.getTotalPages(), mileageRequests);
+        return dtos;
     }
 
     // 마일리지 충전 요청 처리
@@ -139,6 +144,15 @@ public class AdminService {
             mileageReq.updateState(MileageReqState.APPROVAL);
             User user = findUserById(mileageReq.getUserId());
             user.updateMileage(mileageReq.getMileageReqAmount());
+
+            // 사용자 마일리지 사용 내역에 추가
+            Mileage mileage = Mileage.builder()
+                            .userId(user.getUserId())
+                            .remainMileage(mileageReq.getMileageReqAmount())
+                            .changeMileage(user.getUserMileage())
+                            .mileageInfo(MileageContents.CHARGE)
+                            .build();
+            mileageRepository.save(mileage);
         } else {
             mileageReq.updateState(MileageReqState.REFUSAL);
         }
@@ -258,7 +272,7 @@ public class AdminService {
     }
 
     // 상품 상세 정보 조회
-    public ProductResDto.ProductInfoResDto getProductInfo(Long productId, Long userId) {
+    public ProductResDto.ProductInfoResDto getProductInfo(Long productId) {
         // 싱품 정보 조회
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException(PRODUCT_NOT_FOUND));
@@ -267,14 +281,12 @@ public class AdminService {
         String productCategory = category.getParent().getCategoryName() + " / " + category.getCategoryName();
         // 상품의 리뷰 개수 조회
         Long reviewCnt = productReviewRepository.countByProductId(productId);
-        // 사용자가 위시리스트에 등록한 상품인지 확인
-        Boolean isWish = wishlistRepository.existsByUserIdAndProductId(userId, productId);
         // 상품 옵션 목록, 옵션별 재고 조회
         List<ProductCommonDto.ProductOptionDto> opts = productOptionRepository.findOptionsByProductId(productId);
         // 상품 이미지 목록 조회
         List<String> imgs = productImgsRepository.findAllByProductId(productId);
         // DTO 생성 및 반환
-        return new ProductResDto.ProductInfoResDto(product, productCategory, reviewCnt, isWish, opts, imgs);
+        return new ProductResDto.ProductInfoResDto(product, productCategory, reviewCnt, opts, imgs);
     }
 
     public Page<AdminResDto.AdminReviewsResDto> getProductReviews(int pageNo) {
@@ -284,11 +296,10 @@ public class AdminService {
     }
 
     // 상품 QnA 조회
-    public QnaResDto.QnaListResDto getQnaList(int pageNo) {
+    public Page<QnaDto> getQnaList(int pageNo) {
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "qnaCreatedDate"));
-        Page<QnaDto> qnaList = qnaRepository.findAllQna(pageable);
-        return new QnaResDto.QnaListResDto(qnaList.getTotalPages(), qnaList.getContent());
+        return qnaRepository.findAllQna(pageable);
     }
 
     // 상품 QnA 상세(개별) 조회
@@ -345,6 +356,7 @@ public class AdminService {
 
     // 반품 상태 리스트
     public ReturnResDto.ReturnListResDto getReturns(String returnStatus, int pageNo) {
+        pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
         ReturnState returnState = null;
 
@@ -586,13 +598,19 @@ public class AdminService {
 
     // 권한 변경
     @Transactional
-    public void changeRole(Long userId, UserReqDto.ChangeRole newRole) {
+    public UserCommonDto.TokenResponseDto changeRole(Long userId, UserReqDto.ChangeRole newRole) {
         User user = userRepository.findByUserId(userId);
 
         // String -> Enum 으로 형변환
         Role role = Role.valueOf(newRole.getNewRole().toUpperCase());
         user.changeRole(role);
         userRepository.save(user); // 변경된 역할을 저장
+
+        //토큰 재발급
+        String newaccessToken = jwtUtil.createAccessJwt(userId, newRole.getNewRole(), user.getUserEmail());
+        String newrefreshToken = jwtUtil.createRefreshJwt();
+
+        return new UserCommonDto.TokenResponseDto(newaccessToken,newrefreshToken,userId);
     }
 
 

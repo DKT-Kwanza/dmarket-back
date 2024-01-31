@@ -14,6 +14,9 @@ import java.util.List;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
+    @Query("SELECT u.userEmail FROM User u WHERE u.userId = :userId")
+    String findUserEmailByUserId(Long userId);
+
     @Query("SELECT u.userId FROM User u WHERE u.userEmail = :userEmail")
     Long findUserIdByUserEmail(@Param("userEmail") String userEmail);
 
@@ -69,4 +72,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUserDktNum(Integer userDktNum);
 
     void deleteByUserId(@Param("userId") Long userId);
+
+    @Query("select u.userId from User u")
+    List<Long> findAllUserId();
 }
