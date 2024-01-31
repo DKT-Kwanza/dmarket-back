@@ -129,10 +129,9 @@ public class ProductController {
     }
 
     // 리뷰 삭제 api
-    @DeleteMapping("/{productId}/reviews/{reviewId}")
-    public ResponseEntity<?> deleteReview(@PathVariable Long productId,
-                                          @PathVariable Long reviewId) {
-        productService.deleteReviewByReviewId(productId, reviewId);
+    @DeleteMapping("/reviews/{reviewId}")
+    public ResponseEntity<?> deleteReview(@PathVariable Long reviewId) {
+        productService.deleteReviewByReviewId(reviewId);
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
 
