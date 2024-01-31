@@ -5,6 +5,7 @@ import com.dmarket.constant.InquiryType;
 import com.dmarket.domain.board.Faq;
 import com.dmarket.domain.board.InquiryReply;
 import com.dmarket.dto.common.InquiryCommonDto;
+import com.dmarket.dto.common.MileageCommonDto;
 import com.dmarket.dto.common.OrderCommonDto;
 import com.dmarket.dto.common.QnaDto;
 import com.dmarket.dto.request.*;
@@ -82,7 +83,7 @@ public class AdminController {
     public ResponseEntity<?> getMileageRequests(@RequestParam(required = true, value = "status", defaultValue = "PROCESSING") String status,
                                                 @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
 
-        Page<MileageResDto.MileageReqListResDto> requests = adminService.getMileageRequests(status, pageNo);
+        Page<MileageCommonDto.MileageReqListDto> requests = adminService.getMileageRequests(status, pageNo);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(requests), HttpStatus.OK);
     }

@@ -120,10 +120,10 @@ public class AdminService {
 
     // 마일리지 충전 요청 내역
     @Transactional
-    public Page<MileageResDto.MileageReqListResDto> getMileageRequests(String status, int pageNo){
+    public Page<MileageCommonDto.MileageReqListDto> getMileageRequests(String status, int pageNo){
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "mileageReqDate"));
-        Page<MileageResDto.MileageReqListResDto> dtos;
+        Page<MileageCommonDto.MileageReqListDto> dtos;
 
         if (status.equals("PROCESSING")) {
             dtos = mileageReqRepository.findAllByProcessing(pageable);
