@@ -44,7 +44,7 @@ public class ProductController {
                                                            @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
         ProductResDto.ProductListResDto products = productService.getCategoryProducts(pageNo, cateId,
                 sorter, minPrice, maxPrice, star);
-        log.info("데이터 조회 완료");
+        log.info("데이터 회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(products), HttpStatus.OK);
     }
 
@@ -75,8 +75,8 @@ public class ProductController {
     // QnA
     // 상품 별 Q&A 리스트 조회
     @GetMapping("/{productId}/qnaList")
-    public ResponseEntity<CMResDto<?>> getQnasByProdcutId(@PathVariable Long productId,
-                                                          @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
+    public ResponseEntity<?> getAnasByProductId(@PathVariable Long productId,
+                                                @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
         Page<QnaResDto.QnaProductIdListResDto> qnaList = productService.findQnasByProductId(productId, pageNo);
 
         Map<String, Object> responseData = new HashMap<>();
@@ -104,7 +104,7 @@ public class ProductController {
         return new ResponseEntity<>(CMResDto.successDataRes(res), HttpStatus.OK);
     }
 
-    // 상품별 사용자 리뷰 조회 api
+    // 상품별 사용자 리뷰 조회 api뷰
     @GetMapping("/{productId}/reviews")
     public ResponseEntity<?> getProductReviews(@PathVariable Long productId,
                                                @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {

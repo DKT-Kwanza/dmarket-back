@@ -216,7 +216,7 @@ public class AdminController {
         return new ResponseEntity<>(CMResDto.successDataRes(qnaDetail), HttpStatus.OK);
     }
 
-    // 반품 상태 변경
+    // 반품 상태 변경품
     @PutMapping("/orders/returns/{returnId}")
     public ResponseEntity<?> changeReturnStatus(@PathVariable Long returnId,
                                                 @Valid @RequestBody ReturnReqDto.ChangeReturnStateDto ChangeReturnStateDto) {
@@ -394,10 +394,8 @@ public class AdminController {
 
     private ResponseEntity<?> checkAuthorization(Long userId, HttpServletRequest request) {
         String authorization = request.getHeader("Authorization");
-        System.out.println("userId = " + userId);
         String token = authorization.split(" ")[1];
         Long tokenUserId = jwtUtil.getUserId(token);
-        System.out.println("tokenUserId = " + tokenUserId);
         if (!Objects.equals(tokenUserId, userId)) {
             return new ResponseEntity<>(CMResDto.errorRes(ErrorCode.FORBIDDEN), HttpStatus.FORBIDDEN);
         }
