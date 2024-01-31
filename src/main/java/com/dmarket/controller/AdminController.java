@@ -2,7 +2,6 @@ package com.dmarket.controller;
 
 import com.dmarket.constant.FaqType;
 import com.dmarket.constant.InquiryType;
-import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.board.Faq;
 import com.dmarket.domain.board.InquiryReply;
 import com.dmarket.dto.common.*;
@@ -20,16 +19,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.dmarket.dto.common.InquiryCommonDto;
-import com.dmarket.dto.common.OrderCommonDto;
-import com.dmarket.jwt.JWTUtil;
-
-import java.nio.file.AccessDeniedException;
-import java.util.*;
-
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
