@@ -37,26 +37,25 @@ public class ProductController {
     // 카테고리별 상품 목록 조건 조회 api
     @GetMapping(value = "/categories/{cateId}")
     public ResponseEntity<CMResDto<?>> getCategoryProducts(@PathVariable Long cateId,
-                                                           @RequestParam(required = false, value = "sorter", defaultValue = "reviewCnt") String sorter,
-                                                           @RequestParam(required = false, value = "min-price", defaultValue = "0") Integer minPrice,
-                                                           @RequestParam(required = false, value = "max-price", defaultValue = "9999999") Integer maxPrice,
-                                                           @RequestParam(required = false, value = "star", defaultValue = "0.0F") Float star,
-                                                           @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
-        ProductResDto.ProductListResDto products = productService.getCategoryProducts(pageNo, cateId,
-                sorter, minPrice, maxPrice, star);
-        log.info("데이터 회 완료");
+                                                         @RequestParam(required = false, value = "sorter", defaultValue = "reviewCnt") String sorter,
+                                                         @RequestParam(required = false, value = "min-price", defaultValue = "0") Integer minPrice,
+                                                         @RequestParam(required = false, value = "max-price", defaultValue = "9999999") Integer maxPrice,
+                                                         @RequestParam(required = false, value = "star", defaultValue = "0.0F") Float star,
+                                                         @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo){
+        Page<ProductResDto.ProductListResDto> products = productService.getCategoryProducts(pageNo , cateId, sorter, minPrice, maxPrice, star);
+        log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(products), HttpStatus.OK);
     }
 
     // 상품 목록 조건 검색 api
     @GetMapping("/search")
     public ResponseEntity<CMResDto<?>> getSearchProducts(@RequestParam(required = true, value = "q") String query,
-                                                         @RequestParam(required = false, value = "sorter", defaultValue = "reviewCnt") String sorter,
-                                                         @RequestParam(required = false, value = "min-price", defaultValue = "0") Integer minPrice,
-                                                         @RequestParam(required = false, value = "max-price", defaultValue = "9999999") Integer maxPrice,
-                                                         @RequestParam(required = false, value = "star", defaultValue = "0") Float star,
-                                                         @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
-        ProductResDto.ProductListResDto products = productService.getSearchProducts(pageNo, query,
+                                                       @RequestParam(required = false, value = "sorter", defaultValue = "reviewCnt") String sorter,
+                                                       @RequestParam(required = false, value = "min-price", defaultValue = "0") Integer minPrice,
+                                                       @RequestParam(required = false, value = "max-price", defaultValue = "9999999") Integer maxPrice,
+                                                       @RequestParam(required = false, value = "star", defaultValue = "0") Float star,
+                                                       @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo){
+        Page<ProductResDto.ProductListResDto> products = productService.getSearchProducts(pageNo , query,
                 sorter, minPrice, maxPrice, star);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(products), HttpStatus.OK);
@@ -99,8 +98,7 @@ public class ProductController {
     // 상품 상세 조회 api
     @GetMapping("/{productId}")
     public ResponseEntity<?> getProductInfo(@PathVariable Long productId) {
-        Long userId = 1L;
-        ProductResDto.ProductInfoResDto res = productService.getProductInfo(productId, userId);
+        ProductResDto.ProductInfoResDto res = productService.getProductInfo(productId);
         return new ResponseEntity<>(CMResDto.successDataRes(res), HttpStatus.OK);
     }
 

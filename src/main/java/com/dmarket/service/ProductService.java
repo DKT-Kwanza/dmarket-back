@@ -54,8 +54,8 @@ public class ProductService {
     }
 
     // 카테고리별 상품 목록 필터링 조회
-    public ProductResDto.ProductListResDto getCategoryProducts(int pageNo, Long cateId,
-                                                               String sorter, Integer minPrice, Integer maxPrice, Float star) {
+    public Page<ProductResDto.ProductListResDto> getCategoryProducts(int pageNo, Long cateId,
+                                                 String sorter, Integer minPrice, Integer maxPrice, Float star) {
         findCategoryById(cateId);
         sorter = sorterValidation(sorter);
         pageNo = pageVaildation(pageNo);
@@ -64,13 +64,12 @@ public class ProductService {
         star = starValidation(star);
 
         Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
-        Page<ProductCommonDto.ProductListDto> productList = productRepository.findByCateId(pageable, cateId, minPrice, maxPrice, star);
-        return new ProductResDto.ProductListResDto(productList.getTotalPages(), productList.getContent());
+        return productRepository.findByCateId(pageable, cateId, minPrice, maxPrice, star);
     }
 
     // 상품 목록 조건 검색
-    public ProductResDto.ProductListResDto getSearchProducts(int pageNo, String query,
-                                                             String sorter, Integer minPrice, Integer maxPrice, Float star) {
+    public Page<ProductResDto.ProductListResDto> getSearchProducts(int pageNo, String query,
+                                                     String sorter, Integer minPrice, Integer maxPrice, Float star) {
         if (query.isEmpty()) {
             throw new BadRequestException(INVALID_SEARCH_VALUE);
         }
@@ -81,8 +80,7 @@ public class ProductService {
         star = starValidation(star);
 
         Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
-        Page<ProductCommonDto.ProductListDto> productList = productRepository.findByQuery(pageable, query, minPrice, maxPrice, star);
-        return new ProductResDto.ProductListResDto(productList.getTotalPages(), productList.getContent());
+        return productRepository.findByQuery(pageable, query, minPrice, maxPrice, star);
     }
 
     // 상품 별 Q&A 리스트 조회
@@ -112,23 +110,21 @@ public class ProductService {
     }
 
     // 상품 상세 정보 조회
-    public ProductResDto.ProductInfoResDto getProductInfo(Long productId, Long userId) {
+    public ProductResDto.ProductInfoResDto getProductInfo(Long productId) {
         // 싱품 정보 조회
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
         // 상품의 카테고리 depth 1, depth2 조회 후 합치기
         Category category = categoryRepository.findByCategoryId(product.getCategoryId());
-        String productCategory = category.getParent().getCategoryName() + " / " + category.getCategoryName();
+        String productCategory = category.getParent().getCategoryName() + " > " + category.getCategoryName();
         // 상품의 리뷰 개수 조회
         Long reviewCnt = productReviewRepository.countByProductId(productId);
-        // 사용자가 위시리스트에 등록한 상품인지 확인
-        Boolean isWish = wishlistRepository.existsByUserIdAndProductId(userId, productId);
         // 상품 옵션 목록, 옵션별 재고 조회
         List<ProductCommonDto.ProductOptionDto> opts = productOptionRepository.findOptionsByProductId(productId);
         // 상품 이미지 목록 조회
         List<String> imgs = productImgsRepository.findAllByProductId(productId);
         // DTO 생성 및 반환
-        return new ProductResDto.ProductInfoResDto(product, productCategory, reviewCnt, isWish, opts, imgs);
+        return new ProductResDto.ProductInfoResDto(product, productCategory, reviewCnt, opts, imgs);
     }
 
     // 상품별 사용자 리뷰 조회
@@ -187,9 +183,10 @@ public class ProductService {
     // 리뷰 작성
     @Transactional
     public void saveReview(ReviewReqDto reviewReqDto, Long productId) {
-        findProductById(productId);
+
         ProductReview productReview = ProductReview.builder()
                 .optionId(reviewReqDto.getOptionId())
+                .orderDetailId(reviewReqDto.getOrderDetailId())
                 .productId(productId)
                 .userId(reviewReqDto.getUserId())
                 .reviewRating(reviewReqDto.getReviewRating())

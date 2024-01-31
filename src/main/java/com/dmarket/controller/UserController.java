@@ -5,6 +5,7 @@ import com.dmarket.domain.board.Inquiry;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.CartCommonDto;
 import com.dmarket.dto.common.InquiryRequestDto;
+import com.dmarket.dto.common.MileageCommonDto;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
 import com.dmarket.exception.ErrorCode;
@@ -82,6 +83,14 @@ public class UserController {
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
 
+    // 위시리스트에 담긴 상품인지 확인 api
+    @GetMapping("/{userId}/wish/{productId}")
+    public ResponseEntity<?> checkIsWish(@PathVariable Long userId,
+                                         @PathVariable Long productId){
+        WishResDto.IsWishResDto isWishResDto = userService.checkIsWish(userId, productId);
+        return new ResponseEntity<>(CMResDto.successDataRes(isWishResDto), HttpStatus.OK);
+    }
+
     // 위시리스트 조회
     @GetMapping("/{userId}/wish")
     public ResponseEntity<?> getWishlistByUserId(@PathVariable(name = "userId") Long userId,
@@ -90,7 +99,7 @@ public class UserController {
         if(authorization != null){
             return authorization;
         }
-        WishlistResDto wishlist = userService.getWishlistByUserId(userId,pageNo);
+        WishResDto.WishlistResDto wishlist = userService.getWishlistByUserId(userId,pageNo);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(wishlist), HttpStatus.OK);
     }
@@ -284,7 +293,7 @@ public class UserController {
         }
 
         // 충전 요청
-        MileageResDto.MileageListResDto res = userService.getMileageUsage(userId, pageNo);
+        Page<MileageCommonDto.MileageDto> res = userService.getMileageUsage(userId, pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(res), HttpStatus.OK);
     }
 

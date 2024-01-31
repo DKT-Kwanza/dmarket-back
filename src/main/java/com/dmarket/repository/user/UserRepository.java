@@ -72,4 +72,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUserDktNum(Integer userDktNum);
 
     void deleteByUserId(@Param("userId") Long userId);
+
+    @Query("select u.userId from User u")
+    List<Long> findAllUserId();
 }

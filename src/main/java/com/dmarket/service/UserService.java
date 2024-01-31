@@ -186,7 +186,7 @@ public class UserService {
     public Page<OrderResDto> getOrderDetailsWithoutReviewByUserId(Long userId, int pageNo) {
         List<OrderResDto> orderResDtos = new ArrayList<>();
         pageNo = pageVaildation(pageNo);
-        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "reviewId"));
+        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "orderDate"));
         Page<Order> ordersPage = orderRepository.findByUserIdOrderedByOrderIdDesc(userId, pageable);
 
         for (Order order : ordersPage) {
@@ -203,7 +203,7 @@ public class UserService {
     public Page<OrderResDto> getOrderDetailsWithReviewByUserId(Long userId, int pageNo) {
         List<OrderResDto> orderResDtos = new ArrayList<>();
         pageNo = pageVaildation(pageNo);
-        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "reviewId"));
+        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "orderDate"));
         Page<Order> ordersPage = orderRepository.findByUserIdOrderedByOrderIdDesc(userId, pageable);
 
         for (Order order : ordersPage) {
@@ -226,11 +226,11 @@ public class UserService {
     private final InquiryRepository inquiryRepository;
 
     // 위시리스트 조회
-    public WishlistResDto getWishlistByUserId(Long userId, int pageNo) {
+    public WishResDto.WishlistResDto getWishlistByUserId(Long userId, int pageNo) {
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE);
         Page<WishlistItemDto> wishlistItems = wishlistRepository.findWishlistItemsByUserId(pageable, userId);
-        WishlistResDto wishlistResDto = new WishlistResDto();
+        WishResDto.WishlistResDto wishlistResDto = new WishResDto.WishlistResDto();
         wishlistResDto.setWishCount(wishlistRepository.countByUserId(userId));
         wishlistResDto.setWishListItem(wishlistItems);
         return wishlistResDto;
@@ -260,6 +260,10 @@ public class UserService {
                 .productId(productId)
                 .build();
         wishlistRepository.save(wishlist);
+    }
+
+    public WishResDto.IsWishResDto checkIsWish(Long userId, Long productId){
+        return new WishResDto.IsWishResDto(wishlistRepository.existsByUserIdAndProductId(userId, productId));
     }
 
     // 위시리스트 삭제
@@ -337,21 +341,11 @@ public class UserService {
     }
 
     // 마일리지 사용(충전) 내역 조회
-    public MileageResDto.MileageListResDto getMileageUsage(Long userId, int pageNo) {
+    public Page<MileageCommonDto.MileageDto> getMileageUsage(Long userId, int pageNo) {
         findUserById(userId);
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "mileageDate"));
-        Page<Mileage> mileages = mileageRepository.findByUserId(pageable, userId);
-
-        List<MileageCommonDto.MileageDto> mileageChageList = mileages.getContent().stream().map(
-                (o) -> MileageCommonDto.MileageDto.builder()
-                        .mileageChangeDate(o.getMileageDate())
-                        .mileageContents(o.getMileageInfo())
-                        .changeMileage(o.getChangeMileage())
-                        .remainMileage(o.getRemainMileage())
-                        .build()).collect(Collectors.toList());
-
-        return new MileageResDto.MileageListResDto(mileages.getTotalPages(), mileageChageList);
+        return mileageRepository.findByUserId(pageable, userId);
     }
 
     // 마일리지 충전 요청
