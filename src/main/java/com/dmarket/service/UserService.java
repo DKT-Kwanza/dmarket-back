@@ -186,7 +186,7 @@ public class UserService {
     public Page<OrderResDto> getOrderDetailsWithoutReviewByUserId(Long userId, int pageNo) {
         List<OrderResDto> orderResDtos = new ArrayList<>();
         pageNo = pageVaildation(pageNo);
-        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "reviewId"));
+        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "orderId"));
         Page<Order> ordersPage = orderRepository.findByUserIdOrderedByOrderIdDesc(userId, pageable);
 
         for (Order order : ordersPage) {
