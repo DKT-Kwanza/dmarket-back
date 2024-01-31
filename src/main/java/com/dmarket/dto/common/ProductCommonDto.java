@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 public class ProductCommonDto {
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -28,7 +29,7 @@ public class ProductCommonDto {
         private Integer productTotalSalePrice;  // 개별상품 종합판매가 orderdetailsaleprice
         private OrderDetailState orderStauts;   // 주문 상태
 
-        public ProductDetailListDto(OrderDetail orderDetail, Product product, ProductOption productOption, ProductImgs productImgs){
+        public ProductDetailListDto(OrderDetail orderDetail, Product product, ProductOption productOption, ProductImgs productImgs) {
             this.detailId = orderDetail.getOrderDetailId();
             this.proudctId = product.getProductId();
             this.productBrand = product.getProductBrand();
@@ -61,14 +62,13 @@ public class ProductCommonDto {
         private Integer optionQuantity;
         private String optionStatus;
 
-        public ProductOptionDto(ProductOption productOption){
+        public ProductOptionDto(ProductOption productOption) {
             this.optionId = productOption.getOptionId();
             this.optionName = productOption.getOptionName();
             this.optionValue = productOption.getOptionValue();
             this.optionQuantity = productOption.getOptionQuantity();
             this.optionStatus = productOption.getOptionQuantity() == 0 ? "품절" : "판매중";
         }
-
 
 
     }
@@ -84,12 +84,13 @@ public class ProductCommonDto {
         private Integer optionQuantity;
         private String optionStatus;
 
-        public ProductOptionListDto(ProductOption productOption){
+        public ProductOptionListDto(ProductOption productOption) {
             this.optionId = productOption.getOptionId();
             this.optionName = productOption.getOptionName();
             this.optionValue = productOption.getOptionValue();
             this.optionQuantity = productOption.getOptionQuantity();
-            this.optionStatus = productOption.getOptionQuantity() == 0 ? "품절" : "판매중";}
+            this.optionStatus = productOption.getOptionQuantity() == 0 ? "품절" : "판매중";
+        }
     }
 
     @Data

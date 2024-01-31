@@ -35,7 +35,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, RefreshTokenRepository refreshTokenRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
-        this.refreshTokenRepository=refreshTokenRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
 
         // login 경로 변경
         setFilterProcessesUrl("/api/users/login");
@@ -74,14 +74,14 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String role = auth.getAuthority();
 
         // AccessToken 만료 시간 6분 -> AccessToken 만료 시간 30분
-        String accesstoken = jwtUtil.createAccessJwt( email, role);
+        String accesstoken = jwtUtil.createAccessJwt(userId, email, role);
 
         // RefreshToken 만료 시간 240시간
         String refreshtoken = jwtUtil.createRefreshJwt();
 
-        refreshTokenRepository.save(new RefreshToken(refreshtoken,accesstoken,email));
+        refreshTokenRepository.save(new RefreshToken(refreshtoken, accesstoken, email));
 
-        UserCommonDto.TokenResponseDto tokenResponseDto = new UserCommonDto.TokenResponseDto(accesstoken,refreshtoken,userId);
+        UserCommonDto.TokenResponseDto tokenResponseDto = new UserCommonDto.TokenResponseDto(accesstoken, refreshtoken, userId);
 
         CMResDto<UserCommonDto.TokenResponseDto> cmRespDto = CMResDto.<UserCommonDto.TokenResponseDto>builder()
                 .code(200)

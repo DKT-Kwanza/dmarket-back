@@ -144,7 +144,7 @@ public class ProductService {
     // Q&A 작성
     @Transactional
     public QnaResDto.QnaWriteResponseDto qnaWrite(Long productId, Long userId, String qnaTitle, String qnaContents,
-                                                    Boolean qnaIsSecret) {
+                                                  Boolean qnaIsSecret) {
         // userId로 회원 이름 가져오기
         User userdata = findUserById(userId);
         String qnaWriter = userdata.getUserName();
@@ -199,7 +199,7 @@ public class ProductService {
     }
 
     public ProductCommonDto.ProductDto findProductByProductId(Long productId) {
-        return  productRepository.findProductByProductId(productId)
+        return productRepository.findProductByProductId(productId)
                 .orElseThrow(() -> new NotFoundException(PRODUCT_NOT_FOUND));
     }
 
@@ -213,31 +213,31 @@ public class ProductService {
                 .orElseThrow(() -> new NotFoundException(CATEGORY_NOT_FOUND));
     }
 
-    public User findUserById(Long userId){
+    public User findUserById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
     }
 
-    public ProductReview findReviewById(Long reviewId){
+    public ProductReview findReviewById(Long reviewId) {
         return productReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NotFoundException(REVIEW_NOT_FOUND));
     }
 
     // 페이지 예외처리
-    public int pageVaildation(int page){
-        return page = page > 0 ? page-1 : 0;
+    public int pageVaildation(int page) {
+        return page = page > 0 ? page - 1 : 0;
     }
 
     // 정렬 예외처리
-    public String sorterValidation(String sorter){
-        if(!sorter.equals("productId") && !sorter.equals("reviewCnt") && !sorter.equals("productRating")){
+    public String sorterValidation(String sorter) {
+        if (!sorter.equals("productId") && !sorter.equals("reviewCnt") && !sorter.equals("productRating")) {
             sorter = "reviewCnt";
         }
         return sorter;
     }
 
     // 상품 평점 예외처리
-    public Float starValidation(Float star){
+    public Float starValidation(Float star) {
         if (star < 0 || star > 5) {
             throw new BadRequestException(INVALID_RATING_PARAM);
         }

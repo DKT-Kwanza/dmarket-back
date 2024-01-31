@@ -13,17 +13,16 @@ import java.util.List;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
+
     @Query(value = "select c from Category c where c.categoryDepth = :categoryDepth")
     List<CategoryResDto.CategoryListResDto> findByCategoryDepth(Integer categoryDepth);
 
     // 상품의 카테고리 1, 2 조회
     Category findByCategoryId(Long categoryId);
 
-    Category findByCategoryName(String categoryName);
+    Category findIdByCategoryName(String categoryName);
 
     // 상품 옵션 조회 status 추가
-
-
 
 
     // 상품 옵션 조회 status 추가
@@ -36,10 +35,11 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
             "from Category c " +
             "join Product p on c.categoryId = p.categoryId " +
             "join ProductOption o on p.productId = o.productId " +
-            "where c.categoryId = :categoryId")
-    List<ProductCommonDto.ProductOptionListDto> findOptionsByCategoryId(@Param("categoryId") Long categoryId);
+            "where o.productId = :productId")
+    List<ProductCommonDto.ProductOptionListDto> findOptionsByCategoryId(@Param("productId") Long productId);
 
-    @Query(value = "select p from Product p where p.categoryId = :categoryId")
+    @Query(value = "select p from Product p where p.categoryId = :categoryId" +
+            " order by p.productCreatedDate desc")
     List<Product> findProductsByCategoryId(@Param("categoryId") Long categoryId);
 
     @Query(value = "select pi.imgAddress from Category c" +

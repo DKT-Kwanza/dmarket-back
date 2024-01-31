@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 public class WishListReqDto {
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

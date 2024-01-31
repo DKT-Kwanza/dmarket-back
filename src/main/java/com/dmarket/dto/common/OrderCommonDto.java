@@ -5,11 +5,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 public class OrderCommonDto {
+
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
@@ -32,7 +34,7 @@ public class OrderCommonDto {
         private LocalDateTime orderDate;
         private List<ProductCommonDto.ProductDetailListDto> productDetailList;
 
-        public OrderListDto(Order order, List<ProductCommonDto.ProductDetailListDto> productDetailList){
+        public OrderListDto(Order order, List<ProductCommonDto.ProductDetailListDto> productDetailList) {
             this.orderId = order.getOrderId();
             this.orderDate = order.getOrderDate();
             this.productDetailList = productDetailList;

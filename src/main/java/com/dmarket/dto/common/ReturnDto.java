@@ -1,17 +1,18 @@
 package com.dmarket.dto.common;
 
+import com.dmarket.domain.order.*;
+import com.dmarket.domain.product.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import java.time.LocalDateTime;
 
-import com.dmarket.domain.order.*;
-import com.dmarket.domain.product.*;
+import java.time.LocalDateTime;
 
 @Data
 @Getter
 @NoArgsConstructor
 public class ReturnDto {
+
     private Long returnId;
     private LocalDateTime returnReqDate;
     private Long orderId;
@@ -27,7 +28,7 @@ public class ReturnDto {
     private String returnContents;
 
     public ReturnDto(Return returns, Order order, Product product, ProductImgs productImgs,
-            ProductOption productOption) {
+                     ProductOption productOption) {
         this.returnId = returns.getReturnId();
         this.returnReqDate = returns.getReturnRequestDate();
         this.orderId = order.getOrderId();

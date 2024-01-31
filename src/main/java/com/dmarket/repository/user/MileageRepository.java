@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MileageRepository extends JpaRepository<Mileage, Long> {
+
     // 사용자의 마일리지 내역 조회
     @Query("select new com.dmarket.dto.common.MileageCommonDto$MileageDto" +
             "(m.mileageDate, m.mileageInfo, m.changeMileage, m.remainMileage) " +

@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class ProductResDto {
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -36,7 +37,7 @@ public class ProductResDto {
         private LocalDateTime productRegistDate;
         private List<String> imgList;
 
-        public ProductListAdminResDto(Product product, Category category, List<ProductCommonDto.ProductOptionListDto> options, List<String> imgs){
+        public ProductListAdminResDto(Product product, Category category, List<ProductCommonDto.ProductOptionListDto> options, List<String> imgs) {
             this.productId = product.getProductId();
             this.productBrand = product.getProductBrand();
             this.productName = product.getProductName();
@@ -65,7 +66,7 @@ public class ProductResDto {
         private List<ProductCommonDto.ProductOptionDto> optionList;
         private List<String> imgList;
 
-        public ProductInfoResDto(Product product, String productCategory, Long reviewCount, Boolean isWish, List<ProductCommonDto.ProductOptionDto> options, List<String> imgs){
+        public ProductInfoResDto(Product product, String productCategory, Long reviewCount, Boolean isWish, List<ProductCommonDto.ProductOptionDto> options, List<String> imgs) {
             this.productId = product.getProductId();
             this.productCategory = productCategory;
             this.productBrand = product.getProductBrand();
@@ -118,7 +119,7 @@ public class ProductResDto {
         private int totalPage;
         private List<ProductCommonDto.ProductReviewDto> reviewList;
 
-        public ProductReviewListResDto(ProductCommonDto.ProductDto product, int totalPage, List<ProductCommonDto.ProductReviewDto> reviewList){
+        public ProductReviewListResDto(ProductCommonDto.ProductDto product, int totalPage, List<ProductCommonDto.ProductReviewDto> reviewList) {
             this.productId = product.getProductId();
             this.productRating = product.getProductRating();
             this.productReviewCount = product.getProductReviewCount();

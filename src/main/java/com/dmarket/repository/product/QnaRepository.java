@@ -2,13 +2,9 @@ package com.dmarket.repository.product;
 
 import com.dmarket.domain.product.Qna;
 import com.dmarket.dto.common.QnaDto;
-import com.dmarket.dto.response.QnaResDto.QnaDetailResDto;
-import com.dmarket.dto.response.QnaResDto.QnaProductIdListResDto;
 import com.dmarket.dto.response.QnaResDto;
-import com.dmarket.dto.response.QnaResDto.QnaTotalListResDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +15,7 @@ import java.util.Optional;
 
 @Repository
 public interface QnaRepository extends JpaRepository<Qna, Long> {
+
     @Query("select new com.dmarket.dto.response.QnaResDto$QnaProductIdListResDto(" +
             "q.qnaId, q.qnaSecret, u.userName, q.qnaTitle, q.qnaContents, q.qnaCreatedDate, " +
             "q.qnaState, qr.qnaReplyDate, qr.qnaReplyContents) " +
@@ -27,7 +24,6 @@ public interface QnaRepository extends JpaRepository<Qna, Long> {
             "left join QnaReply qr on qr.qnaId = q.qnaId " +
             "where q.productId = :productId " +
             "order by q.qnaCreatedDate desc")
-
     Page<QnaResDto.QnaProductIdListResDto> findQnasByProductId(@Param("productId") Long productId, Pageable pageable);
 
 
@@ -52,9 +48,6 @@ public interface QnaRepository extends JpaRepository<Qna, Long> {
             "join User u on q.userId = u.userId " +
             "left join QnaReply qr on q.qnaId = qr.qnaId " +
             "where q.qnaId = :qnaId")
-
     Optional<QnaResDto.QnaDetailResDto> findQnaAndReply(Long qnaId);
 
 }
-
-

@@ -6,10 +6,8 @@ import com.dmarket.dto.response.FaqResDto;
 import com.dmarket.dto.response.NoticeResDto;
 import com.dmarket.repository.board.FaqRepository;
 import com.dmarket.repository.board.NoticeRepository;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -44,6 +42,7 @@ public class BoardService {
         Pageable pageable = PageRequest.of(pageNo, BOARD_PAGE_SIZE);
         return faqRepository.findAll(pageable);
     }
+
     public Page<FaqResDto.FaqListResDto> mapToFaqListResDto(Page<Faq> faqsPage) {
         return faqsPage.map(faq -> new FaqResDto.FaqListResDto(
                 faq.getFaqId(),
@@ -54,7 +53,7 @@ public class BoardService {
     }
 
     // 페이지 번호 유효성 검사 메소드
-    public int pageVaildation(int page){
+    public int pageVaildation(int page) {
         page = page > 0 ? page - 1 : page;
         return page;
     }

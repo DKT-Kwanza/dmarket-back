@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class AdminResDto {
+
     @Data
     @Getter
     @NoArgsConstructor
@@ -24,7 +25,7 @@ public class AdminResDto {
         private String reviewContents;
         private LocalDateTime reviewCreatedDate;
 
-        public AdminReviewsResDto(ProductReview productReview, ProductOption productOption, User user, Product product){
+        public AdminReviewsResDto(ProductReview productReview, ProductOption productOption, User user, Product product) {
             this.productId = productReview.getProductId();
             this.reviewId = productReview.getReviewId();
             this.reviewWriter = user.getUserName();

@@ -3,7 +3,6 @@ package com.dmarket.domain.user;
 import com.dmarket.constant.Role;
 import com.dmarket.dto.request.UserReqDto;
 import com.dmarket.dto.response.UserResDto;
-
 import jakarta.persistence.*;
 import lombok.*;
 
