@@ -8,6 +8,7 @@ import com.dmarket.domain.board.Notice;
 import com.dmarket.domain.order.Refund;
 import com.dmarket.domain.order.Return;
 import com.dmarket.domain.product.*;
+import com.dmarket.domain.user.Mileage;
 import com.dmarket.domain.user.MileageReq;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.*;
@@ -25,6 +26,7 @@ import com.dmarket.repository.order.OrderRepository;
 import com.dmarket.repository.order.RefundRepository;
 import com.dmarket.repository.order.ReturnRepository;
 import com.dmarket.repository.product.*;
+import com.dmarket.repository.user.MileageRepository;
 import com.dmarket.repository.user.MileageReqRepository;
 import com.dmarket.repository.user.UserRepository;
 import com.dmarket.repository.user.WishlistRepository;
@@ -51,6 +53,7 @@ public class AdminService {
     // 조회가 아닌 메서드들은 꼭 @Transactional 넣어주세요 (CUD, 입력/수정/삭제)
     private final UserRepository userRepository;
     private final NoticeRepository noticeRepository;
+    private final MileageRepository mileageRepository;
     private final MileageReqRepository mileageReqRepository;
 
     private final FaqRepository faqRepository;
@@ -139,6 +142,15 @@ public class AdminService {
             mileageReq.updateState(MileageReqState.APPROVAL);
             User user = findUserById(mileageReq.getUserId());
             user.updateMileage(mileageReq.getMileageReqAmount());
+
+            // 사용자 마일리지 사용 내역에 추가
+            Mileage mileage = Mileage.builder()
+                            .userId(user.getUserId())
+                            .remainMileage(mileageReq.getMileageReqAmount())
+                            .changeMileage(user.getUserMileage())
+                            .mileageInfo(MileageContents.CHARGE)
+                            .build();
+            mileageRepository.save(mileage);
         } else {
             mileageReq.updateState(MileageReqState.REFUSAL);
         }
