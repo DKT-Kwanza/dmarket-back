@@ -19,7 +19,7 @@ import java.util.List;
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
     //카테고리별 상품 번호, 브랜드, 이름, 대표이미지, 판매가, 평점, 리뷰개수 조회
-    @Query(value = "select new com.dmarket.dto.common.ProductCommonDto$ProductListDto" +
+    @Query(value = "select new com.dmarket.dto.response.ProductResDto$ProductListResDto" +
             "(p.productId, p.productBrand, p.productName, MIN(i.imgAddress) as productImg, " +
             "p.productSalePrice, p.productRating, COUNT(DISTINCT r.reviewId) as reviewCnt) " +
             "from Product p " +
@@ -31,10 +31,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "(p.productRating >= :star or p.productRating IS NULL) " +
             "ELSE p.productRating >= :star END " +
             "group by p.productId")
-    Page<ProductCommonDto.ProductListDto> findByCateId(Pageable pageable, Long cateId, Integer minPrice, Integer maxPrice, Float star);
+    Page<ProductResDto.ProductListResDto> findByCateId(Pageable pageable, Long cateId, Integer minPrice, Integer maxPrice, Float star);
 
     // 상품 이름 or 브랜드로 목록 검색
-    @Query(value = "select new com.dmarket.dto.common.ProductCommonDto$ProductListDto" +
+    @Query(value = "select new com.dmarket.dto.response.ProductResDto$ProductListResDto" +
             "(p.productId, p.productBrand, p.productName, MIN(i.imgAddress) as productImg, " +
             "p.productSalePrice, p.productRating, COUNT(DISTINCT r.reviewId) as reviewCnt) " +
             "from Product p " +
@@ -47,7 +47,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "(p.productRating >= :star or p.productRating IS NULL) " +
             "ELSE p.productRating >= :star END " +
             "group by p.productId")
-    Page<ProductCommonDto.ProductListDto> findByQuery(Pageable pageable, String query, Integer minPrice, Integer maxPrice, Float star);
+    Page<ProductResDto.ProductListResDto> findByQuery(Pageable pageable, String query, Integer minPrice, Integer maxPrice, Float star);
 
     // 상품의 상품 번호, 평균 평점, 리뷰 개수 조회
     @Query("select new com.dmarket.dto.common.ProductCommonDto$ProductDto" +
