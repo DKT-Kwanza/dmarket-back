@@ -15,4 +15,22 @@ public class OrderReqDto {
         @NotNull
         private String orderStatus;
     }
+
+    @Data
+    public static class OrderPaymentReqDto {
+
+        private Long userId;
+        private Integer orderTotalPrice;
+        private Integer orderTotalPay;
+        private OrderDetail[] orderDetailList;
+
+        @Data
+        public static class OrderDetail {
+            private Long productId;
+            private Long optionId;
+            private Integer orderDetailCount;
+            private Integer orderDetailPrice;
+            private Integer orderDetailSalePrice;
+        }
+    }
 }
