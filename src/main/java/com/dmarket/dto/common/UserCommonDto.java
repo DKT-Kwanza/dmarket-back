@@ -1,8 +1,6 @@
 package com.dmarket.dto.common;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 public class UserCommonDto {
 
