@@ -109,6 +109,15 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(CMResDto.errorWithMsgRes(errorCode, message), HttpStatus.BAD_REQUEST);
     }
 
+    // IllegalStateException
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<?> handleIllegalStateException(IllegalStateException e) {
+        log.error("[IllegalStateException] message: {}", e.getMessage());
+        ErrorCode errorCode = ErrorCode.BAD_REQUEST;
+        String message = e.getMessage();
+        return new ResponseEntity<>(CMResDto.errorWithMsgRes(errorCode, message), HttpStatus.BAD_REQUEST);
+    }
+
     // 각종 400 에러
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<?> handleBadRequestException(BadRequestException e) {

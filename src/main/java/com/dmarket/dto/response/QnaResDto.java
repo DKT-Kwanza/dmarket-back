@@ -4,7 +4,6 @@ import com.dmarket.domain.product.Product;
 import com.dmarket.domain.product.Qna;
 import com.dmarket.domain.product.QnaReply;
 import com.dmarket.domain.user.User;
-import com.dmarket.dto.common.QnaDto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +11,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public class QnaResDto {
 

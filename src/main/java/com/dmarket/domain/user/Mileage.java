@@ -2,10 +2,13 @@ package com.dmarket.domain.user;
 
 import com.dmarket.constant.MileageContents;
 import jakarta.persistence.*;
-import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Getter
@@ -32,13 +35,14 @@ public class Mileage {
     @Column(nullable = false)
     private LocalDateTime mileageDate;
 
+
     @Builder
-    public Mileage(Long userId, Integer remainMileage, Integer changeMileage, MileageContents mileageInfo){
+    public Mileage(Long userId, Integer remainMileage, Integer changeMileage, MileageContents mileageInfo) {
         this.userId = userId;
         this.remainMileage = remainMileage;
         this.changeMileage = changeMileage;
         this.mileageInfo = mileageInfo;
-        this.mileageDate = LocalDateTime.now().withNano(0);
+        this.mileageDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
     }
 
     public static Mileage MileageAutoCharge(Long userId){

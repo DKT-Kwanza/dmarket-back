@@ -38,4 +38,13 @@ public class ProductOption {
         this.optionQuantity = optionQuantity;
     }
 
+    // 재고 감소
+    public void removeOptionQuantity(Integer count) {
+        Integer restStock = this.optionQuantity - count;
+        if (restStock < 0) {
+            throw new IllegalStateException("[재고 부족]: optionId=" + optionId + ", 요청 재고=" + count + ", 현재 재고=" + this.optionQuantity);
+        }
+        this.optionQuantity = restStock;
+    }
+
 }

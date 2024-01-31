@@ -15,7 +15,6 @@ public class Faq {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long faqId;
 
-
     @Enumerated(EnumType.STRING)
     private FaqType faqType;
 
@@ -24,7 +23,6 @@ public class Faq {
 
     @Column(columnDefinition="TEXT")
     private String faqAnswer;
-
 
 
     @Builder

@@ -10,8 +10,6 @@ import com.dmarket.dto.response.*;
 import com.dmarket.dto.common.InquiryCommonDto;
 import com.dmarket.dto.common.OrderCommonDto;
 import com.dmarket.dto.common.QnaDto;
-import com.dmarket.dto.request.*;
-import com.dmarket.dto.response.*;
 import com.dmarket.exception.ErrorCode;
 import com.dmarket.jwt.JWTUtil;
 import com.dmarket.service.AdminService;
