@@ -185,9 +185,10 @@ public class ProductService {
     // 리뷰 작성
     @Transactional
     public void saveReview(ReviewReqDto reviewReqDto, Long productId) {
-        findProductById(productId);
+
         ProductReview productReview = ProductReview.builder()
                 .optionId(reviewReqDto.getOptionId())
+                .orderDetailId(reviewReqDto.getOrderDetailId())
                 .productId(productId)
                 .userId(reviewReqDto.getUserId())
                 .reviewRating(reviewReqDto.getReviewRating())

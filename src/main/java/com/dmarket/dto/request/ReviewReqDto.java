@@ -13,6 +13,9 @@ public class ReviewReqDto {
     private Long userId;
 
     @NotNull
+    private Long orderDetailId;
+
+    @NotNull
     private Long optionId;
 
     @NotNull

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 public class MileageReqDto {
     @Getter
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class MileageChargeReqDto {
         @NotNull
         private Integer mileageCharge;
