@@ -8,6 +8,7 @@ public class MileageReqDto {
 
     @Getter
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class MileageChargeReqDto {
 
         @NotNull

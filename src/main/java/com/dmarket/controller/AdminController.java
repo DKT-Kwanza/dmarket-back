@@ -5,6 +5,8 @@ import com.dmarket.constant.InquiryType;
 import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.board.Faq;
 import com.dmarket.domain.board.InquiryReply;
+import com.dmarket.dto.common.MileageCommonDto;
+import com.dmarket.dto.common.QnaDto;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
 import com.dmarket.dto.common.InquiryCommonDto;
@@ -91,7 +93,7 @@ public class AdminController {
     public ResponseEntity<?> getMileageRequests(@RequestParam(required = true, value = "status", defaultValue = "PROCESSING") String status,
                                                 @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
 
-        MileageResDto.MileageReqListResDto requests = adminService.getMileageRequests(status, pageNo);
+        Page<MileageResDto.MileageReqListResDto> requests = adminService.getMileageRequests(status, pageNo);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(requests), HttpStatus.OK);
     }
@@ -192,7 +194,7 @@ public class AdminController {
     // 상품 QnA 전체 조회 api
     @GetMapping("/products/qna")
     public ResponseEntity<?> getQnAList(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
-        QnaResDto.QnaListResDto qnaList = adminService.getQnaList(pageNo);
+        Page<QnaDto> qnaList = adminService.getQnaList(pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(qnaList), HttpStatus.OK);
     }
 

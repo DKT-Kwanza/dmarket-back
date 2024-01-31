@@ -113,10 +113,10 @@ public class AdminService {
 
     // 마일리지 충전 요청 내역
     @Transactional
-    public MileageResDto.MileageReqListResDto getMileageRequests(String status, int pageNo) {
+    public Page<MileageResDto.MileageReqListResDto> getMileageRequests(String status, int pageNo){
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "mileageReqDate"));
-        Page<MileageCommonDto> dtos;
+        Page<MileageResDto.MileageReqListResDto> dtos;
 
         if (status.equals("PROCESSING")) {
             dtos = mileageReqRepository.findAllByProcessing(pageable);
@@ -125,10 +125,7 @@ public class AdminService {
         } else {
             throw new BadRequestException(INVALID_STATE_PARAM);
         }
-        List<MileageCommonDto.MileageReqListDto> mileageRequests = dtos.getContent().stream()
-                .map(MileageCommonDto.MileageReqListDto::new).toList();
-
-        return new MileageResDto.MileageReqListResDto(dtos.getTotalPages(), mileageRequests);
+        return dtos;
     }
 
     // 마일리지 충전 요청 처리
@@ -284,11 +281,10 @@ public class AdminService {
     }
 
     // 상품 QnA 조회
-    public QnaResDto.QnaListResDto getQnaList(int pageNo) {
+    public Page<QnaDto> getQnaList(int pageNo) {
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "qnaCreatedDate"));
-        Page<QnaDto> qnaList = qnaRepository.findAllQna(pageable);
-        return new QnaResDto.QnaListResDto(qnaList.getTotalPages(), qnaList.getContent());
+        return qnaRepository.findAllQna(pageable);
     }
 
     // 상품 QnA 상세(개별) 조회

@@ -5,6 +5,7 @@ import com.dmarket.domain.board.Inquiry;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.CartCommonDto;
 import com.dmarket.dto.common.InquiryRequestDto;
+import com.dmarket.dto.common.MileageCommonDto;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
 import com.dmarket.exception.ErrorCode;
@@ -284,7 +285,7 @@ public class UserController {
         }
 
         // 충전 요청
-        MileageResDto.MileageListResDto res = userService.getMileageUsage(userId, pageNo);
+        Page<MileageCommonDto.MileageDto> res = userService.getMileageUsage(userId, pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(res), HttpStatus.OK);
     }
 
