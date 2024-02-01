@@ -20,6 +20,7 @@ public class CartCommonDto {
         private String productBrand;
         private String productName;
         private String productImg;
+        private Long optionId;
         private String productOption;
         private Integer productCount;
         private Integer productTotalSalePrice;
@@ -30,6 +31,7 @@ public class CartCommonDto {
             this.productBrand = product.getProductBrand();
             this.productName = product.getProductName();
             this.productImg = productImgs.getImgAddress();
+            this.optionId = productOption.getOptionId();
             this.productOption = productOption.getOptionName();
             this.productCount = cart.getCartCount();
             this.productTotalSalePrice = cart.getCartCount() * product.getProductSalePrice();
