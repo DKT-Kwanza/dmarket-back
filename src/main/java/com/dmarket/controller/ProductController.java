@@ -78,13 +78,8 @@ public class ProductController {
                                                 @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
         Page<QnaResDto.QnaProductIdListResDto> qnaList = productService.findQnasByProductId(productId, pageNo);
 
-        Map<String, Object> responseData = new HashMap<>();
-        responseData.put("qnaCount", qnaList.getTotalElements());
-        responseData.put("totalPage", qnaList.getTotalPages());
-        responseData.put("qnaList", qnaList.getContent());
-        //totalpage수도 반환해주도록 수정함. 되도록이면 dto로 반환하도록 수정하는 것이 좋을 것 같음!
         log.info("데이터 조회 완료");
-        return new ResponseEntity<>(CMResDto.successDataRes(responseData), HttpStatus.OK);
+        return new ResponseEntity<>(CMResDto.successDataRes(qnaList), HttpStatus.OK);
     }
 
     //Q&A 작성 API
