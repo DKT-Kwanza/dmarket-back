@@ -1,7 +1,7 @@
 package com.dmarket.repository.user;
 
 import com.dmarket.domain.user.MileageReq;
-import com.dmarket.dto.response.MileageResDto;
+import com.dmarket.dto.common.MileageCommonDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
