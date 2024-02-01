@@ -112,8 +112,8 @@ public class UserService {
         }
     }
 
+    //이메일 유효성 검사
     public void isValidEmail(String email) {
-
         //이메일이 gachon.ac.kr로 끝나야 함
         if (!email.endsWith("gachon.ac.kr")) {
             throw new IllegalArgumentException("이메일이 gachon.ac.kr로 끝나지 않습니다.");
@@ -124,6 +124,7 @@ public class UserService {
         }
     }
 
+    //이메일 인증 코드 발송
     public void sendCodeToEmail(String toEmail) {
         isValidEmail(toEmail);
         String title = "Dmarket 회원가입 인증번호";
@@ -134,7 +135,7 @@ public class UserService {
         redisService.setValues(AUTH_CODE_PREFIX + toEmail, authCode, Duration.ofMillis(this.authCodeExpirationMillis));
     }
 
-    // Redis 구현 후 완성
+    //이메일 인증 코드 유효성 검사
     public void isValidEmailCode(String email, String authCode) {
         isValidEmail(email);
         String redisAuthCode = redisService.getValues(AUTH_CODE_PREFIX + email);
@@ -147,6 +148,7 @@ public class UserService {
         }
     }
 
+    //이메일 인증 코드 생성
     private String createCode() {
         int length = 6;
         try {
@@ -259,7 +261,7 @@ public class UserService {
         wishlistRepository.save(wishlist);
     }
 
-    public WishResDto.IsWishResDto checkIsWish(Long userId, Long productId){
+    public WishResDto.IsWishResDto checkIsWish(Long userId, Long productId) {
         return new WishResDto.IsWishResDto(wishlistRepository.existsByUserIdAndProductId(userId, productId));
     }
 
@@ -394,14 +396,14 @@ public class UserService {
     // 주문 / 배송 내역 조회
     public OrderResDto.OrderListResDto getOrderListResByUserId(Long userId, int pageNo) {
         pageNo = pageVaildation(pageNo);
-        Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE,Sort.by(Sort.Direction.DESC, "orderDate"));
+        Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "orderDate"));
 
         Page<OrderCommonDto.OrderListDto> orderList = orderRepository.findByUserId(pageable, userId)
                 .map((o) -> {
                     List<ProductCommonDto.ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByOrderId(o.getOrderId());
                     return new OrderCommonDto.OrderListDto(o, productDetailListDtos);
                 });
-        Page<Order> orders = orderRepository.findByUserId(pageable ,userId);
+        Page<Order> orders = orderRepository.findByUserId(pageable, userId);
 
         Long confPayCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_COMPLETE);
         Long preShipCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_READY);
@@ -474,6 +476,7 @@ public class UserService {
         List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
         return new OrderResDto.OrderDetailListResDto(order, user, productDetailList);
     }
+
     // 주문 취소
     @Transactional
     public OrderResDto.OrderDetailListResDto postOrderCancel(Long orderId, Long orderDetailId, Long userId, int pageNo) {
