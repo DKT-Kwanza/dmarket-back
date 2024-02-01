@@ -36,10 +36,6 @@ public class AdminController {
     // 사용자 삭제
     @DeleteMapping("/users/{userId}")
     public ResponseEntity<?> deleteUser(@PathVariable Long userId, HttpServletRequest request) {
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
-        if(authorization != null){
-            return authorization;
-        }
         adminService.deleteUserByUserId(userId);
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
