@@ -159,6 +159,7 @@ public class AdminController {
         return new ResponseEntity<>(CMResDto.successDataRes(faqListResDto), HttpStatus.OK);
     }
 
+
     // 상품 수정
     @PutMapping("/products/{productId}")
     public ResponseEntity<?> updateProduct(@Valid @RequestBody ProductReqDto productReqDto) {
@@ -291,10 +292,19 @@ public class AdminController {
     }
 
     // 상품 목록 조회
-    @GetMapping("/products/categories/{categoryId}")
-    public ResponseEntity<?> getProductsListAdmin(@PathVariable(name = "categoryId") Long categoryId,
+    @GetMapping("/products/categories/{cateId}")
+    public ResponseEntity<?> getProductsListAdmin(@PathVariable(name = "cateId") Long cateId,
                                                   @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
-        Page<ProductResDto.ProductListAdminResDto> productListAdminResDto = adminService.getProductListByCateogryId(categoryId, pageNo);
+        Page<ProductResDto.ProductListAdminResDto> productListAdminResDto = adminService.getProductListByCateogryId(cateId, pageNo);
+        return new ResponseEntity<>(CMResDto.successDataRes(productListAdminResDto), HttpStatus.OK);
+    }
+
+    //상품 목록 카테고리별 검색 조회 api
+    @GetMapping("/products/categories/{cateId}/search")
+    public ResponseEntity<?> getSearchProductList(@PathVariable(name = "cateId") Long cateId,
+                                                  @RequestParam(required = true, value = "q") String query,
+                                                  @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo){
+        Page<ProductResDto.ProductListAdminResDto> productListAdminResDto = adminService.getProductListBySearch(cateId, query, pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(productListAdminResDto), HttpStatus.OK);
     }
 

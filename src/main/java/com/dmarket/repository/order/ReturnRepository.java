@@ -1,6 +1,5 @@
 package com.dmarket.repository.order;
 
-import com.dmarket.constant.OrderDetailState;
 import com.dmarket.constant.ReturnState;
 import com.dmarket.domain.order.Return;
 import com.dmarket.dto.common.ReturnDto;
