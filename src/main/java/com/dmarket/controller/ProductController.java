@@ -73,9 +73,9 @@ public class ProductController {
 
     // QnA
     // 상품 별 Q&A 리스트 조회
-    @GetMapping("/{productId}/qna")
-    public ResponseEntity<CMResDto<?>> getQnasByProdcutId(@PathVariable Long productId,
-                                                          @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
+    @GetMapping("/{productId}/qnaList")
+    public ResponseEntity<?> getAnasByProductId(@PathVariable Long productId,
+                                                @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
         Page<QnaResDto.QnaProductIdListResDto> qnaList = productService.findQnasByProductId(productId, pageNo);
 
         Map<String, Object> responseData = new HashMap<>();
@@ -102,7 +102,7 @@ public class ProductController {
         return new ResponseEntity<>(CMResDto.successDataRes(res), HttpStatus.OK);
     }
 
-    // 상품별 사용자 리뷰 조회 api
+    // 상품별 사용자 리뷰 조회 api뷰
     @GetMapping("/{productId}/reviews")
     public ResponseEntity<?> getProductReviews(@PathVariable Long productId,
                                                @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {

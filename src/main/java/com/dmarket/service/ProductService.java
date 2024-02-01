@@ -220,12 +220,23 @@ public class ProductService {
                 .orElseThrow(() -> new NotFoundException(REVIEW_NOT_FOUND));
     }
 
-    // 페이지 예외처리
+    /**
+     * ProductOption
+     */
+    public ProductOption findOptionByOptionId(Long productOptionId) {
+        return productOptionRepository.findById(productOptionId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 옵션입니다."));
+    }
+
+    /**
+     * 예외 처리
+     */
+    // 페이지 예외 처리
     public int pageVaildation(int page) {
         return page = page > 0 ? page - 1 : 0;
     }
 
-    // 정렬 예외처리
+    // 정렬 예외 처리
     public String sorterValidation(String sorter) {
         if (!sorter.equals("productId") && !sorter.equals("reviewCnt") && !sorter.equals("productRating")) {
             sorter = "reviewCnt";
@@ -233,16 +244,11 @@ public class ProductService {
         return sorter;
     }
 
-    // 상품 평점 예외처리
+    // 상품 평점 예외 처리
     public Float starValidation(Float star) {
         if (star < 0 || star > 5) {
             throw new BadRequestException(INVALID_RATING_PARAM);
         }
         return star;
-    }
-
-    public ProductOption findOptionByOptionId(Long productOptionId) {
-        return productOptionRepository.findById(productOptionId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 옵션입니다."));
     }
 }

@@ -1,7 +1,9 @@
 package com.dmarket.controller;
 
+import com.dmarket.dto.request.OrderReqDto;
 import com.dmarket.dto.request.ProductReqDto;
 import com.dmarket.dto.response.CMResDto;
+import com.dmarket.dto.response.OrderResDto;
 import com.dmarket.dto.response.ProductResDto;
 import com.dmarket.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -34,5 +36,11 @@ public class OrderController {
             return new ResponseEntity<>(CMResDto.builder()
                     .code(500).msg("Failed").data(e.getMessage()).build(), HttpStatus.OK);
         }
+    }
+
+    @PostMapping("/payment")
+    public ResponseEntity<CMResDto<?>> payment(@RequestBody OrderReqDto.OrderPaymentReqDto dto) {
+        OrderResDto<String> resDto = orderService.payment(dto);
+        return new ResponseEntity<>(CMResDto.successDataRes(resDto), HttpStatus.OK);
     }
 }

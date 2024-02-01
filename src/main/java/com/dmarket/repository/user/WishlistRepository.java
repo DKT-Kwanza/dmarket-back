@@ -9,8 +9,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 @Repository
 public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
     // 위시리스트 존재 여부 확인
@@ -31,6 +29,4 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
     Long countByUserId(@Param("userId") Long userId);
 
     void deleteById(@Param("wishlistId") Long wishlistId);
-
-
 }
