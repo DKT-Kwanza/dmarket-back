@@ -174,8 +174,7 @@ public class ProductService {
 
     //리뷰 삭제
     @Transactional
-    public void deleteReviewByReviewId(Long productId, Long reviewId) {
-        findProductById(productId);
+    public void deleteReviewByReviewId(Long reviewId) {
         findReviewById(reviewId);
         productReviewRepository.deleteByReviewId(reviewId);
     }
