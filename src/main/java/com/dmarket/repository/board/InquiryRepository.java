@@ -29,7 +29,7 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
     void deleteByInquiryId(@Param("inquiryId") Long inquiryId);
 
     // 문의 전체 조회
-    @Query(value = "select new com.dmarket.dto.response.InquiryResDto$UserInquiryAllResDto(i.inquiryId, i.inquiryType, i.inquiryTitle, i.inquiryContents, i.inquiryImg, i.inquiryCreatedDate, i.inquiryState, ir.inquiryReplyContents, ir.inquiryReplyDate)" +
+    @Query(value = "select new com.dmarket.dto.response.InquiryResDto$UserInquiryAllResDto(i.inquiryId, i.inquiryType, i.inquiryTitle, i.inquiryContents, i.inquiryImg, i.inquiryCreatedDate, i.inquiryState, ir.inquiryReplyContents, ir.inquiryReplyDate, ir.inquiryReplyDate)" +
             " from Inquiry i " +
             " left join InquiryReply ir on ir.inquiryId = i.inquiryId" +
             " where i.userId = :userId" +
@@ -38,7 +38,7 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
 
     //문의 답변 등록
     @Query("SELECT NEW com.dmarket.dto.common.InquiryCommonDto$InquiryDetailsDto(" +
-            "i.inquiryId, i.inquiryTitle, i.inquiryContents, i.inquiryType, i.inquiryState, u.userName, i.inquiryImg, i.inquiryCreatedDate, ir.inquiryReplyContents " +
+            "i.inquiryId, i.inquiryTitle, i.inquiryContents, i.inquiryType, i.inquiryState, u.userName, i.inquiryImg, i.inquiryCreatedDate, ir.inquiryReplyContents, ir.inquiryReplyDate " +
             ") " +
             "FROM Inquiry i " +
             "LEFT JOIN InquiryReply ir ON i.inquiryId = ir.inquiryId " +
@@ -49,7 +49,7 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
     //문의 내역 상세 조회
     @Query("SELECT new com.dmarket.dto.response.InquiryResDto$InquiryDetailResDto(" +
             "i.inquiryId, i.inquiryTitle, i.inquiryContents, i.inquiryType, i.inquiryState, i.inquiryImg, i.inquiryCreatedDate, u.userName, ir.inquiryReplyId," +
-            "ir.inquiryReplyContents, ir.inquiryReplyDate) " +
+            "ir.inquiryReplyContents) " +
             "FROM Inquiry i " +
             "LEFT JOIN InquiryReply ir ON i.inquiryId = ir.inquiryId " +
             "LEFT JOIN User u ON i.userId = u.userId " +

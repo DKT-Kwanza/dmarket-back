@@ -24,10 +24,11 @@ public class InquiryCommonDto {
         private String inquiryImg;
         private String inquiryCreateDate;
         private String inquiryReplyContents;
+        private String inquiryReplyDate;
 
         public InquiryDetailsDto(Long inquiryId, String inquiryTitle, String inquiryContents, InquiryType inquiryType,
                                  Boolean inquiryStatus, String userName, String inquiryImg, LocalDateTime inquiryCreateDate,
-                                 String inquiryReplyContents) {
+                                 String inquiryReplyContents, LocalDateTime inquiryReplyDate) {
             this.inquiryId = inquiryId;
             this.inquiryTitle = inquiryTitle;
             this.inquiryContents = inquiryContents;
@@ -37,6 +38,7 @@ public class InquiryCommonDto {
             this.inquiryImg = inquiryImg;
             this.inquiryCreateDate = inquiryCreateDate.toString();
             this.inquiryReplyContents = inquiryReplyContents;
+            this.inquiryReplyDate = inquiryCreateDate.toString();
         }
     }
 
