@@ -21,6 +21,7 @@ import com.dmarket.exception.BadRequestException;
 import com.dmarket.exception.ConflictException;
 import com.dmarket.exception.NotFoundException;
 import com.dmarket.jwt.JWTUtil;
+import com.dmarket.notification.sendNotificationEvent;
 import com.dmarket.repository.board.FaqRepository;
 import com.dmarket.repository.board.InquiryReplyRepository;
 import com.dmarket.repository.board.InquiryRepository;
@@ -36,6 +37,7 @@ import com.dmarket.repository.user.UserRepository;
 import com.dmarket.repository.user.WishlistRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,6 +80,9 @@ public class AdminService {
     private final RefundRepository refundRepository;
     private final OrderRepository orderRepository;
     private final JWTUtil jwtUtil;
+    private final ApplicationEventPublisher publisher;
+
+
 
     private static final int PAGE_POST_COUNT = 10;
 
@@ -141,19 +146,13 @@ public class AdminService {
     @Transactional
     public void approveMileageReq(Long mileageReqId, boolean request) {
         MileageReq mileageReq = findMileageReqById(mileageReqId);
+        User user = findUserById(mileageReq.getUserId());
         if (request) {
             mileageReq.updateState(MileageReqState.APPROVAL);
-            User user = findUserById(mileageReq.getUserId());
             user.updateMileage(mileageReq.getMileageReqAmount());
-
-            // 사용자 마일리지 사용 내역에 추가
-            Mileage mileage = Mileage.builder()
-                    .userId(user.getUserId())
-                    .remainMileage(mileageReq.getMileageReqAmount())
-                    .changeMileage(user.getUserMileage())
-                    .mileageInfo(MileageContents.CHARGE)
-                    .build();
-            mileageRepository.save(mileage);
+            publisher.publishEvent(sendNotificationEvent.of("mileage", user.getUserId(),
+                    user.getUserName() + "님의 " + mileageReq.getMileageReqAmount() + "마일리지 충전 요청이 승인되었습니다.",
+                    "/api/users/" + user.getUserId() + "/mypage/mileage-history"));
         } else {
             mileageReq.updateState(MileageReqState.REFUSAL);
         }
@@ -497,7 +496,11 @@ public class AdminService {
         }
 
         inquiry.updateStatus(true); // 문의 상태를 1 (답변 완료)로 변경
-        return inquiryReplyRepository.save(inquiryReply);
+
+        InquiryReply savedInquiryReply = inquiryReplyRepository.save(inquiryReply);
+
+
+        return savedInquiryReply;
     }
 
     // 문의 답변 등록 - response
