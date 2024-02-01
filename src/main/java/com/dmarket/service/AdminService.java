@@ -122,7 +122,7 @@ public class AdminService {
 
     // 마일리지 충전 요청 내역
     @Transactional
-    public Page<MileageCommonDto.MileageReqListDto> getMileageRequests(String status, int pageNo){
+    public Page<MileageCommonDto.MileageReqListDto> getMileageRequests(String status, int pageNo) {
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "mileageReqDate"));
         Page<MileageCommonDto.MileageReqListDto> dtos;
@@ -148,11 +148,11 @@ public class AdminService {
 
             // 사용자 마일리지 사용 내역에 추가
             Mileage mileage = Mileage.builder()
-                            .userId(user.getUserId())
-                            .remainMileage(mileageReq.getMileageReqAmount())
-                            .changeMileage(user.getUserMileage())
-                            .mileageInfo(MileageContents.CHARGE)
-                            .build();
+                    .userId(user.getUserId())
+                    .remainMileage(mileageReq.getMileageReqAmount())
+                    .changeMileage(user.getUserMileage())
+                    .mileageInfo(MileageContents.CHARGE)
+                    .build();
             mileageRepository.save(mileage);
         } else {
             mileageReq.updateState(MileageReqState.REFUSAL);
@@ -164,13 +164,13 @@ public class AdminService {
         noticeRepository.deleteByNoticeId(noticeId);
     }
 
-    //사용자 ID로 찾기
+    // 사용자 ID로 찾기
     public User findUserById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
     }
 
-    //사용자 마일리지 요청 찾기
+    // 사용자 마일리지 요청 찾기
     public MileageReq findMileageReqById(Long mileageReqId) {
         return mileageReqRepository.findById(mileageReqId)
                 .orElseThrow(() -> new NotFoundException(REQUEST_NOT_FOUND));
@@ -401,17 +401,17 @@ public class AdminService {
     // 신상품 등록
     @Transactional
     public void saveProductList(ProductReqDto.ProductListDto productList) {
-            // CategoryId 가져오기
-            Long categoryId = getCategoryByCategoryName(productList.getCategoryName());
+        // CategoryId 가져오기
+        Long categoryId = getCategoryByCategoryName(productList.getCategoryName());
 
-            // Product 저장
-            Product savedProduct = saveProduct(productList, categoryId);
+        // Product 저장
+        Product savedProduct = saveProduct(productList, categoryId);
 
-            // OptionList 저장
-            saveProductOptions(savedProduct.getProductId(), productList.getOptionList());
+        // OptionList 저장
+        saveProductOptions(savedProduct.getProductId(), productList.getOptionList());
 
-            // ProductImgs 저장
-            saveProductImgs(savedProduct.getProductId(), productList.getImgList());
+        // ProductImgs 저장
+        saveProductImgs(savedProduct.getProductId(), productList.getImgList());
     }
 
     @Transactional
@@ -488,14 +488,15 @@ public class AdminService {
     public InquiryReply createInquiryReply(InquiryReply inquiryReply) {
         // 문의 아이디와 일치하지 않으면 등록하지 않음
         Inquiry inquiry = inquiryRepository.findById(inquiryReply.getInquiryId())
-                .orElseThrow(() -> new IllegalArgumentException("문의 아이디와 일치하지 않음, inquiry ID: " + inquiryReply.getInquiryId()));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "문의 아이디와 일치하지 않음, inquiry ID: " + inquiryReply.getInquiryId()));
 
         // 이미 답변이 등록된 문의인지 확인
         if (inquiry.getInquiryState()) {
             throw new IllegalArgumentException("이미 답변이 등록된 문의, inquiry ID: " + inquiryReply.getInquiryId());
         }
 
-        inquiry.updateStatus(true);  // 문의 상태를 1 (답변 완료)로 변경
+        inquiry.updateStatus(true); // 문의 상태를 1 (답변 완료)로 변경
         return inquiryReplyRepository.save(inquiryReply);
     }
 
@@ -555,20 +556,37 @@ public class AdminService {
         productOptionRepository.deleteByOptionId(optionId);
     }
 
-    // 상품 목록 조회
-    public Page<ProductResDto.ProductListAdminResDto> getProductListByCateogryId(Long categoryId, int pageNo) {
-        List<Product> products = categoryRepository.findProductsByCategoryId(categoryId);
-        Category category = categoryRepository.findByCategoryId(categoryId);
-        List<String> imgs = categoryRepository.findImgsByCategoryId(categoryId);
+     //상품 목록 조회
+    public Page<ProductResDto.ProductListAdminResDto> getProductListByCateogryId(Long cateId, int pageNo) {
+        pageNo = pageVaildation(pageNo);
+        List<Product> products = categoryRepository.findProductsByCategoryId(cateId);
+        Category category = categoryRepository.findByCategoryId(cateId);
 
         // 제품 목록을 처리하고 DTO 목록을 만듭니다.
         List<ProductResDto.ProductListAdminResDto> result = new ArrayList<>();
         for (Product product : products) {
-            List<ProductCommonDto.ProductOptionListDto> options = categoryRepository.findOptionsByCategoryId(product.getProductId());
+            Long productId = product.getProductId();
+            List<ProductCommonDto.ProductOptionDto> options = productOptionRepository.findOptionsByProductId(productId);
+            List<String> imgs = productImgsRepository.findAllByProductId(productId);
             result.add(new ProductResDto.ProductListAdminResDto(product, category, options, imgs));
         }
         return new PageImpl<>(result);
+    }
 
+    //상품 목록 검색 조회
+    public Page<ProductResDto.ProductListAdminResDto> getProductListBySearch(Long cateId, String query, int pageNo){
+        pageNo = pageVaildation(pageNo);
+        List<Product> products = categoryRepository.findProductsByQuery(cateId, query);
+        Category category = categoryRepository.findByCategoryId(cateId);
+
+        List<ProductResDto.ProductListAdminResDto> result = new ArrayList<>();
+        for (Product product : products) {
+            Long productId = product.getProductId();
+            List<ProductCommonDto.ProductOptionDto> options = productOptionRepository.findOptionsByProductId(productId);
+            List<String> imgs = productImgsRepository.findAllByProductId(productId);
+            result.add(new ProductResDto.ProductListAdminResDto(product, category, options, imgs));
+        }
+        return new PageImpl<>(result);
     }
 
     // 관리자 전체 조회
@@ -608,13 +626,12 @@ public class AdminService {
         user.changeRole(role);
         userRepository.save(user); // 변경된 역할을 저장
 
-        //토큰 재발급
+        // 토큰 재발급
         String newaccessToken = jwtUtil.createAccessJwt(userId, newRole.getNewRole(), user.getUserEmail());
         String newrefreshToken = jwtUtil.createRefreshJwt();
 
-        return new UserCommonDto.TokenResponseDto(newaccessToken,newrefreshToken,userId);
+        return new UserCommonDto.TokenResponseDto(newaccessToken, newrefreshToken, userId);
     }
-
 
     // 사용자 검색
     @Transactional
@@ -634,8 +651,18 @@ public class AdminService {
         Integer price = orderDetailRepository.getOrderDetailSalePriceFindByReturnId(returnId);
         Integer amount = (int) (price * percent / 100);
         orderDetailRepository.updateReturnCompleteByReturnId(returnId, OrderDetailState.RETURN_COMPLETE);
+        updateReturnState(returnId, "환불 완료");
         refundRepository.updateRefundCompleteByReturnId(returnId);
         userRepository.updateUserMileageByReturnId(returnId, amount);
+        User user = userRepository.getUserFindByReturnId(returnId);
+        // 사용자 마일리지 사용 내역에 추가
+        Mileage mileage = Mileage.builder()
+                .userId(user.getUserId())
+                .remainMileage(amount)
+                .changeMileage(user.getUserMileage())
+                .mileageInfo(MileageContents.REFUND)
+                .build();
+        mileageRepository.save(mileage);
     }
 
     // 취소 목록 조회
@@ -653,8 +680,7 @@ public class AdminService {
                         (String) row[6],
                         (LocalDateTime) row[7],
                         (Integer) row[8],
-                        (OrderDetailState) row[9]
-                ))
+                        (OrderDetailState) row[9]))
                 .collect(Collectors.toList());
     }
 
@@ -688,7 +714,8 @@ public class AdminService {
     // 상품 재고 추가 RESPONSE
     public ProductResDto.ProductInfoOptionResDto getProductInfoWithOption(Long productId) {
         try {
-            List<ProductResDto.ProductInfoOptionResDto> productDetails = productRepository.findProductDetails(productId);
+            List<ProductResDto.ProductInfoOptionResDto> productDetails = productRepository
+                    .findProductDetails(productId);
 
             if (!productDetails.isEmpty()) {
                 ProductResDto.ProductInfoOptionResDto productDetail = productDetails.get(0);
@@ -710,7 +737,6 @@ public class AdminService {
             throw new RuntimeException("상품 정보 조회 중 오류 발생", e);
         }
     }
-
 
     // 배송 목록 조회
     public OrderCommonDto.OrderDetailStateCountsDto getOrderDetailStateCounts() {
@@ -745,6 +771,5 @@ public class AdminService {
         return inquiryRepository.findInquiryDetailById(inquiryId)
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 문의 ID: " + inquiryId));
     }
-
 
 }

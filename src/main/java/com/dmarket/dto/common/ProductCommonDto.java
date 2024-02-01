@@ -76,26 +76,6 @@ public class ProductCommonDto {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    @Builder
-    public static class ProductOptionListDto {
-        private Long optionId;
-        private String optionName;
-        private String optionValue;
-        private Integer optionQuantity;
-        private String optionStatus;
-
-        public ProductOptionListDto(ProductOption productOption) {
-            this.optionId = productOption.getOptionId();
-            this.optionName = productOption.getOptionName();
-            this.optionValue = productOption.getOptionValue();
-            this.optionQuantity = productOption.getOptionQuantity();
-            this.optionStatus = productOption.getOptionQuantity() == 0 ? "품절" : "판매중";
-        }
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class ProductReviewDto {
         private Long reviewId;
         private String reviewWriter;
