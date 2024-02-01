@@ -157,7 +157,7 @@ public class AdminService {
 
             // 사용자 마일리지 사용 내역에 추가
             Mileage mileage = Mileage.builder()
-                    정.userId(user.getUserId())
+                    .userId(user.getUserId())
                     .remainMileage(mileageReq.getMileageReqAmount())
                     .changeMileage(user.getUserMileage())
                     .mileageInfo(MileageContents.CHARGE)
