@@ -498,7 +498,8 @@ public class AdminService {
         inquiry.updateStatus(true); // 문의 상태를 1 (답변 완료)로 변경
 
         InquiryReply savedInquiryReply = inquiryReplyRepository.save(inquiryReply);
-
+        // 문의가 저장된 후 알림을 보냅니다.
+        publisher.publishEvent(sendNotificationEvent.of("inquiry", inquiry.getUserId(), "문의 답변이 등록되었습니다: " + savedInquiryReply.getInquiryReplyContents(), "/api/notices/"+ savedInquiryReply.getInquiryReplyId()));
 
         return savedInquiryReply;
     }
