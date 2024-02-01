@@ -14,65 +14,73 @@ import java.util.List;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    @Query("SELECT u.userEmail FROM User u WHERE u.userId = :userId")
-    String findUserEmailByUserId(Long userId);
+        @Query("SELECT u.userEmail FROM User u WHERE u.userId = :userId")
+        String findUserEmailByUserId(Long userId);
 
-    @Query("SELECT u.userId FROM User u WHERE u.userEmail = :userEmail")
-    Long findUserIdByUserEmail(@Param("userEmail") String userEmail);
+        @Query("SELECT u.userId FROM User u WHERE u.userEmail = :userEmail")
+        Long findUserIdByUserEmail(@Param("userEmail") String userEmail);
 
-    List<User> getUsersFindByUserDktNum(@Param("userDktNum") Integer userDktNum);
+        List<User> getUsersFindByUserDktNum(@Param("userDktNum") Integer userDktNum);
 
-    @Query(value = "select new com.dmarket.dto.response.UserResDto$UserInfo(u.userName, u.userEmail, u.userDktNum, u.userPhoneNum, u.userAddress, u.userAddressDetail, u.userPostalCode, u.userJoinDate)"
-            +
-            " from User u " +
-            " where u.userId = :userId")
-    UserResDto.UserInfo findUserInfoByUserId(@Param("userId") Long userId);
+        @Query(value = "select new com.dmarket.dto.response.UserResDto$UserInfo(u.userName, u.userEmail, u.userDktNum, u.userPhoneNum, u.userAddress, u.userAddressDetail, u.userPostalCode, u.userJoinDate)"
+                        +
+                        " from User u " +
+                        " where u.userId = :userId")
+        UserResDto.UserInfo findUserInfoByUserId(@Param("userId") Long userId);
 
-    // 마이페이지 서브헤더 사용자 정보 및 마일리지 조회
-    @Query(value = "select new com.dmarket.dto.response.UserResDto$UserHeaderInfo (u.userName, u.userJoinDate, u.userMileage) "
-            +
-            "from User u " +
-            "where u.userId = :userId")
-    UserResDto.UserHeaderInfo findUserHeaderInfoByUserId(Long userId);
+        // 마이페이지 서브헤더 사용자 정보 및 마일리지 조회
+        @Query(value = "select new com.dmarket.dto.response.UserResDto$UserHeaderInfo (u.userName, u.userJoinDate, u.userMileage) "
+                        +
+                        "from User u " +
+                        "where u.userId = :userId")
+        UserResDto.UserHeaderInfo findUserHeaderInfoByUserId(Long userId);
 
-    @Modifying
-    @Query("UPDATE User u SET u.userMileage = u.userMileage + :calculatedAmount " +
-            "WHERE u.userId IN (" +
-            "SELECT o.userId FROM Order o " +
-            "JOIN OrderDetail od ON o.orderId = od.orderId " +
-            "JOIN Return r ON od.orderDetailId = r.orderDetailId " +
-            "WHERE r.returnId = :returnId)")
-    void updateUserMileageByReturnId(@Param("returnId") Long returnId,
-                                     @Param("calculatedAmount") Integer calculatedAmount);
+        @Modifying
+        @Query("UPDATE User u SET u.userMileage = u.userMileage + :calculatedAmount " +
+                        "WHERE u.userId IN (" +
+                        "SELECT o.userId FROM Order o " +
+                        "JOIN OrderDetail od ON o.orderId = od.orderId " +
+                        "JOIN Return r ON od.orderDetailId = r.orderDetailId " +
+                        "WHERE r.returnId = :returnId)")
+        void updateUserMileageByReturnId(@Param("returnId") Long returnId,
+                        @Param("calculatedAmount") Integer calculatedAmount);
 
-    // 전체 사용자 마일리지 초기화
-    @Modifying
-    @Query("update User u set u.userMileage = :initMileage")
-    void resetUserMileage(Integer initMileage);
+        @Query("select u from User u " +
+                        "WHERE u.userId IN (" +
+                        "SELECT o.userId FROM Order o " +
+                        "JOIN OrderDetail od ON o.orderId = od.orderId " +
+                        "JOIN Return r ON od.orderDetailId = r.orderDetailId " +
+                        "WHERE r.returnId = :returnId)")
+        User getUserFindByReturnId(@Param("returnId") Long returnId);
 
-    // 주문 취소시 마일리지 추가
-    @Modifying
-    @Query(value = "update User u set u.userMileage = u.userMileage + :cancelPrice where u.userId = :userId")
-    void updateUserMileageByCancel(@Param("userId") Long userId, @Param("cancelPrice") Integer cancelPrice);
+        // 전체 사용자 마일리지 초기화
+        @Modifying
+        @Query("update User u set u.userMileage = :initMileage")
+        void resetUserMileage(Integer initMileage);
 
-    User findByUserId(Long userId);
+        // 주문 취소시 마일리지 추가
+        @Modifying
+        @Query(value = "update User u set u.userMileage = u.userMileage + :cancelPrice where u.userId = :userId")
+        void updateUserMileageByCancel(@Param("userId") Long userId, @Param("cancelPrice") Integer cancelPrice);
 
-    User findByUserEmail(String userEmail);
+        User findByUserId(Long userId);
 
-    User findUserNameByUserId(Long userId);
+        User findByUserEmail(String userEmail);
 
-    // 사원 번호로 user 검색
-    User findByUserDktNum(Integer userDktNum);
+        User findUserNameByUserId(Long userId);
 
-    // User 별로 사용자 집계
-    List<User> findAllByUserRoleIsNot(Role userRole);
+        // 사원 번호로 user 검색
+        User findByUserDktNum(Integer userDktNum);
 
-    boolean existsByUserEmail(String userEmail);
+        // User 별로 사용자 집계
+        List<User> findAllByUserRoleIsNot(Role userRole);
 
-    boolean existsByUserDktNum(Integer userDktNum);
+        boolean existsByUserEmail(String userEmail);
 
-    void deleteByUserId(@Param("userId") Long userId);
+        boolean existsByUserDktNum(Integer userDktNum);
 
-    @Query("select u.userId from User u")
-    List<Long> findAllUserId();
+        void deleteByUserId(@Param("userId") Long userId);
+
+        @Query("select u.userId from User u")
+        List<Long> findAllUserId();
 }
