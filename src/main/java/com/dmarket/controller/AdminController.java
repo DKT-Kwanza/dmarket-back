@@ -4,12 +4,13 @@ import com.dmarket.constant.FaqType;
 import com.dmarket.constant.InquiryType;
 import com.dmarket.domain.board.Faq;
 import com.dmarket.domain.board.InquiryReply;
+import com.dmarket.dto.common.*;
+import com.dmarket.dto.request.*;
+import com.dmarket.dto.response.*;
 import com.dmarket.dto.common.InquiryCommonDto;
 import com.dmarket.dto.common.MileageCommonDto;
 import com.dmarket.dto.common.OrderCommonDto;
 import com.dmarket.dto.common.QnaDto;
-import com.dmarket.dto.request.*;
-import com.dmarket.dto.response.*;
 import com.dmarket.exception.ErrorCode;
 import com.dmarket.jwt.JWTUtil;
 import com.dmarket.service.AdminService;
@@ -315,8 +316,9 @@ public class AdminController {
     @PutMapping("/admin-users/{userId}")
     public ResponseEntity<?> changeRole(@PathVariable Long userId,
                                         @Valid @RequestBody UserReqDto.ChangeRole newRole) {
-        adminService.changeRole(userId, newRole);
-        return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
+
+        UserCommonDto.TokenResponseDto tokenResponseDto = adminService.changeRole(userId, newRole);
+        return new ResponseEntity<>(CMResDto.successDataRes(tokenResponseDto), HttpStatus.OK);
     }
 
     // 상태별 반품 목록 조회

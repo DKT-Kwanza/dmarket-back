@@ -37,7 +37,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.dmarket.exception.ErrorCode.*;
 
@@ -71,8 +70,6 @@ public class UserService {
 
     /**
      * 회원가입
-     *
-     * @Return userId
      */
     @Transactional
     public Long join(UserReqDto.Join dto) {
@@ -340,6 +337,9 @@ public class UserService {
         }
     }
 
+    /**
+     * 마일리지
+     */
     // 마일리지 사용(충전) 내역 조회
     public Page<MileageCommonDto.MileageDto> getMileageUsage(Long userId, int pageNo) {
         findUserById(userId);
@@ -360,6 +360,17 @@ public class UserService {
                 .build();
 
         mileageReqRepository.save(mileageReq);
+    }
+
+    // 마일리지 사용 내역 추가
+    @Transactional
+    public void addMileageHistory(Long userId, Integer remainMileage, Integer changeMileage) {
+        Mileage mileage = Mileage.builder()
+                .userId(userId)
+                .remainMileage(remainMileage)
+                .changeMileage(changeMileage)
+                .mileageInfo(MileageContents.PURCHASE).build();
+        mileageRepository.save(mileage);
     }
 
     // 사용자 문의 전체 조회
