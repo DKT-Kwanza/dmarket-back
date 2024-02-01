@@ -146,13 +146,23 @@ public class AdminService {
     @Transactional
     public void approveMileageReq(Long mileageReqId, boolean request) {
         MileageReq mileageReq = findMileageReqById(mileageReqId);
-        User user = findUserById(mileageReq.getUserId());
         if (request) {
             mileageReq.updateState(MileageReqState.APPROVAL);
+            User user = findUserById(mileageReq.getUserId());
             user.updateMileage(mileageReq.getMileageReqAmount());
+            // 알림 전송
             publisher.publishEvent(sendNotificationEvent.of("mileage", user.getUserId(),
                     user.getUserName() + "님의 " + mileageReq.getMileageReqAmount() + "마일리지 충전 요청이 승인되었습니다.",
                     "/api/users/" + user.getUserId() + "/mypage/mileage-history"));
+
+            // 사용자 마일리지 사용 내역에 추가
+            Mileage mileage = Mileage.builder()
+                    정.userId(user.getUserId())
+                    .remainMileage(mileageReq.getMileageReqAmount())
+                    .changeMileage(user.getUserMileage())
+                    .mileageInfo(MileageContents.CHARGE)
+                    .build();
+            mileageRepository.save(mileage);
         } else {
             mileageReq.updateState(MileageReqState.REFUSAL);
         }
@@ -523,6 +533,7 @@ public class AdminService {
         inquiryReplyRepository.deleteById(inquiryReplyId);
     }
 
+    // 배송 상태 변경
     @Transactional
     public void updateOrderDetailState(Long detailId, String orderStatus) {
         OrderDetailState orderDetailState = null;
