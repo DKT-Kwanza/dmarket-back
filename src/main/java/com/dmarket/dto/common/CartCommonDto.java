@@ -32,7 +32,7 @@ public class CartCommonDto {
             this.productName = product.getProductName();
             this.productImg = productImgs.getImgAddress();
             this.optionId = productOption.getOptionId();
-            this.productOption = productOption.getOptionName();
+            this.productOption = productOption.getOptionValue();
             this.productCount = cart.getCartCount();
             this.productTotalSalePrice = cart.getCartCount() * product.getProductSalePrice();
         }
