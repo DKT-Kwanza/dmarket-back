@@ -38,7 +38,7 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
 
     //문의 답변 등록
     @Query("SELECT NEW com.dmarket.dto.common.InquiryCommonDto$InquiryDetailsDto(" +
-            "i.inquiryId, i.inquiryTitle, i.inquiryContents, i.inquiryType, i.inquiryState, u.userName, i.inquiryImg, i.inquiryCreatedDate, ir.inquiryReplyContents " +
+            "i.inquiryId, i.inquiryTitle, i.inquiryContents, i.inquiryType, i.inquiryState, u.userName, i.inquiryImg, i.inquiryCreatedDate, ir.inquiryReplyContents, ir.inquiryReplyDate " +
             ") " +
             "FROM Inquiry i " +
             "LEFT JOIN InquiryReply ir ON i.inquiryId = ir.inquiryId " +
@@ -49,7 +49,7 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
     //문의 내역 상세 조회
     @Query("SELECT new com.dmarket.dto.response.InquiryResDto$InquiryDetailResDto(" +
             "i.inquiryId, i.inquiryTitle, i.inquiryContents, i.inquiryType, i.inquiryState, i.inquiryImg, i.inquiryCreatedDate, u.userName, ir.inquiryReplyId," +
-            "ir.inquiryReplyContents, ir.inquiryReplyDate) " +
+            "ir.inquiryReplyContents) " +
             "FROM Inquiry i " +
             "LEFT JOIN InquiryReply ir ON i.inquiryId = ir.inquiryId " +
             "LEFT JOIN User u ON i.userId = u.userId " +
