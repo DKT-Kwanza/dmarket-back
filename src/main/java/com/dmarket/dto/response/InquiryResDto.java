@@ -96,7 +96,6 @@ public class InquiryResDto {
             this.inquiryWriter = inquiryWriter;
             this.inquiryReplyId = inquiryReplyId;
             this.inquiryReplyContents = inquiryReplyContents;
-
             // inquiryReplyDate가 null이 아닌 경우에만 날짜 형식으로 변환
             if (inquiryReplyDate != null) {
                 this.inquiryReplyDate = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(inquiryReplyDate);
