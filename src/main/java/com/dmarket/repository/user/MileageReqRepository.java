@@ -10,17 +10,17 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MileageReqRepository extends JpaRepository<MileageReq, Long> {
-    @Query("select new com.dmarket.dto.response.MileageResDto$MileageReqListResDto" +
+    @Query("select new com.dmarket.dto.common.MileageCommonDto$MileageReqListDto" +
             "(m.mileageReqId, m.mileageReqDate, m.userId, u.userName, u.userEmail, m.mileageReqReason, m.mileageReqAmount, m.mileageReqState) " +
             "from MileageReq m " +
             "join User u on u.userId = m.userId " +
             "where m.mileageReqState = 'PROCESSING'")
-    Page<MileageResDto.MileageReqListResDto> findAllByProcessing(Pageable pageable);
+    Page<MileageCommonDto.MileageReqListDto> findAllByProcessing(Pageable pageable);
 
-    @Query("select new com.dmarket.dto.response.MileageResDto$MileageReqListResDto" +
+    @Query("select new com.dmarket.dto.common.MileageCommonDto$MileageReqListDto" +
             "(m.mileageReqId, m.mileageReqDate, m.userId, u.userName, u.userEmail, m.mileageReqReason, m.mileageReqAmount, m.mileageReqState) " +
             "from MileageReq m " +
             "join User u on u.userId = m.userId " +
             "where m.mileageReqState != 'PROCESSING'")
-    Page<MileageResDto.MileageReqListResDto> findAllByProcessed(Pageable pageable);
+    Page<MileageCommonDto.MileageReqListDto> findAllByProcessed(Pageable pageable);
 }

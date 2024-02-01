@@ -12,21 +12,25 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OrderDetailResDto {
     private Long orderDetailId;
-    private String orderBrand;
+    private String productBrand;
     private String productName;
     private String productImg;
     private String productOption;
     private Integer productCount;
     private Integer productTotalSalePrice;
+    private Long optionId;
+    private Long productId;
 
     public OrderDetailResDto(OrderDetail orderDetail, Product product, ProductImgs productImgs, ProductOption productOption) {
         this.orderDetailId = orderDetail.getOrderDetailId();
-        this.orderBrand = product.getProductBrand();
+        this.productBrand = product.getProductBrand();
         this.productName = product.getProductName();
         this.productImg = productImgs.getImgAddress();
         this.productOption = productOption.getOptionValue();
         this.productCount = orderDetail.getOrderDetailCount();
         this.productTotalSalePrice = orderDetail.getOrderDetailSalePrice();
+        this.optionId = productOption.getOptionId();
+        this.productId = product.getProductId();
     }
 
 }

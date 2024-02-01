@@ -51,15 +51,17 @@ public class MileageCommonDto {
         private Integer mileageCharge;
         private String mileageReqStatus;
 
-        public MileageReqListDto(MileageCommonDto mileageReqDto) {
-            this.mileageReqId = mileageReqDto.getMileageReqId();
-            this.mileageReqDate = mileageReqDto.getMileageReqDate();
-            this.userId = mileageReqDto.getUserId();
-            this.userName = mileageReqDto.getUserName();
-            this.userEmail = mileageReqDto.getUserEmail();
-            this.mileageReqReason = mileageReqDto.getMileageReqReason().getLabel();
-            this.mileageCharge = mileageReqDto.getMileageCharge();
-            this.mileageReqStatus = mileageReqDto.getMileageReqStatus().getLabel();
+        @Builder
+        public MileageReqListDto(Long mileageReqId, LocalDateTime mileageReqDate, Long userId, String userName, String userEmail, MileageContents mileageReqReason,
+                                 Integer mileageReqAmount, MileageReqState mileageReqState) {
+            this.mileageReqId = mileageReqId;
+            this.mileageReqDate = mileageReqDate;
+            this.userId = userId;
+            this.userName = userName;
+            this.userEmail = userEmail;
+            this.mileageReqReason = mileageReqReason.getLabel();
+            this.mileageCharge = mileageReqAmount;
+            this.mileageReqStatus = mileageReqState.getLabel();
         }
 
 

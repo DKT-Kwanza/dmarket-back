@@ -43,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -121,10 +122,10 @@ public class AdminService {
 
     // 마일리지 충전 요청 내역
     @Transactional
-    public Page<MileageResDto.MileageReqListResDto> getMileageRequests(String status, int pageNo){
+    public Page<MileageCommonDto.MileageReqListDto> getMileageRequests(String status, int pageNo){
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "mileageReqDate"));
-        Page<MileageResDto.MileageReqListResDto> dtos;
+        Page<MileageCommonDto.MileageReqListDto> dtos;
 
         if (status.equals("PROCESSING")) {
             dtos = mileageReqRepository.findAllByProcessing(pageable);
@@ -387,8 +388,9 @@ public class AdminService {
         Return returnEntity = returnRepository.findById(returnId)
                 .orElseThrow(() -> new NotFoundException(RETURN_NOT_FOUND));
 
+        System.out.println("returnState = " + returnState);
         // returnState 가 " 완료" 상태인 경우 환불 테이블에 state = 0으로 추가
-        if (returnState == ReturnState.COLLECT_COMPLETE.label) {
+        if (Objects.equals(returnState, ReturnState.COLLECT_COMPLETE.label)) {
             Refund refund = new Refund(returnId, false); // 초기 refundState는 false로 설정
             refundRepository.save(refund);
         }
