@@ -72,7 +72,7 @@ public class ProductResDto {
             this.productName = product.getProductName();
             this.productDes = product.getProductDescription();
             this.productPrice = product.getProductPrice();
-            this.productSalePrice = product.getProductPrice();
+            this.productSalePrice = product.getProductSalePrice();
             this.productRating = product.getProductRating();
             this.productReviewCount = reviewCount;
             this.optionList = options;
