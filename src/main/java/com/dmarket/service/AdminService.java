@@ -555,20 +555,37 @@ public class AdminService {
         productOptionRepository.deleteByOptionId(optionId);
     }
 
-    // 상품 목록 조회
-    public Page<ProductResDto.ProductListAdminResDto> getProductListByCateogryId(Long categoryId, int pageNo) {
-        List<Product> products = categoryRepository.findProductsByCategoryId(categoryId);
-        Category category = categoryRepository.findByCategoryId(categoryId);
-        List<String> imgs = categoryRepository.findImgsByCategoryId(categoryId);
+     //상품 목록 조회
+    public Page<ProductResDto.ProductListAdminResDto> getProductListByCateogryId(Long cateId, int pageNo) {
+        pageNo = pageVaildation(pageNo);
+        List<Product> products = categoryRepository.findProductsByCategoryId(cateId);
+        Category category = categoryRepository.findByCategoryId(cateId);
 
         // 제품 목록을 처리하고 DTO 목록을 만듭니다.
         List<ProductResDto.ProductListAdminResDto> result = new ArrayList<>();
         for (Product product : products) {
-            List<ProductCommonDto.ProductOptionListDto> options = categoryRepository.findOptionsByCategoryId(product.getProductId());
+            Long productId = product.getProductId();
+            List<ProductCommonDto.ProductOptionDto> options = productOptionRepository.findOptionsByProductId(productId);
+            List<String> imgs = productImgsRepository.findAllByProductId(productId);
             result.add(new ProductResDto.ProductListAdminResDto(product, category, options, imgs));
         }
         return new PageImpl<>(result);
+    }
 
+    //상품 목록 검색 조회
+    public Page<ProductResDto.ProductListAdminResDto> getProductListBySearch(Long cateId, String query, int pageNo){
+        pageNo = pageVaildation(pageNo);
+        List<Product> products = categoryRepository.findProductsByQuery(cateId, query);
+        Category category = categoryRepository.findByCategoryId(cateId);
+
+        List<ProductResDto.ProductListAdminResDto> result = new ArrayList<>();
+        for (Product product : products) {
+            Long productId = product.getProductId();
+            List<ProductCommonDto.ProductOptionDto> options = productOptionRepository.findOptionsByProductId(productId);
+            List<String> imgs = productImgsRepository.findAllByProductId(productId);
+            result.add(new ProductResDto.ProductListAdminResDto(product, category, options, imgs));
+        }
+        return new PageImpl<>(result);
     }
 
     // 관리자 전체 조회

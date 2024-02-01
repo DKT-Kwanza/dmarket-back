@@ -33,11 +33,11 @@ public class ProductResDto {
         private String productName;
         private Integer productSalePrice;
         private String productCategory;
-        private List<ProductCommonDto.ProductOptionListDto> optionList;
+        private List<ProductCommonDto.ProductOptionDto> optionList;
         private LocalDateTime productRegistDate;
         private List<String> imgList;
 
-        public ProductListAdminResDto(Product product, Category category, List<ProductCommonDto.ProductOptionListDto> options, List<String> imgs) {
+        public ProductListAdminResDto(Product product, Category category, List<ProductCommonDto.ProductOptionDto> options, List<String> imgs) {
             this.productId = product.getProductId();
             this.productBrand = product.getProductBrand();
             this.productName = product.getProductName();
