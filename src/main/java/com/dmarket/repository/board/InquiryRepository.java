@@ -29,7 +29,7 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
     void deleteByInquiryId(@Param("inquiryId") Long inquiryId);
 
     // 문의 전체 조회
-    @Query(value = "select new com.dmarket.dto.response.InquiryResDto$UserInquiryAllResDto(i.inquiryId, i.inquiryType, i.inquiryTitle, i.inquiryContents, i.inquiryImg, i.inquiryCreatedDate, i.inquiryState, ir.inquiryReplyContents, ir.inquiryReplyDate)" +
+    @Query(value = "select new com.dmarket.dto.response.InquiryResDto$UserInquiryAllResDto(i.inquiryId, i.inquiryType, i.inquiryTitle, i.inquiryContents, i.inquiryImg, i.inquiryCreatedDate, i.inquiryState, ir.inquiryReplyContents, ir.inquiryReplyDate, ir.inquiryReplyDate)" +
             " from Inquiry i " +
             " left join InquiryReply ir on ir.inquiryId = i.inquiryId" +
             " where i.userId = :userId" +
