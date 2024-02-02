@@ -109,12 +109,9 @@ public class SecurityConfig {
         // 계층 권한으로 페이지 접근 제한
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/login", "/", "/join").permitAll()
-                        .requestMatchers("/api/admin/GM").hasRole("GM")
-                        .requestMatchers("/api/admin/PM").hasRole("PM")
-                        .requestMatchers("/api/admin/SM").hasRole("SM")
-                        .requestMatchers("/user").hasRole("USER")
-                        //.anyRequest().authenticated());
+                        .requestMatchers("/", "/api/users/login", "/api/users/email/**", "/api/users/join").permitAll()
+                        .requestMatchers("/api/admin/**").hasAnyRole("GM", "SM", "PM")
+//                        .anyRequest().authenticated());
                         .anyRequest().permitAll());
 
 
