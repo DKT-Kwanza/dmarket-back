@@ -8,6 +8,7 @@ import com.dmarket.repository.user.UserRepository;
 import com.dmarket.service.LogoutService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -25,6 +26,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 @Configuration
@@ -37,6 +39,10 @@ public class SecurityConfig {
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
     private final LogoutService logoutService;
+
+    @Value("${spring.cors.path}")
+    private String[] corsPath;
+
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -75,7 +81,7 @@ public class SecurityConfig {
 
                         CorsConfiguration configuration = new CorsConfiguration();
 
-                        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                        configuration.setAllowedOriginPatterns(Arrays.asList(corsPath));  //2024-02-02 수정
                         configuration.setAllowedMethods(Collections.singletonList("*"));
                         configuration.setAllowCredentials(true);
                         configuration.setAllowedHeaders(Collections.singletonList("*"));
@@ -103,12 +109,9 @@ public class SecurityConfig {
         // 계층 권한으로 페이지 접근 제한
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/login", "/", "/join").permitAll()
-                        .requestMatchers("/api/admin/GM").hasRole("GM")
-                        .requestMatchers("/api/admin/PM").hasRole("PM")
-                        .requestMatchers("/api/admin/SM").hasRole("SM")
-                        .requestMatchers("/user").hasRole("USER")
-                        //.anyRequest().authenticated());
+                        .requestMatchers("/", "/api/users/login", "/api/users/email/**", "/api/users/join").permitAll()
+                        .requestMatchers("/api/admin/**").hasAnyRole("GM", "SM", "PM")
+//                        .anyRequest().authenticated());
                         .anyRequest().permitAll());
 
 

@@ -23,7 +23,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -132,7 +131,7 @@ public class JWTFilter extends OncePerRequestFilter {
             }
         }
 
-        User userEntity = new User(email, 777, "temppassword", "username", LocalDate.now(), "77-89", 11, " ", "");
+        User userEntity = userRepository.findByUserId(tokenUserId);
         UserResDto.CustomUserDetails customUserDetails = new UserResDto.CustomUserDetails(userEntity);
         Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authToken);
