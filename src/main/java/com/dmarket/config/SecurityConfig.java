@@ -28,6 +28,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -41,7 +42,7 @@ public class SecurityConfig {
     private final LogoutService logoutService;
 
     @Value("${spring.cors.path}")
-    private String[] corsPath;
+    private List<String> corsPath;
 
 
     @Bean
@@ -81,7 +82,7 @@ public class SecurityConfig {
 
                         CorsConfiguration configuration = new CorsConfiguration();
 
-                        configuration.setAllowedOriginPatterns(Arrays.asList(corsPath));  //2024-02-02 수정
+                        configuration.setAllowedOriginPatterns(corsPath);  //2024-02-02 수정
                         configuration.setAllowedMethods(Collections.singletonList("*"));
                         configuration.setAllowCredentials(true);
                         configuration.setAllowedHeaders(Collections.singletonList("*"));
