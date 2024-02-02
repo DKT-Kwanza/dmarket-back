@@ -8,6 +8,7 @@ import com.dmarket.repository.user.UserRepository;
 import com.dmarket.service.LogoutService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +31,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -41,8 +43,13 @@ public class SecurityConfig {
     private final UserRepository userRepository;
     private final LogoutService logoutService;
 
+//    @Value("#{'${spring.cors.path}'.split(',')}")
+//    private String[] corsPath;
     @Value("${spring.cors.path}")
-    private List<String> corsPath;
+    private String[] corsPath;
+
+    @Value("${spring.jwt.expireT}")
+    private String emp;
 
 
     @Bean
@@ -82,7 +89,8 @@ public class SecurityConfig {
 
                         CorsConfiguration configuration = new CorsConfiguration();
 
-                        configuration.setAllowedOriginPatterns(corsPath);  //2024-02-02 수정
+                        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+//                        configuration.setAllowedOriginPatterns(List.of(corsPath));  //2024-02-02 수정
                         configuration.setAllowedMethods(Collections.singletonList("*"));
                         configuration.setAllowCredentials(true);
                         configuration.setAllowedHeaders(Collections.singletonList("*"));
