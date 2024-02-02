@@ -27,7 +27,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -43,14 +42,8 @@ public class SecurityConfig {
     private final UserRepository userRepository;
     private final LogoutService logoutService;
 
-//    @Value("#{'${spring.cors.path}'.split(',')}")
-//    private String[] corsPath;
     @Value("${spring.cors.path}")
-    private String[] corsPath;
-
-    @Value("${spring.jwt.expireT}")
-    private String emp;
-
+    private List<String> corsPath;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -90,7 +83,7 @@ public class SecurityConfig {
                         CorsConfiguration configuration = new CorsConfiguration();
 
                         configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
-//                        configuration.setAllowedOriginPatterns(List.of(corsPath));  //2024-02-02 수정
+                        configuration.setAllowedOriginPatterns(corsPath);  //2024-02-02 수정
                         configuration.setAllowedMethods(Collections.singletonList("*"));
                         configuration.setAllowCredentials(true);
                         configuration.setAllowedHeaders(Collections.singletonList("*"));
@@ -119,7 +112,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/", "/api/users/login", "/api/users/email/**", "/api/users/join").permitAll()
-                        .requestMatchers("/api/admin/**").hasAnyRole("GM", "SM", "PM")
+//                        .requestMatchers("/api/admin/**").hasAnyRole("GM", "SM", "PM")
 //                        .anyRequest().authenticated());
                         .anyRequest().permitAll());
 
