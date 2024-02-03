@@ -557,36 +557,38 @@ public class AdminService {
     }
 
      //상품 목록 조회
-    public Page<ProductResDto.ProductListAdminResDto> getProductListByCateogryId(Long cateId, int pageNo) {
+    public ProductResDto.ProductListAdminResDto getProductListByCateogryId(Long cateId, int pageNo) {
         pageNo = pageVaildation(pageNo);
-        List<Product> products = categoryRepository.findProductsByCategoryId(cateId);
+        Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "productCreatedDate"));
+        Page<Object[]> products = productRepository.findProductsByCateId(pageable, cateId);
         Category category = categoryRepository.findByCategoryId(cateId);
 
         // 제품 목록을 처리하고 DTO 목록을 만듭니다.
-        List<ProductResDto.ProductListAdminResDto> result = new ArrayList<>();
-        for (Product product : products) {
-            Long productId = product.getProductId();
-            List<ProductCommonDto.ProductOptionDto> options = productOptionRepository.findOptionsByProductId(productId);
-            List<String> imgs = productImgsRepository.findAllByProductId(productId);
-            result.add(new ProductResDto.ProductListAdminResDto(product, category, options, imgs));
+        List<ProductCommonDto.ProductListDto> result = new ArrayList<>();
+        for (Object[] tuple : products.getContent()) {
+            Product product = (Product) tuple[0];
+            ProductOption productOption = (ProductOption) tuple[1];
+            List<String> imgs = productImgsRepository.findAllByProductId(product.getProductId());
+            result.add(new ProductCommonDto.ProductListDto(product, category, productOption, imgs));
         }
-        return new PageImpl<>(result);
+        return new ProductResDto.ProductListAdminResDto(products.getTotalPages(), result);
     }
 
     //상품 목록 검색 조회
-    public Page<ProductResDto.ProductListAdminResDto> getProductListBySearch(Long cateId, String query, int pageNo){
+    public ProductResDto.ProductListAdminResDto getProductListBySearch(Long cateId, String query, int pageNo){
         pageNo = pageVaildation(pageNo);
-        List<Product> products = categoryRepository.findProductsByQuery(cateId, query);
+        Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "productCreatedDate"));
+        Page<Object[]> products = productRepository.findProductsByQuery(pageable, cateId, query);
         Category category = categoryRepository.findByCategoryId(cateId);
 
-        List<ProductResDto.ProductListAdminResDto> result = new ArrayList<>();
-        for (Product product : products) {
-            Long productId = product.getProductId();
-            List<ProductCommonDto.ProductOptionDto> options = productOptionRepository.findOptionsByProductId(productId);
-            List<String> imgs = productImgsRepository.findAllByProductId(productId);
-            result.add(new ProductResDto.ProductListAdminResDto(product, category, options, imgs));
+        List<ProductCommonDto.ProductListDto> result = new ArrayList<>();
+        for (Object[] tuple : products.getContent()) {
+            Product product = (Product) tuple[0];
+            ProductOption productOption = (ProductOption) tuple[1];
+            List<String> imgs = productImgsRepository.findAllByProductId(product.getProductId()); //상품개수만큼 조회라서 성능저하될듯..
+            result.add(new ProductCommonDto.ProductListDto(product, category, productOption, imgs));
         }
-        return new PageImpl<>(result);
+        return new ProductResDto.ProductListAdminResDto(products.getTotalPages(), result);
     }
 
     // 관리자 전체 조회

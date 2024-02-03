@@ -291,8 +291,8 @@ public class AdminController {
     @GetMapping("/products/categories/{cateId}")
     public ResponseEntity<?> getProductsListAdmin(@PathVariable(name = "cateId") Long cateId,
                                                   @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
-        Page<ProductResDto.ProductListAdminResDto> productListAdminResDto = adminService.getProductListByCateogryId(cateId, pageNo);
-        return new ResponseEntity<>(CMResDto.successDataRes(productListAdminResDto), HttpStatus.OK);
+        ProductResDto.ProductListAdminResDto resDto = adminService.getProductListByCateogryId(cateId, pageNo);
+        return new ResponseEntity<>(CMResDto.successDataRes(resDto), HttpStatus.OK);
     }
 
     //상품 목록 카테고리별 검색 조회 api
@@ -300,8 +300,8 @@ public class AdminController {
     public ResponseEntity<?> getSearchProductList(@PathVariable(name = "cateId") Long cateId,
                                                   @RequestParam(required = true, value = "q") String query,
                                                   @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo){
-        Page<ProductResDto.ProductListAdminResDto> productListAdminResDto = adminService.getProductListBySearch(cateId, query, pageNo);
-        return new ResponseEntity<>(CMResDto.successDataRes(productListAdminResDto), HttpStatus.OK);
+        ProductResDto.ProductListAdminResDto resDto = adminService.getProductListBySearch(cateId, query, pageNo);
+        return new ResponseEntity<>(CMResDto.successDataRes(resDto), HttpStatus.OK);
     }
 
     // if:False -> 그룹별 관리자 조회
