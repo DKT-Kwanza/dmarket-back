@@ -8,6 +8,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -93,5 +94,10 @@ public class NotificationService {
                     log.info("알림 전송 완료");
                 }
         );
+    }
+
+    // 유저 별 알림 조회
+    public List<Notification> getUserNotifications(Long userId) {
+        return notificationRepository.findByReceiver(userId);
     }
 }
