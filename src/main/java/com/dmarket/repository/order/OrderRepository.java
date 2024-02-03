@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
@@ -58,5 +59,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             "count(od) FILTER (WHERE od.orderDetailState = 'RETURN_COMPLETE')) " +
             "FROM OrderDetail od")
     OrderCommonDto.OrderDetailStateCountsDto getOrderDetailStateCounts();
+
+    //배송 상태 변경 userId(알림)
+    @Query("SELECT o.userId FROM Order o WHERE o.orderId = :orderId")
+    Optional<Long> findUserIdByOrderId(@Param("orderId") Long orderId);
 }
 

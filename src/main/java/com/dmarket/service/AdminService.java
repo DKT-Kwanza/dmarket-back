@@ -5,6 +5,8 @@ import com.dmarket.domain.board.Faq;
 import com.dmarket.domain.board.Inquiry;
 import com.dmarket.domain.board.InquiryReply;
 import com.dmarket.domain.board.Notice;
+import com.dmarket.domain.order.Order;
+import com.dmarket.domain.order.OrderDetail;
 import com.dmarket.domain.order.Refund;
 import com.dmarket.domain.order.Return;
 import com.dmarket.domain.product.*;
@@ -562,7 +564,20 @@ public class AdminService {
             default:
                 throw new NotFoundException(STATE_NOT_FOUND);
         }
+        //배송 상태 업데이트
+        OrderDetail orderDetail = orderDetailRepository.findById(detailId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "주문 상세 아이디와 일치하지 않음, detail ID: " + detailId));
         orderDetailRepository.updateOrderDetailState(detailId, orderDetailState);
+
+        // OrderRepository를 통해 사용자 ID를 가져옴. (알림전송)
+        Long userId = orderRepository.findUserIdByOrderId(orderDetail.getOrderId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "주문 아이디와 일치하는 사용자 아이디가 없음, order ID: " + orderDetail.getOrderId()));
+
+        // 배송 상태가 변경된 후 알림을 보냄.
+        publisher.publishEvent(sendNotificationEvent.of("order", userId, "배송 상태가 변경되었습니다: " + orderStatus, "/api/orders/"+ detailId));
+
     }
 
     // 옵션 삭제
