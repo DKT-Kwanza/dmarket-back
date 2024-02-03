@@ -167,6 +167,11 @@ public class AdminService {
             mileageRepository.save(mileage);
         } else {
             mileageReq.updateState(MileageReqState.REFUSAL);
+            // 알림 전송
+            User user = findUserById(mileageReq.getUserId());
+            publisher.publishEvent(sendNotificationEvent.of("mileage", user.getUserId(),
+                    user.getUserName() + "님의 " + mileageReq.getMileageReqAmount() + "마일리지 충전 요청이 거부되었습니다.",
+                    "/api/users/" + user.getUserId() + "/mypage/mileage-history"));
         }
     }
 
