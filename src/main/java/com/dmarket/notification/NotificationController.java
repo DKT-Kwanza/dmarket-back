@@ -1,5 +1,7 @@
 package com.dmarket.notification;
 
+import com.dmarket.dto.response.CMResDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,5 +23,12 @@ public class NotificationController {
                                                 @RequestHeader(value = "lastEventId", required = false, defaultValue = "") String lastEventId){
         log.info(lastEventId);
         return new ResponseEntity<>(notificationService.subscribe(userId), HttpStatus.OK);
+    }
+
+    // 알림 읽음 처리
+    @PutMapping()
+    public ResponseEntity<?> readNotification(@Valid @RequestBody NotificationReqDto notificationReqDto){
+        notificationService.readNotification(notificationReqDto);
+        return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
 }

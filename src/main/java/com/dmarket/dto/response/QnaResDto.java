@@ -16,6 +16,7 @@ public class QnaResDto {
 
     // qna 작성
     @Getter
+    @NoArgsConstructor
     public static class QnaWriteResponseDto {
         private Boolean qnaIsSecret;
         private String qnaWriter;
@@ -36,7 +37,7 @@ public class QnaResDto {
     @Data
     @Getter
     @NoArgsConstructor
-    public class QnaTotalListResDto {
+    public static class QnaTotalListResDto {
         private Long qnaId;
         private Long productId;
         private String productName;

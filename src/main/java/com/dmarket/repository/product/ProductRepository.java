@@ -66,7 +66,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "left join ProductReview r on p.productId = r.productId " +
             "where p.productId != :productId and p.categoryId = (select sp.categoryId from Product sp where sp.productId = :productId) " +
             "group by p.productId")
-    List<ProductResDto.RecommendProductResDto> findProduct(Long productId, Pageable pageable);
+    List<ProductResDto.RecommendProductResDto> findRecommendProduct(Long productId, Pageable pageable);
 
     // 최신 상품 조회
     @Query("SELECT NEW com.dmarket.dto.response.ProductResDto$NewProductResDto(" +
@@ -106,4 +106,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<ProductResDto.ProductInfoOptionResDto> findProductDetails(@Param("productId") Long productId);
 
 
+    // 상품 이름 검색
+    @Query("select p.productName from Product p where p.productId = :productId")
+    String findProductName(Long productId);
 }

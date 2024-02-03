@@ -5,7 +5,6 @@ import com.dmarket.domain.board.Faq;
 import com.dmarket.domain.board.Inquiry;
 import com.dmarket.domain.board.InquiryReply;
 import com.dmarket.domain.board.Notice;
-import com.dmarket.domain.order.Order;
 import com.dmarket.domain.order.OrderDetail;
 import com.dmarket.domain.order.Refund;
 import com.dmarket.domain.order.Return;
@@ -23,7 +22,7 @@ import com.dmarket.exception.BadRequestException;
 import com.dmarket.exception.ConflictException;
 import com.dmarket.exception.NotFoundException;
 import com.dmarket.jwt.JWTUtil;
-import com.dmarket.notification.sendNotificationEvent;
+import com.dmarket.notification.SendNotificationEvent;
 import com.dmarket.repository.board.FaqRepository;
 import com.dmarket.repository.board.InquiryReplyRepository;
 import com.dmarket.repository.board.InquiryRepository;
@@ -153,9 +152,9 @@ public class AdminService {
             User user = findUserById(mileageReq.getUserId());
             user.updateMileage(mileageReq.getMileageReqAmount());
             // 알림 전송
-            publisher.publishEvent(sendNotificationEvent.of("mileage", user.getUserId(),
+            publisher.publishEvent(SendNotificationEvent.of("mileage", user.getUserId(),
                     user.getUserName() + "님의 " + mileageReq.getMileageReqAmount() + "마일리지 충전 요청이 승인되었습니다.",
-                    "/api/users/" + user.getUserId() + "/mypage/mileage-history"));
+                    "/mydkt/mileageInfo"));
 
             // 사용자 마일리지 사용 내역에 추가
             Mileage mileage = Mileage.builder()
@@ -169,9 +168,9 @@ public class AdminService {
             mileageReq.updateState(MileageReqState.REFUSAL);
             // 알림 전송
             User user = findUserById(mileageReq.getUserId());
-            publisher.publishEvent(sendNotificationEvent.of("mileage", user.getUserId(),
+            publisher.publishEvent(SendNotificationEvent.of("mileage", user.getUserId(),
                     user.getUserName() + "님의 " + mileageReq.getMileageReqAmount() + "마일리지 충전 요청이 거부되었습니다.",
-                    "/api/users/" + user.getUserId() + "/mypage/mileage-history"));
+                    "/mydkt/mileageInfo"));
         }
     }
 
@@ -344,13 +343,10 @@ public class AdminService {
         // QnA 답변 상태 변경 -> 답변 대기
         qna.updateState(true);
 
-
-
-
         // qna 저장된 후 알림을 보냅니다.
-        publisher.publishEvent(sendNotificationEvent.of("qna", qna.getUserId(), "qna 답변이 등록되었습니다: " + qna.getQnaContents(), "/api/notices/"+ qna.getProductId()));
-
-
+        publisher.publishEvent(SendNotificationEvent.of("qna", qna.getUserId(),
+                "[" + qna.getQnaTitle() + "]에 대한 답변이 등록되었습니다",
+                "/mydkt/qna"));
 
         return getQnADetail(qnaId);
     }
@@ -423,17 +419,19 @@ public class AdminService {
 
 
         // OrderDetailRepository를 통해 orderId를 가져옴.
-        Long orderId = orderDetailRepository.findOrderIdByOrderDetailId(returnEntity.getOrderDetailId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "주문 상세 아이디와 일치하는 주문 아이디가 없음, orderDetail ID: " + returnEntity.getOrderDetailId()));
+        OrderDetail orderDetail = orderDetailRepository.findByOrderDetailId(returnEntity.getOrderDetailId());
 
         // OrderRepository를 통해 사용자 ID를 가져옴.
-        Long userId = orderRepository.findUserIdByOrderId(orderId)
+        Long userId = orderRepository.findUserIdByOrderId(orderDetail.getOrderId())
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "주문 아이디와 일치하는 사용자 아이디가 없음, order ID: " + orderId));
+                        "주문 아이디와 일치하는 사용자 아이디가 없음, order ID: " + orderDetail.getOrderId()));
+        // 상품명 가져오기
+        String productName = productRepository.findProductName(orderDetail.getProductId());
 
         // 반품 상태가 변경된 후 알림 전송
-        publisher.publishEvent(sendNotificationEvent.of("return", userId, "반품 상태가 변경되었습니다: " + returnState, "/api/returns/"+ returnId));
+        publisher.publishEvent(SendNotificationEvent.of("return", userId,
+                productName + "(이)가 " + returnState + " 상태입니다.",
+                "/mydkt/orderInfo"));
 
     }
 
@@ -538,8 +536,11 @@ public class AdminService {
         inquiry.updateStatus(true); // 문의 상태를 1 (답변 완료)로 변경
 
         InquiryReply savedInquiryReply = inquiryReplyRepository.save(inquiryReply);
+
         // 문의가 저장된 후 알림을 보냅니다.
-        publisher.publishEvent(sendNotificationEvent.of("inquiry", inquiry.getUserId(), "문의 답변이 등록되었습니다: " + savedInquiryReply.getInquiryReplyContents(), "/api/notices/"+ savedInquiryReply.getInquiryReplyId()));
+        publisher.publishEvent(SendNotificationEvent.of("inquiry", inquiry.getUserId(),
+                "[" + inquiry.getInquiryTitle() + "]에 대한 답변이 등록되었습니다",
+                "/mydkt/inquiry"));
 
         return savedInquiryReply;
     }
@@ -602,9 +603,13 @@ public class AdminService {
         Long userId = orderRepository.findUserIdByOrderId(orderDetail.getOrderId())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "주문 아이디와 일치하는 사용자 아이디가 없음, order ID: " + orderDetail.getOrderId()));
+        // 상품 이름 가져옴
+        String productName = productRepository.findProductName(orderDetail.getProductId());
 
         // 배송 상태가 변경된 후 알림을 보냄.
-        publisher.publishEvent(sendNotificationEvent.of("delivery", userId, "배송 상태가 변경되었습니다: " + orderStatus, "/api/orders/"+ detailId));
+        publisher.publishEvent(SendNotificationEvent.of("delivery", userId,
+                productName + "(이)가 " + orderStatus + " 상태입니다.",
+                "/mydkt/orderInfo"));
 
     }
 

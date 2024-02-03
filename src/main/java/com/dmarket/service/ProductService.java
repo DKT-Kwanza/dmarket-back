@@ -168,7 +168,7 @@ public class ProductService {
     // 추천 상품 조회
     public List<ProductResDto.RecommendProductResDto> recommendProduct(Long productId) {
         // PageRequest의 pageSize 4로 지정 최신 4개만 조회
-        return productRepository.findProduct(productId,
+        return productRepository.findRecommendProduct(productId,
                 PageRequest.of(0, 4, Sort.by(Sort.Direction.DESC, "productCreatedDate")));
     }
 
