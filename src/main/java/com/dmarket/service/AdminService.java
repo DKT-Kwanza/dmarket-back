@@ -576,7 +576,7 @@ public class AdminService {
                         "주문 아이디와 일치하는 사용자 아이디가 없음, order ID: " + orderDetail.getOrderId()));
 
         // 배송 상태가 변경된 후 알림을 보냄.
-        publisher.publishEvent(sendNotificationEvent.of("order", userId, "배송 상태가 변경되었습니다: " + orderStatus, "/api/orders/"+ detailId));
+        publisher.publishEvent(sendNotificationEvent.of("delivery", userId, "배송 상태가 변경되었습니다: " + orderStatus, "/api/orders/"+ detailId));
 
     }
 
