@@ -35,7 +35,8 @@ public class Notification {
                 .build();
     }
 
-    public void updateIsRead(Boolean isRead){
-        this.isRead = isRead;
+    // 알림 읽음
+    public void setIsRead(){
+        this.isRead = true;
     }
 }

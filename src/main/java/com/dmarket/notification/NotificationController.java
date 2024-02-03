@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.List;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -23,6 +25,13 @@ public class NotificationController {
                                                 @RequestHeader(value = "lastEventId", required = false, defaultValue = "") String lastEventId){
         log.info(lastEventId);
         return new ResponseEntity<>(notificationService.subscribe(userId), HttpStatus.OK);
+    }
+
+    // 유저 별 알림 조회
+    @GetMapping("/{userId}/notifications")
+    public ResponseEntity<List<Notification>> getUserNotifications(@PathVariable Long userId){
+        List<Notification> notifications = notificationService.getUserNotifications(userId);
+        return new ResponseEntity<> (notifications, HttpStatus.OK);
     }
 
     // 알림 읽음 처리

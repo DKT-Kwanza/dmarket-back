@@ -8,6 +8,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -95,11 +96,16 @@ public class NotificationService {
         );
     }
 
+    // 유저 별 알림 조회
+    public List<Notification> getUserNotifications(Long userId) {
+        return notificationRepository.findByReceiver(userId);
+    }
+
     // 알림 읽음 처리
     @Transactional
     public void readNotification(NotificationReqDto notificationReqDto) {
-        Notification notification = notificationRepository.findByNotiIdAndReceiver(notificationReqDto.getNotiId(), notificationReqDto.getReceiver())
+        Notification notification = notificationRepository.findById(notificationReqDto.getNotiId())
                 .orElseThrow(()->new IllegalArgumentException("존재하지 않는 알림"));
-        notification.updateIsRead(true);
+        notification.setIsRead();
     }
 }
