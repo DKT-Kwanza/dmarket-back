@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @RequiredArgsConstructor
-public class sendNotificationEvent {
+public class SendNotificationEvent {
     private final SseEmitters sseEmitters;
     private final Repository repository;
 
@@ -32,8 +32,8 @@ public class sendNotificationEvent {
 
     private LocalDateTime notificationCreatedDate;
 
-    public static sendNotificationEvent of(String name, Long receiver, String content, String url){
-        return sendNotificationEvent.builder()
+    public static SendNotificationEvent of(String name, Long receiver, String content, String url){
+        return SendNotificationEvent.builder()
                 .name(name)
                 .eventId(receiver + "_" + System.currentTimeMillis())
                 .receiver(receiver)

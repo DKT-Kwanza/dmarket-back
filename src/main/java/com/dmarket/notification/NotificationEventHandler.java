@@ -13,7 +13,7 @@ public class NotificationEventHandler {
     private final NotificationService notificationService;
     @Async
     @TransactionalEventListener
-    public void sendNotification(sendNotificationEvent notification){
+    public void sendNotification(SendNotificationEvent notification){
         notificationService.send(notification);
     }
 }

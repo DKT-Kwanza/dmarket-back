@@ -5,7 +5,6 @@ import com.dmarket.domain.board.Faq;
 import com.dmarket.domain.board.Inquiry;
 import com.dmarket.domain.board.InquiryReply;
 import com.dmarket.domain.board.Notice;
-import com.dmarket.domain.order.Order;
 import com.dmarket.domain.order.OrderDetail;
 import com.dmarket.domain.order.Refund;
 import com.dmarket.domain.order.Return;
@@ -23,7 +22,7 @@ import com.dmarket.exception.BadRequestException;
 import com.dmarket.exception.ConflictException;
 import com.dmarket.exception.NotFoundException;
 import com.dmarket.jwt.JWTUtil;
-import com.dmarket.notification.sendNotificationEvent;
+import com.dmarket.notification.SendNotificationEvent;
 import com.dmarket.repository.board.FaqRepository;
 import com.dmarket.repository.board.InquiryReplyRepository;
 import com.dmarket.repository.board.InquiryRepository;
@@ -153,7 +152,7 @@ public class AdminService {
             User user = findUserById(mileageReq.getUserId());
             user.updateMileage(mileageReq.getMileageReqAmount());
             // 알림 전송
-            publisher.publishEvent(sendNotificationEvent.of("mileage", user.getUserId(),
+            publisher.publishEvent(SendNotificationEvent.of("mileage", user.getUserId(),
                     user.getUserName() + "님의 " + mileageReq.getMileageReqAmount() + "마일리지 충전 요청이 승인되었습니다.",
                     "/api/users/" + user.getUserId() + "/mypage/mileage-history"));
 
@@ -169,7 +168,7 @@ public class AdminService {
             mileageReq.updateState(MileageReqState.REFUSAL);
             // 알림 전송
             User user = findUserById(mileageReq.getUserId());
-            publisher.publishEvent(sendNotificationEvent.of("mileage", user.getUserId(),
+            publisher.publishEvent(SendNotificationEvent.of("mileage", user.getUserId(),
                     user.getUserName() + "님의 " + mileageReq.getMileageReqAmount() + "마일리지 충전 요청이 거부되었습니다.",
                     "/api/users/" + user.getUserId() + "/mypage/mileage-history"));
         }
@@ -348,7 +347,7 @@ public class AdminService {
 
 
         // qna 저장된 후 알림을 보냅니다.
-        publisher.publishEvent(sendNotificationEvent.of("qna", qna.getUserId(), "qna 답변이 등록되었습니다: " + qna.getQnaContents(), "/api/notices/"+ qna.getProductId()));
+        publisher.publishEvent(SendNotificationEvent.of("qna", qna.getUserId(), "qna 답변이 등록되었습니다: " + qna.getQnaContents(), "/api/notices/"+ qna.getProductId()));
 
 
 
@@ -433,7 +432,7 @@ public class AdminService {
                         "주문 아이디와 일치하는 사용자 아이디가 없음, order ID: " + orderId));
 
         // 반품 상태가 변경된 후 알림 전송
-        publisher.publishEvent(sendNotificationEvent.of("return", userId, "반품 상태가 변경되었습니다: " + returnState, "/api/returns/"+ returnId));
+        publisher.publishEvent(SendNotificationEvent.of("return", userId, "반품 상태가 변경되었습니다: " + returnState, "/api/returns/"+ returnId));
 
     }
 
@@ -539,7 +538,7 @@ public class AdminService {
 
         InquiryReply savedInquiryReply = inquiryReplyRepository.save(inquiryReply);
         // 문의가 저장된 후 알림을 보냅니다.
-        publisher.publishEvent(sendNotificationEvent.of("inquiry", inquiry.getUserId(), "문의 답변이 등록되었습니다: " + savedInquiryReply.getInquiryReplyContents(), "/api/notices/"+ savedInquiryReply.getInquiryReplyId()));
+        publisher.publishEvent(SendNotificationEvent.of("inquiry", inquiry.getUserId(), "문의 답변이 등록되었습니다: " + savedInquiryReply.getInquiryReplyContents(), "/api/notices/"+ savedInquiryReply.getInquiryReplyId()));
 
         return savedInquiryReply;
     }
@@ -604,7 +603,7 @@ public class AdminService {
                         "주문 아이디와 일치하는 사용자 아이디가 없음, order ID: " + orderDetail.getOrderId()));
 
         // 배송 상태가 변경된 후 알림을 보냄.
-        publisher.publishEvent(sendNotificationEvent.of("delivery", userId, "배송 상태가 변경되었습니다: " + orderStatus, "/api/orders/"+ detailId));
+        publisher.publishEvent(SendNotificationEvent.of("delivery", userId, "배송 상태가 변경되었습니다: " + orderStatus, "/api/orders/"+ detailId));
 
     }
 

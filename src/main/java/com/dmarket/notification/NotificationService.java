@@ -76,7 +76,7 @@ public class NotificationService {
     }
 
     @Transactional
-    public void send(sendNotificationEvent noti) {
+    public void send(SendNotificationEvent noti) {
         Notification notification = notificationRepository.save(Notification.create(noti.getReceiver(), noti.getContent(), noti.getUrl()));
         log.info("저장됨");
 
