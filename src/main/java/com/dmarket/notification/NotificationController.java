@@ -31,4 +31,11 @@ public class NotificationController {
         List<Notification> notifications = notificationService.getUserNotifications(userId);
         return new ResponseEntity<> (notifications, HttpStatus.OK);
     }
+
+    // 알림 읽음
+    @PutMapping("/{userId}/notifications/{notiId}/read")
+    public ResponseEntity<Void> markAsRead(@PathVariable Long userId, @PathVariable Long notiId){
+        notificationService.markAsRead(notiId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }

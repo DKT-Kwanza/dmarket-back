@@ -34,4 +34,9 @@ public class Notification {
                 .notificationCreatedDate(LocalDateTime.now().withNano(0))
                 .build();
     }
+
+    //알림 읽음
+    public void setIsRead() {
+        this.isRead = true;
+    }
 }

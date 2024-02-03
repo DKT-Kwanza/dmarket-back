@@ -2,8 +2,12 @@ package com.dmarket.notification;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -99,5 +103,13 @@ public class NotificationService {
     // 유저 별 알림 조회
     public List<Notification> getUserNotifications(Long userId) {
         return notificationRepository.findByReceiver(userId);
+    }
+
+    //알림 읽음
+    @Transactional
+    public void markAsRead(Long notiId) {
+        Notification notification = notificationRepository.findById(notiId)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 알림 ID:" + notiId));
+        notification.setIsRead();
     }
 }
