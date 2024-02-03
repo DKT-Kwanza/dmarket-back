@@ -32,16 +32,4 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 //            " join ProductOption o on p.productId = o.productId" +
 //            " where c.categoryId = :categoryId")
 
-    @Query(value = "select p from Product p where p.categoryId = :categoryId" +
-            " order by p.productCreatedDate desc")
-    List<Product> findProductsByCategoryId(@Param("categoryId") Long categoryId);
-
-
-    @Query(value = "select p from Product p " +
-            "where p.categoryId = :categoryId " +
-            "and p.productName LIKE %:query% " +
-            "order by p.productCreatedDate desc")
-    List<Product> findProductsByQuery(Long categoryId, String query);
-
-
 }
