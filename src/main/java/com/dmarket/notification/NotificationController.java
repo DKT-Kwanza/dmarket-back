@@ -1,5 +1,7 @@
 package com.dmarket.notification;
 
+import com.dmarket.dto.response.CMResDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -32,11 +34,11 @@ public class NotificationController {
         return new ResponseEntity<> (notifications, HttpStatus.OK);
     }
 
-    // 알림 읽음
-    @PutMapping("/{userId}/notifications/{notiId}/read")
-    public ResponseEntity<Void> markAsRead(@PathVariable Long userId, @PathVariable Long notiId){
-        notificationService.markAsRead(notiId);
-        return new ResponseEntity<>(HttpStatus.OK);
+    // 알림 읽음 처리
+    @PutMapping()
+    public ResponseEntity<?> readNotification(@Valid @RequestBody NotificationReqDto notificationReqDto){
+        notificationService.readNotification(notificationReqDto);
+        return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
 
     // 안읽은 알림 개수

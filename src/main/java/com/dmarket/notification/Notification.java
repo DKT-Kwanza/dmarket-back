@@ -25,18 +25,18 @@ public class Notification {
 
     private LocalDateTime notificationCreatedDate;
 
-    public static Notification create(Long receiver, String content, String url) {
+    public static Notification create(SendNotificationEvent sendNotificationEvent) {
         return Notification.builder()
-                .receiver(receiver)
-                .content(content)
-                .url(url)
+                .receiver(sendNotificationEvent.getReceiver())
+                .content(sendNotificationEvent.getContent())
+                .url(sendNotificationEvent.getUrl())
                 .isRead(false)
                 .notificationCreatedDate(LocalDateTime.now().withNano(0))
                 .build();
     }
 
-    //알림 읽음
-    public void setIsRead() {
+    // 알림 읽음
+    public void setIsRead(){
         this.isRead = true;
     }
 }

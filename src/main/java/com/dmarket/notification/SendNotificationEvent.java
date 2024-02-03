@@ -5,9 +5,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Repository;
-
-import java.time.LocalDateTime;
 
 @Slf4j
 @Getter
@@ -15,8 +12,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class SendNotificationEvent {
-    private final SseEmitters sseEmitters;
-    private final Repository repository;
 
     private String name;    //이벤트 이름
 
@@ -28,10 +23,6 @@ public class SendNotificationEvent {
 
     private String url; //해당 알림 클릭시 이동할 mapping url
 
-    private Boolean isRead; //알림 열람에 대한 여부
-
-    private LocalDateTime notificationCreatedDate;
-
     public static SendNotificationEvent of(String name, Long receiver, String content, String url){
         return SendNotificationEvent.builder()
                 .name(name)
@@ -39,8 +30,6 @@ public class SendNotificationEvent {
                 .receiver(receiver)
                 .content(content)
                 .url(url)
-                .isRead(false)
-                .notificationCreatedDate(LocalDateTime.now().withNano(0))
                 .build();
     }
 }

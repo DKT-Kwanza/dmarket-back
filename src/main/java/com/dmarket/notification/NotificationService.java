@@ -2,12 +2,8 @@ package com.dmarket.notification;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -82,21 +78,21 @@ public class NotificationService {
 
     @Transactional
     public void send(SendNotificationEvent noti) {
-        Notification notification = notificationRepository.save(Notification.create(noti.getReceiver(), noti.getContent(), noti.getUrl()));
+        Notification notification = notificationRepository.save(Notification.create(noti));
         log.info("저장됨");
 
-        String receiverId = String.valueOf(noti.getReceiver()) + "_";
+        String receiverId = noti.getReceiver() + "_";
         log.info(receiverId);
 
+        // 해당 회원의 emitter 모두 찾아서 이벤트 전송
         Map<String, SseEmitter> emitters = sseEmitters.findEmitter(receiverId);
         log.info(emitters.entrySet().toString());
 
-        // 해당 회원의 emitter 모두 찾기(다중 로그인의 경우 사용하는 듯?)
         emitters.forEach(
-                (key, emitter) -> {
-                    sendToClient(emitter, noti.getName(), noti.getEventId(), notification);
-                    log.info("알림 전송 완료");
-                }
+            (key, emitter) -> {
+                sendToClient(emitter, noti.getName(), noti.getEventId(), notification);
+                log.info("알림 전송 완료");
+            }
         );
     }
 
@@ -105,11 +101,11 @@ public class NotificationService {
         return notificationRepository.findByReceiver(userId);
     }
 
-    //알림 읽음
+    // 알림 읽음 처리
     @Transactional
-    public void markAsRead(Long notiId) {
-        Notification notification = notificationRepository.findById(notiId)
-                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 알림 ID:" + notiId));
+    public void readNotification(NotificationReqDto notificationReqDto) {
+        Notification notification = notificationRepository.findById(notificationReqDto.getNotiId())
+                .orElseThrow(()->new IllegalArgumentException("존재하지 않는 알림"));
         notification.setIsRead();
     }
 
