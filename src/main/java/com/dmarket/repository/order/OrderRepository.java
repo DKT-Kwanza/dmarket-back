@@ -60,7 +60,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             "FROM OrderDetail od")
     OrderCommonDto.OrderDetailStateCountsDto getOrderDetailStateCounts();
 
-    //배송 상태 변경 userId(알림)
+    //배송 상태 변경, 반품 상태 변경 userId(알림)
     @Query("SELECT o.userId FROM Order o WHERE o.orderId = :orderId")
     Optional<Long> findUserIdByOrderId(@Param("orderId") Long orderId);
 }

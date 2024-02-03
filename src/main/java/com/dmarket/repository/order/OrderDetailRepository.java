@@ -14,6 +14,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> {
@@ -149,4 +150,9 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
 
 
     OrderDetail findByOrderDetailId(Long orderDetailId);
+
+    //반품 상태 변경 userId검색을 위한 OrderDetailId검색
+    @Query("SELECT od.orderId FROM OrderDetail od WHERE od.orderDetailId = :orderDetailId")
+    Optional<Long> findOrderIdByOrderDetailId(@Param("orderDetailId") Long orderDetailId);
+
 }
