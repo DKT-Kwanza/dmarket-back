@@ -339,6 +339,14 @@ public class AdminService {
         // QnA 답변 상태 변경 -> 답변 대기
         qna.updateState(true);
 
+
+
+
+        // qna 저장된 후 알림을 보냅니다.
+        publisher.publishEvent(sendNotificationEvent.of("qna", qna.getUserId(), "qna 답변이 등록되었습니다: " + qna.getQnaContents(), "/api/notices/"+ qna.getProductId()));
+
+
+
         return getQnADetail(qnaId);
     }
 
