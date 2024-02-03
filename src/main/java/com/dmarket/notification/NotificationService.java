@@ -112,4 +112,8 @@ public class NotificationService {
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 알림 ID:" + notiId));
         notification.setIsRead();
     }
+
+    public Long getUnreadCount(Long userId) {
+        return notificationRepository.countByReceiverAndIsRead(userId, false);
+    }
 }

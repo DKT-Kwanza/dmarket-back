@@ -9,4 +9,6 @@ import java.util.List;
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
     // 유저 별 알림 조회
     List<Notification> findByReceiver(Long receiver);
+
+    Long countByReceiverAndIsRead(Long userId, boolean isRead);
 }

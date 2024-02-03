@@ -38,4 +38,15 @@ public class NotificationController {
         notificationService.markAsRead(notiId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    // 안읽은 알림 개수
+    @GetMapping("/{userId}/unreadCount")
+    public ResponseEntity<?> getUnreadCount(@PathVariable Long userId) {
+        try {
+            Long unreadCount = notificationService.getUnreadCount(userId);
+            return ResponseEntity.ok().body(unreadCount);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("알림 카운트 오류");
+        }
+    }
 }
