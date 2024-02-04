@@ -669,21 +669,25 @@ public class AdminService {
 
     // 취소 목록 조회
     @Transactional
-    public List<OrderResDto.OrderCancelResDto> orderCancle() {
-        return orderDetailRepository.findOrderCancelResDtosByOrderDetailState(OrderDetailState.ORDER_CANCEL)
-                .stream()
-                .map(row -> new OrderResDto.OrderCancelResDto(
-                        (Long) row[0],
-                        (Long) row[1],
-                        (String) row[2],
-                        (String) row[3],
-                        (String) row[4],
-                        (String) row[5],
-                        (String) row[6],
-                        (LocalDateTime) row[7],
-                        (Integer) row[8],
-                        (OrderDetailState) row[9]))
-                .collect(Collectors.toList());
+    public Page<OrderResDto.OrderCancelResDto> orderCancle(int pageNo) {
+        pageNo = pageVaildation(pageNo);
+        Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
+
+//        return orderDetailRepository.findOrderCancelResDtosByOrderDetailState(pageable, OrderDetailState.ORDER_CANCEL)
+//                .stream()
+//                .map(row -> new OrderResDto.OrderCancelResDto(
+//                        (Long) row[0],
+//                        (Long) row[1],
+//                        (String) row[2],
+//                        (String) row[3],
+//                        (String) row[4],
+//                        (String) row[5],
+//                        (String) row[6],
+//                        (LocalDateTime) row[7],
+//                        (Integer) row[8],
+//                        (OrderDetailState) row[9]))
+//                .collect(Collectors.toList());
+        return orderDetailRepository.findOrderCancelResDtosByOrderDetailState(pageable, OrderDetailState.ORDER_CANCEL);
     }
 
     // 상품 재고 추가

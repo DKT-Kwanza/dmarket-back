@@ -347,8 +347,8 @@ public class AdminController {
     // 주문 취소 목록 조회
     ///api/admin/cancel-order-details
     @GetMapping("/cancel-order-details")
-    public ResponseEntity<?> getCancledOrder() {
-        List<OrderResDto.OrderCancelResDto> orderCancleList = adminService.orderCancle();
+    public ResponseEntity<?> getCancledOrder(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
+        Page<OrderResDto.OrderCancelResDto> orderCancleList = adminService.orderCancle(pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(orderCancleList), HttpStatus.OK);
     }
 

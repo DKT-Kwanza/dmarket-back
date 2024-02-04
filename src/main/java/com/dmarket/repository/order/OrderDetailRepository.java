@@ -84,7 +84,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
             "GROUP BY od.orderDetailState")
     Long countOrderDetailByUserIdAndOrderDetailState(@Param("userId") Long userId, @Param("orderDetailState") OrderDetailState orderDetailState);
 
-    @Query("SELECT " +
+    @Query("SELECT new com.dmarket.dto.response.OrderResDto$OrderCancelResDto(" +
             "   prod.productId, " +
             "   ord.orderId, " +
             "   prod.productName, " +
@@ -94,7 +94,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
             "   popt.optionName, " +
             "   ord.orderDate, " +
             "   od.orderDetailCount, " +
-            "   od.orderDetailState " + // Enum 값 그대로 조회
+            "   od.orderDetailState ) " + // Enum 값 그대로 조회
             "FROM OrderDetail od " +
             "JOIN Order ord ON od.orderId = ord.orderId " +
             "JOIN Product prod ON od.productId = prod.productId " +
@@ -102,7 +102,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
             "JOIN ProductImgs img ON prod.productId = img.productId " +
             "WHERE od.orderDetailState = :orderCancelState " +
             "GROUP BY prod.productId, ord.orderId, prod.productName, prod.productBrand, popt.optionValue, popt.optionName, ord.orderDate, od.orderDetailCount, od.orderDetailState")
-    List<Object[]> findOrderCancelResDtosByOrderDetailState(@Param("orderCancelState") OrderDetailState orderCancelState);
+    Page<OrderResDto.OrderCancelResDto> findOrderCancelResDtosByOrderDetailState(Pageable pageable,@Param("orderCancelState") OrderDetailState orderCancelState);
 
 
     // 시간업데이트 및 상태변경
