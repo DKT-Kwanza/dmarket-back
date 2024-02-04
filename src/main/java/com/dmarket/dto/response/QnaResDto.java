@@ -36,7 +36,7 @@ public class QnaResDto {
     @Data
     @Getter
     @NoArgsConstructor
-    public class QnaTotalListResDto {
+    public static class QnaTotalListResDto {
         private Long qnaId;
         private Long productId;
         private String productName;
