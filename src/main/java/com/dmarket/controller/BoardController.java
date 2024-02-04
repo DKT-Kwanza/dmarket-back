@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -33,11 +35,12 @@ public class BoardController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    // faq 조회 ( 페이지네이션 제거 )
     @GetMapping("/faq")
-    public ResponseEntity<?> getFaqs(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
+    public ResponseEntity<?> getFaqs() {
 
-        Page<Faq> faqsPage = boardService.getAllFaqs(pageNo);
-        Page<FaqResDto.FaqListResDto> mappedFaqs = boardService.mapToFaqListResDto(faqsPage);
+        List<Faq> faqs = boardService.getAllFaqs();
+        List<FaqResDto.FaqListResDto> mappedFaqs = boardService.mapToFaqListResDto(faqs);
 
         CMResDto<?> response = CMResDto.successDataRes(mappedFaqs);
         return new ResponseEntity<>(response, HttpStatus.OK);
