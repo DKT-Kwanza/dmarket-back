@@ -279,7 +279,7 @@ public class AdminService {
                 .orElseThrow(() -> new NotFoundException(PRODUCT_NOT_FOUND));
         // 상품의 카테고리 depth 1, depth2 조회 후 합치기
         Category category = categoryRepository.findByCategoryId(product.getCategoryId());
-        String productCategory = category.getParent().getCategoryName() + " / " + category.getCategoryName();
+        String productCategory = category.getCategoryName();
         // 상품의 리뷰 개수 조회
         Long reviewCnt = productReviewRepository.countByProductId(productId);
         // 상품 옵션 목록, 옵션별 재고 조회
