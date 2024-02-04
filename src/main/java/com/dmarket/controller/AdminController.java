@@ -158,8 +158,9 @@ public class AdminController {
 
     // 상품 수정
     @PutMapping("/products/{productId}")
-    public ResponseEntity<?> updateProduct(@Valid @RequestBody ProductReqDto productReqDto) {
+    public ResponseEntity<?> updateProduct(@PathVariable Long productId, @Valid @RequestBody ProductReqDto productReqDto) {
         // 상품 수정
+        productReqDto.setProductId(productId);
         adminService.updateProduct(productReqDto);
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
