@@ -15,6 +15,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -37,19 +40,17 @@ public class BoardService {
     }
 
     // FAQ 목록 조회
-    public Page<Faq> getAllFaqs(int pageNo) {
-        pageNo = pageVaildation(pageNo);
-        Pageable pageable = PageRequest.of(pageNo, BOARD_PAGE_SIZE);
-        return faqRepository.findAll(pageable);
+    public List<Faq> getAllFaqs() {
+        return faqRepository.findAll();
     }
 
-    public Page<FaqResDto.FaqListResDto> mapToFaqListResDto(Page<Faq> faqsPage) {
-        return faqsPage.map(faq -> new FaqResDto.FaqListResDto(
+    public List<FaqResDto.FaqListResDto> mapToFaqListResDto(List<Faq> faqs) {
+        return faqs.stream().map(faq -> new FaqResDto.FaqListResDto(
                 faq.getFaqId(),
                 faq.getFaqType(),
                 faq.getFaqQuestion(),
                 faq.getFaqAnswer()
-        ));
+        )).collect(Collectors.toList());
     }
 
     // 페이지 번호 유효성 검사 메소드
