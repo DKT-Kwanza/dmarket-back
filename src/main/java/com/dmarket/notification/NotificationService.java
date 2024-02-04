@@ -19,50 +19,49 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     // timeout 시간 설정
     private static final long TIMEOUT = 60 * 1000L;
+
     public SseEmitter subscribe(Long userId) {
+        // 기존의 연결 종료
+        String existingId = userId + "_";
+        Map<String, SseEmitter> existingEmitters = sseEmitters.findEmitter(existingId);
+        existingEmitters.forEach((key, emitter) -> {
+            emitter.complete();
+            sseEmitters.delete(key);
+        });
+
+        // 새 연결 생성
         SseEmitter emitter = new SseEmitter(TIMEOUT);
         String id = userId + "_" + System.currentTimeMillis();
-
         sseEmitters.add(id, emitter);
         log.info("emitter 생성: {}", emitter);
         log.info(id);
 
-
         Map<String, Object> testContent = new HashMap<>();
         testContent.put("content", "connected!");
-
         sendToClient(emitter, "test", id, testContent);
-
-//        // 클라이언트가 미수신한 Event 목록이 존재할 경우 전송하여 Event 유실을 예방
-//        if (!lastEventId.isEmpty()) {
-//            Map<String, Object> eventCaches = emitterRepository.findAllEventCacheStartWithByUserId(String.valueOf(userId));
-//            eventCaches.entrySet().stream()
-//                    .filter(entry -> lastEventId.compareTo(entry.getKey()) < 0)
-//                    .forEach(entry -> sendToClient(emitter, entry.getKey(), entry.getValue()));
-//        }
 
         // 타임아웃 시 emitter 만료
         emitter.onTimeout(() -> {
             log.info("onTimeout callback");
             emitter.complete();
+            sseEmitters.delete(id);
         });
 
         // broken pipeline
         emitter.onError(throwable -> {
             log.error("[sse] SseEmitters 파일 add 메서드 : {}", throwable.getMessage());
-            log.error("", throwable);
             emitter.complete();
+            sseEmitters.delete(id);
         });
 
         emitter.onCompletion(() -> {
             log.info("onCompletion callback");
-            // emitter 만료(혹은 연결 끊길) 시 제거
-            // 재연결 시 emitter 다시 생성되기 때문
             sseEmitters.delete(id);
         });
 
         return emitter;
     }
+
 
     private void sendToClient(SseEmitter emitter, String name, String id, Object data) {
         try {
@@ -98,7 +97,7 @@ public class NotificationService {
 
     // 유저 별 알림 조회
     public List<Notification> getUserNotifications(Long userId) {
-        return notificationRepository.findByReceiver(userId);
+        return notificationRepository.findByReceiverOrderByNotificationCreatedDateDesc(userId);
     }
 
     // 알림 읽음 처리
