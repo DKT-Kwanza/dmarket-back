@@ -16,6 +16,7 @@ public class QnaResDto {
 
     // qna 작성
     @Getter
+    @NoArgsConstructor
     public static class QnaWriteResponseDto {
         private Boolean qnaIsSecret;
         private String qnaWriter;
