@@ -1,5 +1,6 @@
 package com.dmarket.service;
 
+import com.dmarket.constant.MileageContents;
 import com.dmarket.constant.OrderDetailState;
 import com.dmarket.domain.order.Order;
 import com.dmarket.domain.order.OrderDetail;
@@ -118,7 +119,7 @@ public class OrderService {
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
 
         //마일리지 사용 내역 추가
-        userService.addMileageHistory(userId, userMileage - orderTotalPay, -orderTotalPay);
+        userService.addMileageHistory(userId, userMileage - orderTotalPay, -orderTotalPay, MileageContents.PURCHASE);
 
         //Order 생성
         Long orderId = createOrder(userId, orderTotalPrice, orderTotalPay, now);

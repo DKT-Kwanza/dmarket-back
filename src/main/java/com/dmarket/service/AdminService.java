@@ -80,6 +80,8 @@ public class AdminService {
     private final OrderDetailRepository orderDetailRepository;
     private final RefundRepository refundRepository;
     private final OrderRepository orderRepository;
+
+    private final UserService userService;
     private final JWTUtil jwtUtil;
     private final ApplicationEventPublisher publisher;
 
@@ -151,19 +153,14 @@ public class AdminService {
             mileageReq.updateState(MileageReqState.APPROVAL);
             User user = findUserById(mileageReq.getUserId());
             user.updateMileage(mileageReq.getMileageReqAmount());
+
             // 알림 전송
             publisher.publishEvent(SendNotificationEvent.of("mileage", user.getUserId(),
                     user.getUserName() + "님의 " + mileageReq.getMileageReqAmount() + "마일리지 충전 요청이 승인되었습니다.",
                     "/mydkt/mileageInfo"));
 
             // 사용자 마일리지 사용 내역에 추가
-            Mileage mileage = Mileage.builder()
-                    .userId(user.getUserId())
-                    .remainMileage(mileageReq.getMileageReqAmount())
-                    .changeMileage(user.getUserMileage())
-                    .mileageInfo(MileageContents.CHARGE)
-                    .build();
-            mileageRepository.save(mileage);
+            userService.addMileageHistory(user.getUserId(), user.getUserMileage(), mileageReq.getMileageReqAmount(), MileageContents.CHARGE);
         } else {
             mileageReq.updateState(MileageReqState.REFUSAL);
             // 알림 전송
