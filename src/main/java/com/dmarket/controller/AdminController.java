@@ -42,8 +42,8 @@ public class AdminController {
 
     // 사용자 조회
     @GetMapping("/admin-user")
-    public ResponseEntity<?> getUsers(@RequestParam(value = "q", required = true) Integer dktNum) {
-        List<UserResDto.Search> userResDtos = adminService.getUsersFindByDktNum(dktNum);
+    public ResponseEntity<?> getUsers(@RequestParam(value = "q", required = true) String email) {
+        List<UserResDto.Search> userResDtos = adminService.getUsersFindByEmail(email);
         return new ResponseEntity<>(CMResDto.successDataRes(userResDtos), HttpStatus.OK);
     }
 
