@@ -73,9 +73,9 @@ public class ProductController {
     }
 
     // 카테고리 별 할인율 높은 순으로 상품 8개 불러오기
-    @GetMapping("/high-discount-rate/{category_Id}")
-    public ResponseEntity<CMResDto<?>> getHighDiscountRateProducts(@PathVariable Long categoryId) {
-        List<ProductResDto.NewProductResDto> dtos = productService.findHighDiscountRateProducts(categoryId);
+    @GetMapping("/high-discount-rate/{cateId}")
+    public ResponseEntity<CMResDto<?>> getHighDiscountRateProducts(@PathVariable Long cateId) {
+        List<ProductResDto.NewProductResDto> dtos = productService.findHighDiscountRateProducts(cateId);
         // response format mapping
         List<Object> responseData = productService.mapToResponseFormat(dtos, 8);
         log.info("카테고리별 할인율 높은 순으로 상품 8개 조회 성공");
