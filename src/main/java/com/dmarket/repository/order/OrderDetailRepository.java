@@ -22,10 +22,11 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
     @Query("SELECT new com.dmarket.dto.response.OrderDetailResDto(od, p, pi, po) " +
             "FROM OrderDetail od " +
             "JOIN Product p ON p.productId = od.productId " +
-            "JOIN ProductImgs pi ON pi.productId = p.productId " +
-            "JOIN ProductOption po ON po.optionId = od.optionId " +
+            "LEFT JOIN ProductImgs pi ON pi.productId = p.productId " +
+            "LEFT JOIN ProductOption po ON po.optionId = od.optionId " +
             "LEFT JOIN ProductReview pr ON pr.orderDetailId = od.orderDetailId " +
-            "WHERE od.orderId = :orderId AND pr.reviewId IS NULL AND pi.imgId = (" +
+            "WHERE od.orderId = :orderId AND pr.reviewId IS NULL " +
+            "AND od.orderDetailState = com.dmarket.constant.OrderDetailState.DELIVERY_COMPLETE AND pi.imgId = (" +
             "SELECT MIN(pi2.imgId) FROM ProductImgs pi2 WHERE pi2.productId = od.productId" +
             ")")
     List<OrderDetailResDto> findOrderDetailsWithoutReviewByOrder(@Param("orderId") Long orderId);
@@ -33,10 +34,11 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
     @Query("SELECT new com.dmarket.dto.response.ReviewResDto(od, p, pi, po, pr) " +
             "FROM OrderDetail od " +
             "JOIN Product p ON p.productId = od.productId " +
-            "JOIN ProductImgs pi ON pi.productId = p.productId " +
-            "JOIN ProductOption po ON po.optionId = od.optionId " +
+            "LEFT JOIN ProductImgs pi ON pi.productId = p.productId " +
+            "LEFT JOIN ProductOption po ON po.optionId = od.optionId " +
             "JOIN ProductReview pr ON pr.orderDetailId = od.orderDetailId " +
-            "WHERE od.orderId = :orderId AND pi.imgId = (" +
+            "WHERE od.orderId = :orderId " +
+            "AND od.orderDetailState = com.dmarket.constant.OrderDetailState.DELIVERY_COMPLETE AND pi.imgId = (" +
             "SELECT MIN(pi2.imgId) FROM ProductImgs pi2 WHERE pi2.productId = od.productId" +
             ")")
     List<ReviewResDto> findOrderDetailsWithReviewByOrder(@Param("orderId") Long orderId);
