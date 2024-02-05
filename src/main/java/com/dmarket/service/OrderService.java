@@ -5,6 +5,7 @@ import com.dmarket.domain.order.Order;
 import com.dmarket.domain.order.OrderDetail;
 import com.dmarket.domain.product.Product;
 import com.dmarket.domain.product.ProductOption;
+import com.dmarket.domain.user.Cart;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.request.OrderReqDto;
 import com.dmarket.dto.request.ProductReqDto;
@@ -14,6 +15,7 @@ import com.dmarket.jwt.JWTUtil;
 import com.dmarket.repository.order.OrderDetailRepository;
 import com.dmarket.repository.order.OrderRepository;
 import com.dmarket.repository.product.ProductImgsRepository;
+import com.dmarket.repository.user.CartRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -35,6 +38,7 @@ public class OrderService {
     private final UserService userService;
     private final ProductService productService;
 
+    private final CartRepository cartRepository;
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final ProductImgsRepository productImgsRepository;
@@ -129,6 +133,15 @@ public class OrderService {
             Integer orderDetailSalePrice = orderDetail.getOrderDetailSalePrice();
 
             createOrderDetail(orderId, optionId, productId, orderDetailCount, orderDetailPrice, orderDetailSalePrice);
+
+            //장바구니에서 주문한 상품 제거
+            Optional<Cart> cartOptional = cartRepository.findByUserIdAndOptionId(userId, optionId);
+            if (cartOptional.isPresent()) {
+                Cart cart = cartOptional.get();
+                Long cartId = cart.getCartId();
+                userService.deleteCartByCartId(cartId);
+                log.debug("[OrderService] 장바구니에서 주문한 상품 삭제: userId={}, cartId={}, optionId={}", userId, cartId, optionId);
+            }
         }
 
         //반환

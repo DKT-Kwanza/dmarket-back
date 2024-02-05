@@ -202,7 +202,7 @@ public class UserController {
         if(authorization != null){
             return authorization;
         }
-        List<CartCommonDto.CartListDto> cartListDtos = userService.getCartsfindByUserId(userId);
+        List<CartCommonDto.CartListDto> cartListDtos = userService.getCartsFindByUserId(userId);
         CartResDto.TotalCartResDto totalCartResDto = new CartResDto.TotalCartResDto(cartListDtos);
         return new ResponseEntity<>(CMResDto.successDataRes(totalCartResDto), HttpStatus.OK);
     }
@@ -219,8 +219,8 @@ public class UserController {
         }
 
         for (Long cartId : cartIds) {
-            userService.deleteCartByCartId(userId, cartId);
-            log.info("데이터 삭제 완료");
+            userService.deleteCartByCartId(cartId);
+            log.info("장바구니 삭제 완료: cartId={}", cartId);
         }
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }

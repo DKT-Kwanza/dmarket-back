@@ -164,13 +164,41 @@ public class UserService {
         }
     }
 
-    public List<CartCommonDto.CartListDto> getCartsfindByUserId(Long userId) {
+    /**
+     * 장바구니 (cart)
+     */
+    // 장바구니 상품 개수 조회
+    public CartResDto.CartCountResDto getCartCount(Long userId) {
+        return cartRepository.findCountByUserId(userId);
+    }
+
+    public List<CartCommonDto.CartListDto> getCartsFindByUserId(Long userId) {
         List<CartCommonDto.CartListDto> originalList = cartRepository.getCartsfindByUserId(userId);
         return originalList;
     }
 
+    // 장바구니 추가
     @Transactional
-    public void deleteCartByCartId(Long userId, Long cartId) {
+    public void addCart(Long userId, Long productId, Long optionId, Integer productCount) {
+        // 장바구니에 존재하는 상품과 옵션인지 확인
+        Optional<Cart> existingCart = cartRepository.findByUserIdAndOptionId(userId, optionId);
+        if (existingCart.isPresent()) {
+            // 수량만 추가
+            existingCart.get().updateCartCount(productCount);
+        } else {
+            // 장바구니에 저장
+            Cart cart = Cart.builder()
+                    .userId(userId)
+                    .productId(productId)
+                    .optionId(optionId)
+                    .cartCount(productCount)
+                    .build();
+            cartRepository.save(cart);
+        }
+    }
+
+    @Transactional
+    public void deleteCartByCartId(Long cartId) {
         cartRepository.deleteByCartId(cartId);
 
     }
@@ -237,11 +265,6 @@ public class UserService {
         return wishlistResDto;
     }
 
-    // 장바구니 상품 개수 조회
-    public CartResDto.CartCountResDto getCartCount(Long userId) {
-        return cartRepository.findCountByUserId(userId);
-    }
-
     // 마이페이지 서브헤더 사용자 정보 및 마일리지 조회
     public UserResDto.UserHeaderInfo getSubHeader(Long userId) {
         return userRepository.findUserHeaderInfoByUserId(userId);
@@ -277,26 +300,6 @@ public class UserService {
     @Transactional
     public Inquiry createInquiry(Inquiry inquiry) {
         return inquiryRepository.save(inquiry);
-    }
-
-    // 장바구니 추가
-    @Transactional
-    public void addCart(Long userId, Long productId, Long optionId, Integer productCount) {
-        // 장바구니에 존재하는 상품과 옵션인지 확인
-        Optional<Cart> existingCart = cartRepository.findByUserIdAndOptionId(userId, optionId);
-        if (existingCart.isPresent()) {
-            // 수량만 추가
-            existingCart.get().updateCartCount(productCount);
-        } else {
-            // 장바구니에 저장
-            Cart cart = Cart.builder()
-                    .userId(userId)
-                    .productId(productId)
-                    .optionId(optionId)
-                    .cartCount(productCount)
-                    .build();
-            cartRepository.save(cart);
-        }
     }
 
     //사용자 배송지 변경
