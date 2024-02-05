@@ -294,7 +294,7 @@ public class AdminService {
                 .orElseThrow(() -> new NotFoundException(PRODUCT_NOT_FOUND));
         // 상품의 카테고리 depth 1, depth2 조회 후 합치기
         Category category = categoryRepository.findByCategoryId(product.getCategoryId());
-        String productCategory = category.getParent().getCategoryName() + " / " + category.getCategoryName();
+        String productCategory = category.getCategoryName();
         // 상품의 리뷰 개수 조회
         Long reviewCnt = productReviewRepository.countByProductId(productId);
         // 상품 옵션 목록, 옵션별 재고 조회
@@ -620,36 +620,38 @@ public class AdminService {
     }
 
      //상품 목록 조회
-    public Page<ProductResDto.ProductListAdminResDto> getProductListByCateogryId(Long cateId, int pageNo) {
+    public ProductResDto.ProductListAdminResDto getProductListByCateogryId(Long cateId, int pageNo) {
         pageNo = pageVaildation(pageNo);
-        List<Product> products = categoryRepository.findProductsByCategoryId(cateId);
+        Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "productCreatedDate"));
+        Page<Object[]> products = productRepository.findProductsByCateId(pageable, cateId);
         Category category = categoryRepository.findByCategoryId(cateId);
 
         // 제품 목록을 처리하고 DTO 목록을 만듭니다.
-        List<ProductResDto.ProductListAdminResDto> result = new ArrayList<>();
-        for (Product product : products) {
-            Long productId = product.getProductId();
-            List<ProductCommonDto.ProductOptionDto> options = productOptionRepository.findOptionsByProductId(productId);
-            List<String> imgs = productImgsRepository.findAllByProductId(productId);
-            result.add(new ProductResDto.ProductListAdminResDto(product, category, options, imgs));
+        List<ProductCommonDto.ProductListDto> result = new ArrayList<>();
+        for (Object[] tuple : products.getContent()) {
+            Product product = (Product) tuple[0];
+            ProductOption productOption = (ProductOption) tuple[1];
+            List<String> imgs = productImgsRepository.findAllByProductId(product.getProductId());
+            result.add(new ProductCommonDto.ProductListDto(product, category, productOption, imgs));
         }
-        return new PageImpl<>(result);
+        return new ProductResDto.ProductListAdminResDto(products.getTotalPages(), result);
     }
 
     //상품 목록 검색 조회
-    public Page<ProductResDto.ProductListAdminResDto> getProductListBySearch(Long cateId, String query, int pageNo){
+    public ProductResDto.ProductListAdminResDto getProductListBySearch(Long cateId, String query, int pageNo){
         pageNo = pageVaildation(pageNo);
-        List<Product> products = categoryRepository.findProductsByQuery(cateId, query);
+        Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "productCreatedDate"));
+        Page<Object[]> products = productRepository.findProductsByQuery(pageable, cateId, query);
         Category category = categoryRepository.findByCategoryId(cateId);
 
-        List<ProductResDto.ProductListAdminResDto> result = new ArrayList<>();
-        for (Product product : products) {
-            Long productId = product.getProductId();
-            List<ProductCommonDto.ProductOptionDto> options = productOptionRepository.findOptionsByProductId(productId);
-            List<String> imgs = productImgsRepository.findAllByProductId(productId);
-            result.add(new ProductResDto.ProductListAdminResDto(product, category, options, imgs));
+        List<ProductCommonDto.ProductListDto> result = new ArrayList<>();
+        for (Object[] tuple : products.getContent()) {
+            Product product = (Product) tuple[0];
+            ProductOption productOption = (ProductOption) tuple[1];
+            List<String> imgs = productImgsRepository.findAllByProductId(product.getProductId()); //상품개수만큼 조회라서 성능저하될듯..
+            result.add(new ProductCommonDto.ProductListDto(product, category, productOption, imgs));
         }
-        return new PageImpl<>(result);
+        return new ProductResDto.ProductListAdminResDto(products.getTotalPages(), result);
     }
 
     // 관리자 전체 조회
@@ -730,21 +732,25 @@ public class AdminService {
 
     // 취소 목록 조회
     @Transactional
-    public List<OrderResDto.OrderCancelResDto> orderCancle() {
-        return orderDetailRepository.findOrderCancelResDtosByOrderDetailState(OrderDetailState.ORDER_CANCEL)
-                .stream()
-                .map(row -> new OrderResDto.OrderCancelResDto(
-                        (Long) row[0],
-                        (Long) row[1],
-                        (String) row[2],
-                        (String) row[3],
-                        (String) row[4],
-                        (String) row[5],
-                        (String) row[6],
-                        (LocalDateTime) row[7],
-                        (Integer) row[8],
-                        (OrderDetailState) row[9]))
-                .collect(Collectors.toList());
+    public Page<OrderResDto.OrderCancelResDto> orderCancle(int pageNo) {
+        pageNo = pageVaildation(pageNo);
+        Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
+
+//        return orderDetailRepository.findOrderCancelResDtosByOrderDetailState(pageable, OrderDetailState.ORDER_CANCEL)
+//                .stream()
+//                .map(row -> new OrderResDto.OrderCancelResDto(
+//                        (Long) row[0],
+//                        (Long) row[1],
+//                        (String) row[2],
+//                        (String) row[3],
+//                        (String) row[4],
+//                        (String) row[5],
+//                        (String) row[6],
+//                        (LocalDateTime) row[7],
+//                        (Integer) row[8],
+//                        (OrderDetailState) row[9]))
+//                .collect(Collectors.toList());
+        return orderDetailRepository.findOrderCancelResDtosByOrderDetailState(pageable, OrderDetailState.ORDER_CANCEL);
     }
 
     // 상품 재고 추가

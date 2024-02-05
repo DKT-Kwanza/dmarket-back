@@ -44,7 +44,7 @@ public class ProductService {
     private final ProductReviewRepository productReviewRepository;
 
     private static final int PRODUCT_PAGE_POST_COUNT = 16;
-    private static final int QNA_PAGE_POST_COUNT = 10;
+    private static final int QNA_PAGE_POST_COUNT = 5;
     private static final int REVIEW_PAGE_POST_COUNT = 5;
     private static final Integer MAX_VALUE = 9999999;
 

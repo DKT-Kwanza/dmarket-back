@@ -106,7 +106,21 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<ProductResDto.ProductInfoOptionResDto> findProductDetails(@Param("productId") Long productId);
 
 
+    @Query(value = "select p, po " +
+            "from Product p " +
+            "left join ProductOption po on p.productId = po.productId " +
+            "where p.categoryId = :cateId " +
+            "and p.productName LIKE %:query%")
+    Page<Object[]> findProductsByQuery(Pageable pageable, Long cateId, String query);
+
+    @Query(value = "select p, po " +
+            "from Product p " +
+            "left join ProductOption po on p.productId = po.productId " +
+            "where p.categoryId = :cateId")
+    Page<Object[]> findProductsByCateId(Pageable pageable, Long cateId);
+
     // 상품 이름 검색
     @Query("select p.productName from Product p where p.productId = :productId")
     String findProductName(Long productId);
+
 }

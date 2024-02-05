@@ -1,11 +1,9 @@
 package com.dmarket.dto.response;
 
-import com.dmarket.domain.product.Category;
 import com.dmarket.domain.product.Product;
-import com.dmarket.dto.common.*;
+import com.dmarket.dto.common.ProductCommonDto;
 import lombok.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public class ProductResDto {
@@ -26,28 +24,9 @@ public class ProductResDto {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    @Builder
     public static class ProductListAdminResDto {
-        private Long productId;
-        private String productBrand;
-        private String productName;
-        private Integer productSalePrice;
-        private String productCategory;
-        private List<ProductCommonDto.ProductOptionDto> optionList;
-        private LocalDateTime productRegistDate;
-        private List<String> imgList;
-
-        public ProductListAdminResDto(Product product, Category category, List<ProductCommonDto.ProductOptionDto> options, List<String> imgs) {
-            this.productId = product.getProductId();
-            this.productBrand = product.getProductBrand();
-            this.productName = product.getProductName();
-            this.productSalePrice = product.getProductSalePrice();
-            this.productCategory = category.getCategoryName();
-            this.optionList = options;
-            this.productRegistDate = product.getProductCreatedDate();
-            this.imgList = imgs;
-        }
-
+        private int totalPages;
+        private List<ProductCommonDto.ProductListDto> productList;
     }
 
     @Data

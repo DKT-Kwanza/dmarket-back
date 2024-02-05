@@ -2,6 +2,7 @@ package com.dmarket.dto.common;
 
 import com.dmarket.constant.OrderDetailState;
 import com.dmarket.domain.order.OrderDetail;
+import com.dmarket.domain.product.Category;
 import com.dmarket.domain.product.Product;
 import com.dmarket.domain.product.ProductImgs;
 import com.dmarket.domain.product.ProductOption;
@@ -11,6 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class ProductCommonDto {
 
@@ -70,7 +72,6 @@ public class ProductCommonDto {
             this.optionStatus = productOption.getOptionQuantity() == 0 ? "품절" : "판매중";
         }
 
-
     }
 
     @Data
@@ -84,5 +85,37 @@ public class ProductCommonDto {
         private String reviewContents;
         private LocalDateTime reviewCreatedDate;
         private String reviewImg;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ProductListDto {
+        private Long productId;
+        private String productBrand;
+        private String productName;
+        private Integer productSalePrice;
+        private String productCategory;
+        private Long optionId;
+        private String optionName;
+        private String optionValue;
+        private Integer optionQuantity;
+        private LocalDateTime productRegistDate;
+        private List<String> imgList;
+
+        public ProductListDto(Product product, Category category, ProductOption productOption, List<String> imgs) {
+            this.productId = product.getProductId();
+            this.productBrand = product.getProductBrand();
+            this.productName = product.getProductName();
+            this.productSalePrice = product.getProductSalePrice();
+            this.productCategory = category.getCategoryName();
+            this.optionId = productOption!=null ? productOption.getOptionId() : null;
+            this.optionName = productOption!=null ? productOption.getOptionName() : null;
+            this.optionValue = productOption!=null ? productOption.getOptionValue() : null;
+            this.optionQuantity = productOption!=null ? productOption.getOptionQuantity() : null;
+            this.productRegistDate = product.getProductCreatedDate();
+            this.imgList = imgs;
+        }
+
     }
 }

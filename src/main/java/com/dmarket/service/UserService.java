@@ -185,8 +185,8 @@ public class UserService {
     public Page<OrderResDto> getOrderDetailsWithoutReviewByUserId(Long userId, int pageNo) {
         List<OrderResDto> orderResDtos = new ArrayList<>();
         pageNo = pageVaildation(pageNo);
-        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "orderDate"));
-        Page<Order> ordersPage = orderRepository.findByUserIdOrderedByOrderIdDesc(userId, pageable);
+        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_SIZE);
+        List<Order> ordersPage = orderRepository.findByUserIdOrderedByOrderIdDesc(userId);
 
         for (Order order : ordersPage) {
             List<OrderDetailResDto> orderDetailResDtos = orderDetailRepository
@@ -196,14 +196,14 @@ public class UserService {
             }
         }
         // PageImpl을 사용하여 List를 Page로 변환합니다.
-        return new PageImpl<>(orderResDtos, pageable, ordersPage.getTotalElements());
+        return new PageImpl<>(orderResDtos);
     }
 
     public Page<OrderResDto> getOrderDetailsWithReviewByUserId(Long userId, int pageNo) {
         List<OrderResDto> orderResDtos = new ArrayList<>();
         pageNo = pageVaildation(pageNo);
-        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "orderDate"));
-        Page<Order> ordersPage = orderRepository.findByUserIdOrderedByOrderIdDesc(userId, pageable);
+        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_SIZE);
+        List<Order> ordersPage = orderRepository.findByUserIdOrderedByOrderIdDesc(userId);
 
         for (Order order : ordersPage) {
             List<ReviewResDto> orderDetailResDtos = orderDetailRepository
@@ -214,7 +214,7 @@ public class UserService {
         }
 
         // PageImpl을 사용하여 List를 Page로 변환합니다.
-        return new PageImpl<>(orderResDtos, pageable, ordersPage.getTotalElements());
+        return new PageImpl<>(orderResDtos);
     }
 
     // 사용자 정보 조회

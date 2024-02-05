@@ -9,9 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableAsync
 public class DmarketApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(DmarketApplication.class, args);
 	}
-
 }

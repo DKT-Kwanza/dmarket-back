@@ -16,8 +16,8 @@ import java.util.Optional;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    @Query("SELECT o FROM Order o WHERE o.userId = :userId ORDER BY o.orderId DESC")
-    Page<Order> findByUserIdOrderedByOrderIdDesc(@Param("userId") Long userId, Pageable pageable);
+    @Query("SELECT o FROM Order o WHERE o.userId = :userId ORDER BY o.orderDate DESC")
+    List<Order> findByUserIdOrderedByOrderIdDesc(@Param("userId") Long userId);
 
     Order findByOrderId(Long orderId);
 
