@@ -70,13 +70,22 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // 최신 상품 조회
     @Query("SELECT NEW com.dmarket.dto.response.ProductResDto$NewProductResDto(" +
-            "p.productId, p.productBrand, p.productName, MIN(pi.imgAddress), p.productSalePrice) " +
+            "p.productId, p.productBrand, p.productName, MIN(pi.imgAddress), p.productPrice, p.productDiscountRate, p.productSalePrice) " +
             "FROM Product p " +
             "LEFT JOIN ProductImgs pi ON p.productId = pi.productId " +
             "GROUP BY p.productId " +
             "ORDER BY p.productCreatedDate DESC")
     List<ProductResDto.NewProductResDto> findNewProducts();
 
+    // 카테고리별 할인율 높은 순으로 상품 조회
+    @Query("SELECT NEW com.dmarket.dto.response.ProductResDto$NewProductResDto(" +
+            "p.productId, p.productBrand, p.productName, MIN(pi.imgAddress), p.productPrice, p.productDiscountRate, p.productSalePrice) " +
+            "FROM Product p " +
+            "LEFT JOIN ProductImgs pi ON p.productId = pi.productId " +
+            "WHERE p.categoryId = :categoryId " +
+            "GROUP BY p.productId " +
+            "ORDER BY p.productDiscountRate DESC")
+    List<ProductResDto.NewProductResDto> findHighDiscountRateProducts(@Param("categoryId") Long categoryId);
 
     @Modifying
     @Transactional

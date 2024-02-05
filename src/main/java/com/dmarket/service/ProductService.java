@@ -96,14 +96,20 @@ public class ProductService {
         return productRepository.findNewProducts();
     }
 
+    public List<ProductResDto.NewProductResDto> findHighDiscountRateProducts(Long categoryId) {
+        return productRepository.findHighDiscountRateProducts(categoryId);
+    }
+
     // 최신 상품 조회 - 매핑
-    public List<Object> mapToResponseFormat(List<ProductResDto.NewProductResDto> latestProducts) {
+    public List<Object> mapToResponseFormat(List<ProductResDto.NewProductResDto> latestProducts, Integer size) {
         return latestProducts.stream()
-                .limit(16).map(product -> new Object() {
+                .limit(size).map(product -> new Object() {
                     public final Long productId = product.getProductId();
                     public final String productBrand = product.getProductBrand();
                     public final String productName = product.getProductName();
                     public final String productImg = product.getProductImg();
+                    public final String productPrice = String.valueOf(product.getProductPrice());
+                    public final String productDiscountRate = String.valueOf(product.getProductDiscountRate());
                     public final String productSalePrice = String.valueOf(product.getProductSalePrice());
                 })
                 .collect(Collectors.toList());

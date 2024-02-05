@@ -37,12 +37,13 @@ public class ProductController {
     // 카테고리별 상품 목록 조건 조회 api
     @GetMapping(value = "/categories/{cateId}")
     public ResponseEntity<CMResDto<?>> getCategoryProducts(@PathVariable Long cateId,
-                                                         @RequestParam(required = false, value = "sorter", defaultValue = "reviewCnt") String sorter,
-                                                         @RequestParam(required = false, value = "min-price", defaultValue = "0") Integer minPrice,
-                                                         @RequestParam(required = false, value = "max-price", defaultValue = "9999999") Integer maxPrice,
-                                                         @RequestParam(required = false, value = "star", defaultValue = "0.0F") Float star,
-                                                         @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo){
-        Page<ProductResDto.ProductListResDto> products = productService.getCategoryProducts(pageNo , cateId, sorter, minPrice, maxPrice, star);
+            @RequestParam(required = false, value = "sorter", defaultValue = "reviewCnt") String sorter,
+            @RequestParam(required = false, value = "min-price", defaultValue = "0") Integer minPrice,
+            @RequestParam(required = false, value = "max-price", defaultValue = "9999999") Integer maxPrice,
+            @RequestParam(required = false, value = "star", defaultValue = "0.0F") Float star,
+            @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
+        Page<ProductResDto.ProductListResDto> products = productService.getCategoryProducts(pageNo, cateId, sorter,
+                minPrice, maxPrice, star);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(products), HttpStatus.OK);
     }
@@ -50,12 +51,12 @@ public class ProductController {
     // 상품 목록 조건 검색 api
     @GetMapping("/search")
     public ResponseEntity<CMResDto<?>> getSearchProducts(@RequestParam(required = true, value = "q") String query,
-                                                       @RequestParam(required = false, value = "sorter", defaultValue = "reviewCnt") String sorter,
-                                                       @RequestParam(required = false, value = "min-price", defaultValue = "0") Integer minPrice,
-                                                       @RequestParam(required = false, value = "max-price", defaultValue = "9999999") Integer maxPrice,
-                                                       @RequestParam(required = false, value = "star", defaultValue = "0") Float star,
-                                                       @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo){
-        Page<ProductResDto.ProductListResDto> products = productService.getSearchProducts(pageNo , query,
+            @RequestParam(required = false, value = "sorter", defaultValue = "reviewCnt") String sorter,
+            @RequestParam(required = false, value = "min-price", defaultValue = "0") Integer minPrice,
+            @RequestParam(required = false, value = "max-price", defaultValue = "9999999") Integer maxPrice,
+            @RequestParam(required = false, value = "star", defaultValue = "0") Float star,
+            @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
+        Page<ProductResDto.ProductListResDto> products = productService.getSearchProducts(pageNo, query,
                 sorter, minPrice, maxPrice, star);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(products), HttpStatus.OK);
@@ -66,8 +67,18 @@ public class ProductController {
     public ResponseEntity<CMResDto<?>> getLatestProducts() {
         List<ProductResDto.NewProductResDto> latestProducts = productService.findNewProducts();
         // response format mapping
-        List<Object> responseData = productService.mapToResponseFormat(latestProducts);
+        List<Object> responseData = productService.mapToResponseFormat(latestProducts, 16);
         log.info("데이터 조회 완료");
+        return new ResponseEntity<>(CMResDto.successDataRes(responseData), HttpStatus.OK);
+    }
+
+    // 카테고리 별 할인율 높은 순으로 상품 8개 불러오기
+    @GetMapping("/high-discount-rate/{category_Id}")
+    public ResponseEntity<CMResDto<?>> getHighDiscountRateProducts(@PathVariable Long categoryId) {
+        List<ProductResDto.NewProductResDto> dtos = productService.findHighDiscountRateProducts(categoryId);
+        // response format mapping
+        List<Object> responseData = productService.mapToResponseFormat(dtos, 8);
+        log.info("카테고리별 할인율 높은 순으로 상품 8개 조회 성공");
         return new ResponseEntity<>(CMResDto.successDataRes(responseData), HttpStatus.OK);
     }
 
@@ -75,17 +86,19 @@ public class ProductController {
     // 상품 별 Q&A 리스트 조회
     @GetMapping("/{productId}/qnaList")
     public ResponseEntity<?> getAnasByProductId(@PathVariable Long productId,
-                                                @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
+            @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
         Page<QnaResDto.QnaProductIdListResDto> qnaList = productService.findQnasByProductId(productId, pageNo);
 
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(qnaList), HttpStatus.OK);
     }
 
-    //Q&A 작성 API
+    // Q&A 작성 API
     @PostMapping("/{productId}/qna")
-    public ResponseEntity<?> saveQnaAboutProduct(@PathVariable Long productId, @RequestBody QnaReqDto.QnaWriteReqDto qnaWriteReqDto) {
-        QnaResDto.QnaWriteResponseDto qnaWriteRespone = productService.qnaWrite(productId,qnaWriteReqDto.getUserId(),qnaWriteReqDto.getQnaTitle(),qnaWriteReqDto.getQnaContents(),qnaWriteReqDto.getQnaIsSecret());
+    public ResponseEntity<?> saveQnaAboutProduct(@PathVariable Long productId,
+            @RequestBody QnaReqDto.QnaWriteReqDto qnaWriteReqDto) {
+        QnaResDto.QnaWriteResponseDto qnaWriteRespone = productService.qnaWrite(productId, qnaWriteReqDto.getUserId(),
+                qnaWriteReqDto.getQnaTitle(), qnaWriteReqDto.getQnaContents(), qnaWriteReqDto.getQnaIsSecret());
         log.info("QnA 저장 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(qnaWriteRespone), HttpStatus.OK);
     }
@@ -100,7 +113,7 @@ public class ProductController {
     // 상품별 사용자 리뷰 조회 api뷰
     @GetMapping("/{productId}/reviews")
     public ResponseEntity<?> getProductReviews(@PathVariable Long productId,
-                                               @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
+            @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
 
         ProductResDto.ProductReviewListResDto res = productService.getReviewList(productId, pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(res), HttpStatus.OK);
@@ -109,7 +122,7 @@ public class ProductController {
     // 마이페이지 리뷰 작성
     @PostMapping("{productId}/review")
     public ResponseEntity<?> saveReview(@PathVariable Long productId,
-                                        @Valid @RequestBody ReviewReqDto reviewReqDto) {
+            @Valid @RequestBody ReviewReqDto reviewReqDto) {
 
         productService.saveReview(reviewReqDto, productId);
         log.info("데이터 저장 완료");
