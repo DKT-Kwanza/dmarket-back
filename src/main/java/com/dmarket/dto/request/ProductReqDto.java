@@ -46,9 +46,9 @@ public class ProductReqDto {
         private String brand;
         private String productName;
         private String categoryName;
-        private String productPrice;
+        private Integer productPrice;
         private String productDes;
-        private String productSalePrice;
+        private Integer productSalePrice;
         private List<String> imgList;
         private List<Option> optionList;
 
