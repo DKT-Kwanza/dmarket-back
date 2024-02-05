@@ -26,10 +26,10 @@ public class OrderDetailResDto {
         this.productBrand = product.getProductBrand();
         this.productName = product.getProductName();
         this.productImg = productImgs.getImgAddress();
-        this.productOption = productOption.getOptionValue();
+        this.productOption = productOption!=null ? productOption.getOptionValue() : null;
         this.productCount = orderDetail.getOrderDetailCount();
         this.productTotalSalePrice = orderDetail.getOrderDetailSalePrice();
-        this.optionId = productOption.getOptionId();
+        this.optionId = productOption!=null ? productOption.getOptionId() : null;
         this.productId = product.getProductId();
     }
 
