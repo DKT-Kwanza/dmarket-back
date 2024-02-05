@@ -141,6 +141,8 @@ public class ProductResDto {
         private String productBrand;
         private String productName;
         private String productImg;
+        private Integer productPrice;
+        private Integer productDiscountRate;
         private Integer productSalePrice;
     }
 

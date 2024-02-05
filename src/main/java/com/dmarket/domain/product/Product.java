@@ -40,9 +40,12 @@ public class Product {
     @Column(nullable = true)
     private LocalDateTime productCreatedDate;
 
+    @Column(nullable = true)
+    private Integer productDiscountRate;
+
 
     @Builder
-    public Product(Long categoryId, String productBrand, String productName, Integer productPrice, Integer productSalePrice, String productDescription, Float productRating) {
+    public Product(Long categoryId, String productBrand, String productName, Integer productPrice, Integer productSalePrice, String productDescription, Float productRating, Integer productDiscountRate) {
         this.categoryId = categoryId;
         this.productBrand = productBrand;
         this.productName = productName;
@@ -51,5 +54,6 @@ public class Product {
         this.productDescription = productDescription;
         this.productRating = productRating;
         this.productCreatedDate = LocalDateTime.now().withNano(0);
+        this.productDiscountRate = productDiscountRate;
     }
 }
