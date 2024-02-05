@@ -43,7 +43,6 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -59,33 +58,45 @@ import static com.dmarket.exception.ErrorCode.*;
 public class AdminService {
 
     // 조회가 아닌 메서드들은 꼭 @Transactional 넣어주세요 (CUD, 입력/수정/삭제)
-    private final UserRepository userRepository;
-    private final NoticeRepository noticeRepository;
-    private final MileageRepository mileageRepository;
-    private final MileageReqRepository mileageReqRepository;
-
     private final FaqRepository faqRepository;
-    private final ProductOptionRepository productOptionRepository;
+    private final InquiryRepository inquiryRepository;
+    private final InquiryReplyRepository inquiryReplyRepository;
+    private final NoticeRepository noticeRepository;
+
+    private final OrderRepository orderRepository;
+    private final OrderDetailRepository orderDetailRepository;
+    private final RefundRepository refundRepository;
+    private final ReturnRepository returnRepository;
+
+    private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
     private final ProductImgsRepository productImgsRepository;
-    private final CategoryRepository categoryRepository;
+    private final ProductOptionRepository productOptionRepository;
+    private final ProductReviewRepository productReviewRepository;
     private final QnaRepository qnaRepository;
     private final QnaReplyRepository qnaReplyRepository;
 
-    private final ReturnRepository returnRepository;
-    private final ProductReviewRepository productReviewRepository;
+    private final MileageRepository mileageRepository;
+    private final MileageReqRepository mileageReqRepository;
+    private final UserRepository userRepository;
     private final WishlistRepository wishlistRepository;
-    private final InquiryRepository inquiryRepository;
-    private final InquiryReplyRepository inquiryReplyRepository;
-    private final OrderDetailRepository orderDetailRepository;
-    private final RefundRepository refundRepository;
-    private final OrderRepository orderRepository;
+
+    private final UserService userService;
     private final JWTUtil jwtUtil;
     private final ApplicationEventPublisher publisher;
 
 
-
     private static final int PAGE_POST_COUNT = 10;
+
+
+    /**
+     * User: 사용자
+     */
+    // 사용자 ID로 찾기
+    public User findUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
+    }
 
     @Transactional
     public void deleteUserByUserId(Long userId) {
@@ -104,15 +115,19 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
+
+    /**
+     * Notice: 알림
+     */
     public Page<NoticeResDto> getNotices(int pageNo) {
-        pageNo = pageVaildation(pageNo);
+        pageNo = pageValidation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
         return noticeRepository.getNotices(pageable);
     }
 
     @Transactional
     public Page<NoticeResDto> postNotice(Long userId, String noticeTitle, String noticeContents, int pageNo) {
-        pageNo = pageVaildation(pageNo);
+        pageNo = pageValidation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
 
         Notice notice = Notice.builder()
@@ -126,10 +141,19 @@ public class AdminService {
         return noticesPage.map(no -> new NoticeResDto(no));
     }
 
+    @Transactional
+    public void deleteNoticeByNoticeId(Long noticeId) {
+        noticeRepository.deleteByNoticeId(noticeId);
+    }
+
+
+    /**
+     * MileageReq: 마일리지 충전 요청
+     */
     // 마일리지 충전 요청 내역
     @Transactional
     public Page<MileageCommonDto.MileageReqListDto> getMileageRequests(String status, int pageNo) {
-        pageNo = pageVaildation(pageNo);
+        pageNo = pageValidation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "mileageReqDate"));
         Page<MileageCommonDto.MileageReqListDto> dtos;
 
@@ -151,19 +175,14 @@ public class AdminService {
             mileageReq.updateState(MileageReqState.APPROVAL);
             User user = findUserById(mileageReq.getUserId());
             user.updateMileage(mileageReq.getMileageReqAmount());
+
             // 알림 전송
             publisher.publishEvent(SendNotificationEvent.of("mileage", user.getUserId(),
                     user.getUserName() + "님의 " + mileageReq.getMileageReqAmount() + "마일리지 충전 요청이 승인되었습니다.",
                     "/mydkt/mileageInfo"));
 
             // 사용자 마일리지 사용 내역에 추가
-            Mileage mileage = Mileage.builder()
-                    .userId(user.getUserId())
-                    .remainMileage(mileageReq.getMileageReqAmount())
-                    .changeMileage(user.getUserMileage())
-                    .mileageInfo(MileageContents.CHARGE)
-                    .build();
-            mileageRepository.save(mileage);
+            userService.addMileageHistory(user.getUserId(), user.getUserMileage(), mileageReq.getMileageReqAmount(), MileageContents.CHARGE);
         } else {
             mileageReq.updateState(MileageReqState.REFUSAL);
             // 알림 전송
@@ -174,26 +193,19 @@ public class AdminService {
         }
     }
 
-    @Transactional
-    public void deleteNoticeByNoticeId(Long noticeId) {
-        noticeRepository.deleteByNoticeId(noticeId);
-    }
-
-    // 사용자 ID로 찾기
-    public User findUserById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
-    }
-
     // 사용자 마일리지 요청 찾기
     public MileageReq findMileageReqById(Long mileageReqId) {
         return mileageReqRepository.findById(mileageReqId)
                 .orElseThrow(() -> new NotFoundException(REQUEST_NOT_FOUND));
     }
 
+
+    /**
+     * Faq: FAQ
+     */
     // FAQ 조회
     public Page<Faq> getAllFaqs(FaqType faqType, int pageNo) {
-        pageNo = pageVaildation(pageNo);
+        pageNo = pageValidation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
         return faqRepository.findFaqType(faqType, pageable);
     }
@@ -224,6 +236,35 @@ public class AdminService {
         Long faqId = savedFaq.getFaqId();
 
         return faqId;
+    }
+
+
+    /**
+     * Product: 상품
+     */
+    // 신상품 등록
+    @Transactional
+    public void saveProductList(ProductReqDto.ProductListDto productList) {
+        // CategoryId 가져오기
+        Long categoryId = getCategoryByCategoryName(productList.getCategoryName());
+
+        // Product 저장
+        Product savedProduct = saveProduct(productList, categoryId);
+
+        // OptionList 저장
+        saveProductOptions(savedProduct.getProductId(), productList.getOptionList());
+
+        // ProductImgs 저장
+        saveProductImgs(savedProduct.getProductId(), productList.getImgList());
+    }
+
+    @Transactional
+    public Long getCategoryByCategoryName(String categoryName) {
+        Category category = categoryRepository.findIdByCategoryName(categoryName);
+        if (category != null) {
+            return category.getCategoryId();
+        }
+        return null;
     }
 
     @Transactional
@@ -306,14 +347,129 @@ public class AdminService {
     }
 
     public Page<AdminResDto.AdminReviewsResDto> getProductReviews(int pageNo) {
-        pageNo = pageVaildation(pageNo);
+        pageNo = pageValidation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
         return productReviewRepository.getProductReviews(pageable);
     }
 
+    @Transactional
+    public Product saveProduct(ProductReqDto.ProductListDto productitem, Long categoryId) {
+        Product newProduct = Product.builder()
+                .categoryId(categoryId)
+                .productBrand(productitem.getBrand())
+                .productName(productitem.getProductName())
+                .productPrice(productitem.getProductPrice())
+                .productSalePrice(productitem.getProductSalePrice())
+                .productDescription(productitem.getProductDes())
+                .build();
+
+        return productRepository.save(newProduct);
+    }
+
+    @Transactional
+    public void saveProductOptions(Long productId, List<ProductReqDto.ProductListDto.Option> optionList) {
+        for (ProductReqDto.ProductListDto.Option option : optionList) {
+            ProductOption newOption = ProductOption.builder()
+                    .productId(productId)
+                    .optionName(option.getOptionName())
+                    .optionValue(option.getOptionValue())
+                    .optionQuantity(option.getOptionQuantity())
+                    .build();
+
+            productOptionRepository.save(newOption);
+        }
+    }
+
+    @Transactional
+    public void saveProductImgs(Long productId, List<String> imgAddresses) {
+        for (String imgAddress : imgAddresses) {
+            ProductImgs productImgs = ProductImgs.builder()
+                    .productId(productId)
+                    .imgAddress(imgAddress)
+                    .build();
+
+            productImgsRepository.save(productImgs);
+        }
+    }
+
+    //상품 목록 검색 조회
+    public ProductResDto.ProductListAdminResDto getProductListBySearch(Long cateId, String query, int pageNo){
+        pageNo = pageValidation(pageNo);
+        Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "productCreatedDate"));
+        Page<Object[]> products = productRepository.findProductsByQuery(pageable, cateId, query);
+        Category category = categoryRepository.findByCategoryId(cateId);
+
+        List<ProductCommonDto.ProductListDto> result = new ArrayList<>();
+        for (Object[] tuple : products.getContent()) {
+            Product product = (Product) tuple[0];
+            ProductOption productOption = (ProductOption) tuple[1];
+            List<String> imgs = productImgsRepository.findAllByProductId(product.getProductId()); //상품개수만큼 조회라서 성능저하될듯..
+            result.add(new ProductCommonDto.ProductListDto(product, category, productOption, imgs));
+        }
+        return new ProductResDto.ProductListAdminResDto(products.getTotalPages(), result);
+    }
+
+    // 상품 재고 추가
+    @Transactional
+    public void addProductStock(ProductReqDto.StockReqDto stockReqDto) {
+        try {
+            Long productId = stockReqDto.getProductId();
+            Long optionId = stockReqDto.getOptionId();
+            Integer addCount = stockReqDto.getAddCount();
+
+            if (productId == null || optionId == null || addCount == null || addCount <= 0) {
+                throw new IllegalArgumentException("상품 정보 및 추가 수량을 확인하세요.");
+            }
+
+            Optional<ProductOption> optionalProductOption = productOptionRepository.findById(optionId);
+
+            if (optionalProductOption.isPresent()) {
+                ProductOption productOption = optionalProductOption.get();
+
+                productOption.setOptionQuantity(productOption.getOptionQuantity() + addCount);
+                productOptionRepository.save(productOption);
+            } else {
+                throw new IllegalArgumentException("상품 옵션을 찾을 수 없습니다.");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("상품 재고 추가 중 오류 발생", e);
+        }
+    }
+
+    // 상품 재고 추가 RESPONSE
+    public ProductResDto.ProductInfoOptionResDto getProductInfoWithOption(Long productId) {
+        try {
+            List<ProductResDto.ProductInfoOptionResDto> productDetails = productRepository
+                    .findProductDetails(productId);
+
+            if (!productDetails.isEmpty()) {
+                ProductResDto.ProductInfoOptionResDto productDetail = productDetails.get(0);
+
+                return ProductResDto.ProductInfoOptionResDto.builder()
+                        .productId(productDetail.getProductId())
+                        .productBrand(productDetail.getProductBrand())
+                        .productName(productDetail.getProductName())
+                        .optionId(productDetail.getOptionId())
+                        .optionValue(productDetail.getOptionValue())
+                        .optionName(productDetail.getOptionName())
+                        .productImg(productDetail.getProductImg())
+                        .optionQuantity(productDetail.getOptionQuantity())
+                        .build();
+            } else {
+                throw new IllegalArgumentException("상품을 찾을 수 없습니다.");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("상품 정보 조회 중 오류 발생", e);
+        }
+    }
+
+
+    /**
+     * QnaReply: 상품 QnA
+     */
     // 상품 QnA 조회
     public Page<QnaDto> getQnaList(int pageNo) {
-        pageNo = pageVaildation(pageNo);
+        pageNo = pageValidation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "qnaCreatedDate"));
         return qnaRepository.findAllQna(pageable);
     }
@@ -375,9 +531,12 @@ public class AdminService {
         return getQnADetail(qnaId);
     }
 
+    /**
+     * Return: 반품
+     */
     // 반품 상태 리스트
     public ReturnResDto.ReturnListResDto getReturns(String returnStatus, int pageNo) {
-        pageNo = pageVaildation(pageNo);
+        pageNo = pageValidation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
         ReturnState returnState = null;
 
@@ -435,75 +594,20 @@ public class AdminService {
 
     }
 
-    // 신상품 등록
-    @Transactional
-    public void saveProductList(ProductReqDto.ProductListDto productList) {
-        // CategoryId 가져오기
-        Long categoryId = getCategoryByCategoryName(productList.getCategoryName());
 
-        // Product 저장
-        Product savedProduct = saveProduct(productList, categoryId);
-
-        // OptionList 저장
-        saveProductOptions(savedProduct.getProductId(), productList.getOptionList());
-
-        // ProductImgs 저장
-        saveProductImgs(savedProduct.getProductId(), productList.getImgList());
-    }
-
-    @Transactional
-    public Long getCategoryByCategoryName(String categoryName) {
-        Category category = categoryRepository.findIdByCategoryName(categoryName);
-        if (category != null) {
-            return category.getCategoryId();
-        }
-        return null;
-    }
-
-    @Transactional
-    public Product saveProduct(ProductReqDto.ProductListDto productitem, Long categoryId) {
-        Product newProduct = Product.builder()
-                .categoryId(categoryId)
-                .productBrand(productitem.getBrand())
-                .productName(productitem.getProductName())
-                .productPrice(productitem.getProductPrice())
-                .productSalePrice(productitem.getProductSalePrice())
-                .productDescription(productitem.getProductDes())
-                .build();
-
-        return productRepository.save(newProduct);
-    }
-
-    @Transactional
-    public void saveProductOptions(Long productId, List<ProductReqDto.ProductListDto.Option> optionList) {
-        for (ProductReqDto.ProductListDto.Option option : optionList) {
-            ProductOption newOption = ProductOption.builder()
-                    .productId(productId)
-                    .optionName(option.getOptionName())
-                    .optionValue(option.getOptionValue())
-                    .optionQuantity(option.getOptionQuantity())
-                    .build();
-
-            productOptionRepository.save(newOption);
-        }
-    }
-
-    @Transactional
-    public void saveProductImgs(Long productId, List<String> imgAddresses) {
-        for (String imgAddress : imgAddresses) {
-            ProductImgs productImgs = ProductImgs.builder()
-                    .productId(productId)
-                    .imgAddress(imgAddress)
-                    .build();
-
-            productImgsRepository.save(productImgs);
-        }
+    /**
+     * Inquiry: 문의
+     */
+    // 문의 내역 상세 조회
+    public InquiryResDto.InquiryDetailResDto getInquiryDetail(Long inquiryId) {
+        return inquiryRepository.findInquiryDetailById(inquiryId)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 문의 ID: " + inquiryId));
     }
 
     // 문의 목록 조회(카테고리별)
     @Transactional
     public Page<InquiryResDto.InquiryListResDto> getAllInquiriesByType(InquiryType inquiryType, int pageNo) {
-        pageNo = pageVaildation(pageNo);
+        pageNo = pageValidation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
         return inquiryRepository.findByInquiryType(inquiryType, pageable);
     }
@@ -520,6 +624,10 @@ public class AdminService {
         inquiryRepository.deleteById(inquiryId);
     }
 
+
+    /**
+     * InquiryReply: 문의 답변
+     */
     // 문의 답변 등록
     @Transactional
     public InquiryReply createInquiryReply(InquiryReply inquiryReply) {
@@ -621,7 +729,7 @@ public class AdminService {
 
      //상품 목록 조회
     public ProductResDto.ProductListAdminResDto getProductListByCateogryId(Long cateId, int pageNo) {
-        pageNo = pageVaildation(pageNo);
+        pageNo = pageValidation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "productCreatedDate"));
         Page<Object[]> products = productRepository.findProductsByCateId(pageable, cateId);
         Category category = categoryRepository.findByCategoryId(cateId);
@@ -632,23 +740,6 @@ public class AdminService {
             Product product = (Product) tuple[0];
             ProductOption productOption = (ProductOption) tuple[1];
             List<String> imgs = productImgsRepository.findAllByProductId(product.getProductId());
-            result.add(new ProductCommonDto.ProductListDto(product, category, productOption, imgs));
-        }
-        return new ProductResDto.ProductListAdminResDto(products.getTotalPages(), result);
-    }
-
-    //상품 목록 검색 조회
-    public ProductResDto.ProductListAdminResDto getProductListBySearch(Long cateId, String query, int pageNo){
-        pageNo = pageVaildation(pageNo);
-        Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "productCreatedDate"));
-        Page<Object[]> products = productRepository.findProductsByQuery(pageable, cateId, query);
-        Category category = categoryRepository.findByCategoryId(cateId);
-
-        List<ProductCommonDto.ProductListDto> result = new ArrayList<>();
-        for (Object[] tuple : products.getContent()) {
-            Product product = (Product) tuple[0];
-            ProductOption productOption = (ProductOption) tuple[1];
-            List<String> imgs = productImgsRepository.findAllByProductId(product.getProductId()); //상품개수만큼 조회라서 성능저하될듯..
             result.add(new ProductCommonDto.ProductListDto(product, category, productOption, imgs));
         }
         return new ProductResDto.ProductListAdminResDto(products.getTotalPages(), result);
@@ -733,7 +824,7 @@ public class AdminService {
     // 취소 목록 조회
     @Transactional
     public Page<OrderResDto.OrderCancelResDto> orderCancle(int pageNo) {
-        pageNo = pageVaildation(pageNo);
+        pageNo = pageValidation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
 
 //        return orderDetailRepository.findOrderCancelResDtosByOrderDetailState(pageable, OrderDetailState.ORDER_CANCEL)
@@ -753,67 +844,13 @@ public class AdminService {
         return orderDetailRepository.findOrderCancelResDtosByOrderDetailState(pageable, OrderDetailState.ORDER_CANCEL);
     }
 
-    // 상품 재고 추가
-    @Transactional
-    public void addProductStock(ProductReqDto.StockReqDto stockReqDto) {
-        try {
-            Long productId = stockReqDto.getProductId();
-            Long optionId = stockReqDto.getOptionId();
-            Integer addCount = stockReqDto.getAddCount();
-
-            if (productId == null || optionId == null || addCount == null || addCount <= 0) {
-                throw new IllegalArgumentException("상품 정보 및 추가 수량을 확인하세요.");
-            }
-
-            Optional<ProductOption> optionalProductOption = productOptionRepository.findById(optionId);
-
-            if (optionalProductOption.isPresent()) {
-                ProductOption productOption = optionalProductOption.get();
-
-                productOption.setOptionQuantity(productOption.getOptionQuantity() + addCount);
-                productOptionRepository.save(productOption);
-            } else {
-                throw new IllegalArgumentException("상품 옵션을 찾을 수 없습니다.");
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("상품 재고 추가 중 오류 발생", e);
-        }
-    }
-
-    // 상품 재고 추가 RESPONSE
-    public ProductResDto.ProductInfoOptionResDto getProductInfoWithOption(Long productId) {
-        try {
-            List<ProductResDto.ProductInfoOptionResDto> productDetails = productRepository
-                    .findProductDetails(productId);
-
-            if (!productDetails.isEmpty()) {
-                ProductResDto.ProductInfoOptionResDto productDetail = productDetails.get(0);
-
-                return ProductResDto.ProductInfoOptionResDto.builder()
-                        .productId(productDetail.getProductId())
-                        .productBrand(productDetail.getProductBrand())
-                        .productName(productDetail.getProductName())
-                        .optionId(productDetail.getOptionId())
-                        .optionValue(productDetail.getOptionValue())
-                        .optionName(productDetail.getOptionName())
-                        .productImg(productDetail.getProductImg())
-                        .optionQuantity(productDetail.getOptionQuantity())
-                        .build();
-            } else {
-                throw new IllegalArgumentException("상품을 찾을 수 없습니다.");
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("상품 정보 조회 중 오류 발생", e);
-        }
-    }
-
     // 배송 목록 조회
     public OrderCommonDto.OrderDetailStateCountsDto getOrderDetailStateCounts() {
         return orderRepository.getOrderDetailStateCounts();
     }
 
     public Page<OrderListAdminResDto> getOrdersByStatus(String status, int pageNo) {
-        pageNo = pageVaildation(pageNo);
+        pageNo = pageValidation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
         try {
             OrderDetailState orderStatus = OrderDetailState.fromLabel(status);
@@ -828,17 +865,10 @@ public class AdminService {
         }
     }
 
+
     // 페이지 번호 유효성 검사 메소드
-    public int pageVaildation(int page) {
+    public int pageValidation(int page) {
         page = page > 0 ? page - 1 : page;
         return page;
     }
-
-    // 문의 내역 상세 조회
-    @Transactional
-    public InquiryResDto.InquiryDetailResDto getInquiryDetail(Long inquiryId) {
-        return inquiryRepository.findInquiryDetailById(inquiryId)
-                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 문의 ID: " + inquiryId));
-    }
-
 }

@@ -371,12 +371,12 @@ public class UserService {
 
     // 마일리지 사용 내역 추가
     @Transactional
-    public void addMileageHistory(Long userId, Integer remainMileage, Integer changeMileage) {
+    public void addMileageHistory(Long userId, Integer remainMileage, Integer changeMileage, MileageContents mileageInfo) {
         Mileage mileage = Mileage.builder()
                 .userId(userId)
                 .remainMileage(remainMileage)
                 .changeMileage(changeMileage)
-                .mileageInfo(MileageContents.PURCHASE).build();
+                .mileageInfo(mileageInfo).build();
         mileageRepository.save(mileage);
     }
 
