@@ -632,7 +632,7 @@ public class AdminService {
         String newaccessToken = jwtUtil.createAccessJwt(userId, newRole.getNewRole(), user.getUserEmail());
         String newrefreshToken = jwtUtil.createRefreshJwt();
 
-        return new UserCommonDto.TokenResponseDto(newaccessToken, newrefreshToken, userId);
+        return new UserCommonDto.TokenResponseDto(newaccessToken, newrefreshToken, userId, newRole.toString());
     }
 
     // 사용자 검색
