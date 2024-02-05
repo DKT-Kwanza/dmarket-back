@@ -2,6 +2,7 @@ package com.dmarket.controller;
 
 import com.dmarket.constant.InquiryType;
 import com.dmarket.domain.board.Inquiry;
+import com.dmarket.domain.order.Order;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.CartCommonDto;
 import com.dmarket.dto.common.InquiryRequestDto;
@@ -244,7 +245,7 @@ public class UserController {
         if(authorization != null){
             return authorization;
         }
-        Page<OrderResDto> orderResDtos = userService.getOrderDetailsWithoutReviewByUserId(userId, pageNo);
+        Page<OrderResDto<OrderDetailResDto>> orderResDtos = userService.getOrderDetailsWithoutReviewByUserId(userId, pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(orderResDtos), HttpStatus.OK);
     }
 
@@ -256,7 +257,7 @@ public class UserController {
         if(authorization != null){
             return authorization;
         }
-        Page<OrderResDto> orderResDtos = userService.getOrderDetailsWithReviewByUserId(userId, pageNo);
+        Page<OrderResDto<ReviewResDto>> orderResDtos = userService.getOrderDetailsWithReviewByUserId(userId, pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(orderResDtos), HttpStatus.OK);
     }
 

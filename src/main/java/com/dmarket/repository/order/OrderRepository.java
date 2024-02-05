@@ -16,7 +16,7 @@ import java.util.List;
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT o FROM Order o WHERE o.userId = :userId ORDER BY o.orderDate DESC")
-    List<Order> findByUserIdOrderedByOrderIdDesc(@Param("userId") Long userId);
+    List<Order> findByUserId(Long userId);
 
     Order findByOrderId(Long orderId);
 
