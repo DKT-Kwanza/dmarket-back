@@ -466,8 +466,8 @@ public class AdminService {
                 .categoryId(categoryId)
                 .productBrand(productitem.getBrand())
                 .productName(productitem.getProductName())
-                .productPrice(Integer.parseInt(productitem.getProductPrice().replace(",", "")))
-                .productSalePrice(Integer.parseInt(productitem.getProductSalePrice().replace(",", "")))
+                .productPrice(productitem.getProductPrice())
+                .productSalePrice(productitem.getProductSalePrice())
                 .productDescription(productitem.getProductDes())
                 .build();
 
