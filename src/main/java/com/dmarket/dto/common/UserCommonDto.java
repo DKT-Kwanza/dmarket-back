@@ -11,5 +11,6 @@ public class UserCommonDto {
         private String accesstoken;
         private String refreshtoken;
         private Long userId;
+        private String role;
     }
 }

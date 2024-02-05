@@ -105,7 +105,7 @@ public class JWTFilter extends OncePerRequestFilter {
                 String newRefreshToken = jwtUtil.createRefreshJwt();
                 refreshTokenRepository.save(new RefreshToken(newRefreshToken, newAccessToken, email));
 
-                UserCommonDto.TokenResponseDto tokenResponseDto = new UserCommonDto.TokenResponseDto(newAccessToken, newRefreshToken, tokenUserId);
+                UserCommonDto.TokenResponseDto tokenResponseDto = new UserCommonDto.TokenResponseDto(newAccessToken, newRefreshToken, tokenUserId, role);
 
                 CMResDto<UserCommonDto.TokenResponseDto> cmRespDto = CMResDto.<UserCommonDto.TokenResponseDto>builder()
                         .code(200)
