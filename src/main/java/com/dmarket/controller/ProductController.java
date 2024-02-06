@@ -15,17 +15,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/products")
 public class ProductController {
+
     private final ProductService productService;
 
+
+    /**
+     * 카테고리: Category
+     */
     // 카테고리 전체 목록 depth별로 조회 api
     @GetMapping(value = "/categories")
     public ResponseEntity<CMResDto<?>> getCategories() {
@@ -34,6 +37,10 @@ public class ProductController {
         return new ResponseEntity<>(CMResDto.successDataRes(categories), HttpStatus.OK);
     }
 
+
+    /**
+     * 상품: Product
+     */
     // 카테고리별 상품 목록 조건 조회 api
     @GetMapping(value = "/categories/{cateId}")
     public ResponseEntity<CMResDto<?>> getCategoryProducts(@PathVariable Long cateId,
@@ -42,8 +49,7 @@ public class ProductController {
             @RequestParam(required = false, value = "max-price", defaultValue = "9999999") Integer maxPrice,
             @RequestParam(required = false, value = "star", defaultValue = "0.0F") Float star,
             @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
-        Page<ProductResDto.ProductListResDto> products = productService.getCategoryProducts(pageNo, cateId, sorter,
-                minPrice, maxPrice, star);
+        Page<ProductResDto.ProductListResDto> products = productService.getCategoryProducts(pageNo, cateId, sorter, minPrice, maxPrice, star);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(products), HttpStatus.OK);
     }
@@ -56,8 +62,7 @@ public class ProductController {
             @RequestParam(required = false, value = "max-price", defaultValue = "9999999") Integer maxPrice,
             @RequestParam(required = false, value = "star", defaultValue = "0") Float star,
             @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
-        Page<ProductResDto.ProductListResDto> products = productService.getSearchProducts(pageNo, query,
-                sorter, minPrice, maxPrice, star);
+        Page<ProductResDto.ProductListResDto> products = productService.getSearchProducts(pageNo, query, sorter, minPrice, maxPrice, star);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(products), HttpStatus.OK);
     }
@@ -82,7 +87,24 @@ public class ProductController {
         return new ResponseEntity<>(CMResDto.successDataRes(responseData), HttpStatus.OK);
     }
 
-    // QnA
+    // 상품 상세 조회 api
+    @GetMapping("/{productId}")
+    public ResponseEntity<?> getProductInfo(@PathVariable Long productId) {
+        ProductResDto.ProductInfoResDto res = productService.getProductInfo(productId);
+        return new ResponseEntity<>(CMResDto.successDataRes(res), HttpStatus.OK);
+    }
+
+    // 추천 상품 조회 api
+    @GetMapping("/{productId}/recommend")
+    public ResponseEntity<?> recommendProduct(@PathVariable Long productId) {
+        List<ProductResDto.RecommendProductResDto> res = productService.recommendProduct(productId);
+        return new ResponseEntity<>(CMResDto.successDataRes(res), HttpStatus.OK);
+    }
+
+
+    /**
+     * QnA
+     */
     // 상품 별 Q&A 리스트 조회
     @GetMapping("/{productId}/qnaList")
     public ResponseEntity<?> getAnasByProductId(@PathVariable Long productId,
@@ -103,17 +125,14 @@ public class ProductController {
         return new ResponseEntity<>(CMResDto.successDataRes(qnaWriteRespone), HttpStatus.OK);
     }
 
-    // 상품 상세 조회 api
-    @GetMapping("/{productId}")
-    public ResponseEntity<?> getProductInfo(@PathVariable Long productId) {
-        ProductResDto.ProductInfoResDto res = productService.getProductInfo(productId);
-        return new ResponseEntity<>(CMResDto.successDataRes(res), HttpStatus.OK);
-    }
 
-    // 상품별 사용자 리뷰 조회 api뷰
+    /**
+     * 리뷰: Review
+     */
+    // 상품별 사용자 리뷰 조회
     @GetMapping("/{productId}/reviews")
     public ResponseEntity<?> getProductReviews(@PathVariable Long productId,
-            @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
+                                               @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
 
         ProductResDto.ProductReviewListResDto res = productService.getReviewList(productId, pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(res), HttpStatus.OK);
@@ -121,19 +140,10 @@ public class ProductController {
 
     // 마이페이지 리뷰 작성
     @PostMapping("{productId}/review")
-    public ResponseEntity<?> saveReview(@PathVariable Long productId,
-            @Valid @RequestBody ReviewReqDto reviewReqDto) {
-
+    public ResponseEntity<?> saveReview(@PathVariable Long productId, @Valid @RequestBody ReviewReqDto reviewReqDto) {
         productService.saveReview(reviewReqDto, productId);
         log.info("데이터 저장 완료");
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
-    }
-
-    // 추천 상품 조회 api
-    @GetMapping("/{productId}/recommend")
-    public ResponseEntity<?> recommendProduct(@PathVariable Long productId) {
-        List<ProductResDto.RecommendProductResDto> res = productService.recommendProduct(productId);
-        return new ResponseEntity<>(CMResDto.successDataRes(res), HttpStatus.OK);
     }
 
     // 리뷰 삭제 api

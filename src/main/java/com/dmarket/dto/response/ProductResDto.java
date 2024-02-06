@@ -17,6 +17,7 @@ public class ProductResDto {
         private String productName;
         private String productImg;
         private Integer productSalePrice;
+        private Integer productDiscountRate;
         private Float productRating;
         private Long productReviewCount;
     }
@@ -39,6 +40,7 @@ public class ProductResDto {
         private String productDes;
         private Integer productPrice;
         private Integer productSalePrice;
+        private Integer productDiscountRate;
         private Float productRating;
         private Long productReviewCount;
         private List<ProductCommonDto.ProductOptionDto> optionList;
@@ -52,6 +54,7 @@ public class ProductResDto {
             this.productDes = product.getProductDescription();
             this.productPrice = product.getProductPrice();
             this.productSalePrice = product.getProductSalePrice();
+            this.productDiscountRate = product.getProductDiscountRate();
             this.productRating = product.getProductRating();
             this.productReviewCount = reviewCount;
             this.optionList = options;
@@ -156,6 +159,7 @@ public class ProductResDto {
         private String productName;
         private String productImg;
         private Integer productSalePrice;
+        private Integer productDiscountRate;
         private Float productRating;
         private Long productReviewCount;
     }
