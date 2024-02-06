@@ -21,7 +21,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     //카테고리별 상품 번호, 브랜드, 이름, 대표이미지, 판매가, 평점, 리뷰개수 조회
     @Query(value = "select new com.dmarket.dto.response.ProductResDto$ProductListResDto" +
             "(p.productId, p.productBrand, p.productName, MIN(i.imgAddress) as productImg, " +
-            "p.productSalePrice, p.productRating, COUNT(DISTINCT r.reviewId) as reviewCnt) " +
+            "p.productSalePrice, p.productDiscountRate, p.productRating, COUNT(DISTINCT r.reviewId) as reviewCnt) " +
             "from Product p " +
             "join Category c on c.categoryId = p.categoryId " +
             "left join ProductReview r on r.productId = p.productId " +
@@ -36,7 +36,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // 상품 이름 or 브랜드로 목록 검색
     @Query(value = "select new com.dmarket.dto.response.ProductResDto$ProductListResDto" +
             "(p.productId, p.productBrand, p.productName, MIN(i.imgAddress) as productImg, " +
-            "p.productSalePrice, p.productRating, COUNT(DISTINCT r.reviewId) as reviewCnt) " +
+            "p.productSalePrice, p.productDiscountRate, p.productRating, COUNT(DISTINCT r.reviewId) as reviewCnt) " +
             "from Product p " +
             "join Category c on c.categoryId = p.categoryId " +
             "left join ProductReview r on r.productId = p.productId " +
@@ -60,7 +60,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // 같은 카테고리의 추천 상품(최신순 4개) 검색
     @Query("select new com.dmarket.dto.response.ProductResDto$RecommendProductResDto" +
-            "(p.categoryId, p.productId, p.productBrand, p.productName, MIN(i.imgAddress), p.productSalePrice, p.productRating, count(r.reviewId)) " +
+            "(p.categoryId, p.productId, p.productBrand, p.productName, MIN(i.imgAddress), p.productSalePrice, p.productDiscountRate, p.productRating, count(r.reviewId)) " +
             "from Product p " +
             "left join ProductImgs i on i.productId = p.productId " +
             "left join ProductReview r on p.productId = r.productId " +

@@ -10,7 +10,6 @@ import com.dmarket.dto.response.QnaResDto;
 import com.dmarket.exception.BadRequestException;
 import com.dmarket.exception.NotFoundException;
 import com.dmarket.repository.product.*;
-import com.dmarket.repository.user.WishlistRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -36,7 +35,6 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
     private final QnaRepository qnaRepository;
-    private final WishlistRepository wishlistRepository;
     private final ProductImgsRepository productImgsRepository;
     private final ProductOptionRepository productOptionRepository;
     private final ProductReviewRepository productReviewRepository;

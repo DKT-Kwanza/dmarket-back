@@ -353,14 +353,15 @@ public class AdminService {
     }
 
     @Transactional
-    public Product saveProduct(ProductReqDto.ProductListDto productitem, Long categoryId) {
+    public Product saveProduct(ProductReqDto.ProductListDto productItem, Long categoryId) {
         Product newProduct = Product.builder()
                 .categoryId(categoryId)
-                .productBrand(productitem.getBrand())
-                .productName(productitem.getProductName())
-                .productPrice(productitem.getProductPrice())
-                .productSalePrice(productitem.getProductSalePrice())
-                .productDescription(productitem.getProductDes())
+                .productBrand(productItem.getBrand())
+                .productName(productItem.getProductName())
+                .productPrice(productItem.getProductPrice())
+                .productSalePrice(productItem.getProductSalePrice())
+                .productDiscountRate(productItem.getProductDiscountRate())
+                .productDescription(productItem.getProductDes())
                 .build();
 
         return productRepository.save(newProduct);
