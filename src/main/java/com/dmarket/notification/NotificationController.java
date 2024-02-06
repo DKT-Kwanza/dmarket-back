@@ -41,7 +41,12 @@ public class NotificationController {
 
     // 알림 읽음 처리
     @PutMapping()
-    public ResponseEntity<?> readNotification(@Valid @RequestBody NotificationReqDto notificationReqDto){
+    public ResponseEntity<?> readNotification(HttpServletRequest request,
+                                              @Valid @RequestBody NotificationReqDto notificationReqDto){
+        ResponseEntity<?> authorization = checkAuthorization(notificationReqDto.getReceiver(), request);
+        if(authorization != null){
+            return authorization;
+        }
         notificationService.readNotification(notificationReqDto);
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
