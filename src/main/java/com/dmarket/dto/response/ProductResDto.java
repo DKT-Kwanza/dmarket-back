@@ -145,8 +145,8 @@ public class ProductResDto {
         private String productName;
         private String productImg;
         private Integer productPrice;
-        private Integer productDiscountRate;
         private Integer productSalePrice;
+        private Integer productDiscountRate;
     }
 
     @Data
