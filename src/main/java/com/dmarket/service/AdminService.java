@@ -108,8 +108,8 @@ public class AdminService {
         userRepository.deleteByUserId(userId);
     }
 
-    public List<UserResDto.Search> getUsersFindByDktNum(Integer userDktNum) {
-        List<User> users = userRepository.getUsersFindByUserDktNum(userDktNum);
+    public List<UserResDto.Search> getUsersFindByEmail(String email) {
+        List<User> users = userRepository.getUsersFindByEmail(email);
         return users.stream()
                 .map(UserResDto.Search::new)
                 .collect(Collectors.toList());

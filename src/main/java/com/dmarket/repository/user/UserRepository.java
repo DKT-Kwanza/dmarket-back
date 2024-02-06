@@ -20,7 +20,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
         @Query("SELECT u.userId FROM User u WHERE u.userEmail = :userEmail")
         Long findUserIdByUserEmail(@Param("userEmail") String userEmail);
 
-        List<User> getUsersFindByUserDktNum(@Param("userDktNum") Integer userDktNum);
+        @Query("SELECT u FROM User u WHERE u.userEmail LIKE %:email%")
+        List<User> getUsersFindByEmail(String email);
 
         @Query(value = "select new com.dmarket.dto.response.UserResDto$UserInfo(u.userName, u.userEmail, u.userDktNum, u.userPhoneNum, u.userAddress, u.userAddressDetail, u.userPostalCode, u.userJoinDate)"
                         +
