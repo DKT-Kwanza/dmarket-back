@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Getter
@@ -34,7 +35,7 @@ public class OrderDetail {
     private LocalDateTime orderDetailUpdatedDate;
 
     public void updateOrderDetailUpdateDate(){
-        this.orderDetailUpdatedDate = LocalDateTime.now().withNano(0);
+        this.orderDetailUpdatedDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
     }
 
 
