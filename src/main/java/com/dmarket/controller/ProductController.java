@@ -77,17 +77,27 @@ public class ProductController {
         return new ResponseEntity<>(CMResDto.successDataRes(responseData), HttpStatus.OK);
     }
 
-    // 카테고리 별 할인율 높은 순으로 상품 8개 불러오기
+    // 전체 카테고리 할인율 높은 순으로 상품 limit개 불러오기
+    @GetMapping("/high-discount-rate")
+    public ResponseEntity<CMResDto<?>> getHighDiscountRateProducts() {
+        int limit = 16;
+        List<ProductResDto.NewProductResDto> dtos = productService.findHighDiscountRateProducts(limit);
+
+        // response format mapping
+        List<Object> responseData = productService.mapToResponseFormat(dtos, limit);
+        log.info("전체 카테고리 할인율 높은 순으로 상품 " + limit + "개 조회");
+        return new ResponseEntity<>(CMResDto.successDataRes(responseData), HttpStatus.OK);
+    }
+
+    // 카테고리 별 할인율 높은 순으로 상품 limit개 불러오기
     @GetMapping("/high-discount-rate/{cateId}")
     public ResponseEntity<CMResDto<?>> getHighDiscountRateProducts(@PathVariable Long cateId) {
-
-        int limit = 8;
-//        List<ProductResDto.NewProductResDto> dtos = productService.findHighDiscountRateProducts(cateId);
+        int limit = 16;
         List<ProductResDto.NewProductResDto> dtos = productService.findHighDiscountRateProducts(cateId, limit);
 
         // response format mapping
         List<Object> responseData = productService.mapToResponseFormat(dtos, limit);
-        log.info("카테고리별 할인율 높은 순으로 상품 8개 조회 성공");
+        log.info("카테고리별 할인율 높은 순으로 상품 " + limit + "개 조회");
         return new ResponseEntity<>(CMResDto.successDataRes(responseData), HttpStatus.OK);
     }
 

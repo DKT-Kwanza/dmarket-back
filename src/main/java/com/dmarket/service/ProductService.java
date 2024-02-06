@@ -116,12 +116,21 @@ public class ProductService {
         return productRepository.findNewProducts();
     }
 
+    /**
+     * Deprecated: Use instead @ProductService.findHighDiscountRateProducts(Long categoryId, Integer limit)
+     * 2024-02-06 jupiter
+     */
     // 할인율 높은 순으로 조회
-    public List<ProductResDto.NewProductResDto> findHighDiscountRateProducts(Long categoryId) {
-        return productRepository.findHighDiscountRateProducts(categoryId);
+//    public List<ProductResDto.NewProductResDto> findHighDiscountRateProducts(Long categoryId) {
+//        return productRepository.findHighDiscountRateProducts(categoryId);
+//    }
+
+    // 할인율 높은 순 상품 limit개 조회 (전체 카테고리)
+    public List<ProductResDto.NewProductResDto> findHighDiscountRateProducts(Integer limit) {
+        return productRepository.findProductsByDiscountRate(PageRequest.of(0, limit));
     }
 
-    // 할인율 높은 순 상품 limit개 조회
+    // 할인율 높은 순 상품 limit개 조회 (카테고리 별)
     public List<ProductResDto.NewProductResDto> findHighDiscountRateProducts(Long categoryId, Integer limit) {
 
         ArrayList<ProductResDto.NewProductResDto> totalList = new ArrayList<>();
@@ -132,7 +141,6 @@ public class ProductService {
             totalList.addAll(products);
         }
 
-//        return totalList.stream().sorted(Comparator.comparing(ProductResDto.NewProductResDto::getProductDiscountRate)).limit(limit).collect(Collectors.toList());
         return totalList.stream().sorted(Comparator.comparing(ProductResDto.NewProductResDto::getProductDiscountRate).reversed()).limit(limit).collect(Collectors.toList());
     }
 
@@ -156,8 +164,6 @@ public class ProductService {
 
         // 싱품 정보 조회
         Product product = findProductById(productId);
-//        Product product = productRepository.findById(productId)
-//                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
 
         // 상품의 카테고리 depth 1, depth2 조회 후 합치기
         Category category = categoryRepository.findByCategoryId(product.getCategoryId());
