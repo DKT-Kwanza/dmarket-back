@@ -19,6 +19,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,6 +60,11 @@ public class ProductService {
         return categoryRepository.findById(cateId)
                 .orElseThrow(() -> new NotFoundException(CATEGORY_NOT_FOUND));
     }
+
+    // 자식 카테고리 ID 조회
+//    public List<Long> getChildCategories(Integer parentId) {
+//        // bizLogic
+//    }
 
 
     /**
@@ -109,8 +116,24 @@ public class ProductService {
         return productRepository.findNewProducts();
     }
 
+    // 할인율 높은 순으로 조회
     public List<ProductResDto.NewProductResDto> findHighDiscountRateProducts(Long categoryId) {
         return productRepository.findHighDiscountRateProducts(categoryId);
+    }
+
+    // 할인율 높은 순 상품 limit개 조회
+    public List<ProductResDto.NewProductResDto> findHighDiscountRateProducts(Long categoryId, Integer limit) {
+
+        ArrayList<ProductResDto.NewProductResDto> totalList = new ArrayList<>();
+        List<Long> childCategoriesId = categoryRepository.findCategoryIdByParentId(categoryId);
+
+        for (Long id : childCategoriesId) {
+            List<ProductResDto.NewProductResDto> products = productRepository.findProductsByDiscountRate(id, PageRequest.of(0, limit));
+            totalList.addAll(products);
+        }
+
+//        return totalList.stream().sorted(Comparator.comparing(ProductResDto.NewProductResDto::getProductDiscountRate)).limit(limit).collect(Collectors.toList());
+        return totalList.stream().sorted(Comparator.comparing(ProductResDto.NewProductResDto::getProductDiscountRate).reversed()).limit(limit).collect(Collectors.toList());
     }
 
     // 최신 상품 조회 - 매핑
@@ -240,6 +263,26 @@ public class ProductService {
                 .reviewImg(reviewReqDto.getReviewImg())
                 .build();
         productReviewRepository.save(productReview);
+
+        // 상품 정보에 별점 반영
+        updateProductRating(productId, reviewReqDto.getReviewRating());
+    }
+
+    @Transactional
+    public void updateProductRating(Long productId, Integer reviewRating) {
+
+        Product product = findProductById(productId);
+
+        // 기존 별점
+        Float productRating = product.getProductRating();
+
+        // 리뷰 수
+        Long totalReview = productReviewRepository.countByProductId(productId);
+
+        // 리뷰 별점을 반영한 상품 별점
+        Float newRating = (productRating * (totalReview - 1L) + reviewRating) / totalReview;
+
+        product.updateRating(newRating);
     }
 
     //리뷰 삭제
