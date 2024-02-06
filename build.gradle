@@ -52,20 +52,20 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
-jacoco {
-	toolVersion = "0.8.7"
-}
+//jacoco {
+//	toolVersion = "0.8.7"
+//}
+//
+//test {
+//	ignoreFailures = true
+//	finalizedBy jacocoTestReport // 테스트 후 JaCoCo 리포트 생성
+//}
 
-test {
-	ignoreFailures = true
-	finalizedBy jacocoTestReport // 테스트 후 JaCoCo 리포트 생성
-}
-
-jacocoTestReport {
-	reports {
-		xml.required = true
-	}
-}
+//jacocoTestReport {
+//	reports {
+//		xml.required = true
+//	}
+//}
 sonarqube {
 	properties {
 		property "sonar.host.url", "http://localhost:9000"
