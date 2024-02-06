@@ -59,6 +59,11 @@ public class ProductService {
                 .orElseThrow(() -> new NotFoundException(CATEGORY_NOT_FOUND));
     }
 
+    // 자식 카테고리 ID 조회
+//    public List<Long> getChildCategories(Integer parentId) {
+//        // bizLogic
+//    }
+
 
     /**
      * 상품: Product
@@ -240,6 +245,26 @@ public class ProductService {
                 .reviewImg(reviewReqDto.getReviewImg())
                 .build();
         productReviewRepository.save(productReview);
+
+        // 상품 정보에 별점 반영
+        updateProductRating(productId, reviewReqDto.getReviewRating());
+    }
+
+    @Transactional
+    public void updateProductRating(Long productId, Integer reviewRating) {
+
+        Product product = findProductById(productId);
+
+        // 기존 별점
+        Float productRating = product.getProductRating();
+
+        // 리뷰 수
+        Long totalReview = productReviewRepository.countByProductId(productId);
+
+        // 리뷰 별점을 반영한 상품 별점
+        Float newRating = (productRating * (totalReview - 1L) + reviewRating) / totalReview;
+
+        product.updateRating(newRating);
     }
 
     //리뷰 삭제

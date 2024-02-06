@@ -87,19 +87,22 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "ORDER BY p.productDiscountRate DESC")
     List<ProductResDto.NewProductResDto> findHighDiscountRateProducts(@Param("categoryId") Long categoryId);
 
-    @Modifying
-    @Transactional
-    @Query("UPDATE Product p SET p.categoryId = :categoryId, p.productBrand = :productBrand, " +
-            "p.productName = :productName, p.productPrice = :productPrice, " +
-            "p.productSalePrice = :productSalePrice, p.productDescription = :productDescription " +
-            "WHERE p.productId = :productId")
-    void updateProductDetails(@Param("productId") Long productId,
-                              @Param("categoryId") Long categoryId,
-                              @Param("productBrand") String productBrand,
-                              @Param("productName") String productName,
-                              @Param("productPrice") Integer productPrice,
-                              @Param("productSalePrice") Integer productSalePrice,
-                              @Param("productDescription") String productDescription);
+    /**
+     * Deprecated: Product 엔티티 내에 업데이트 로직 추가 (2024-02-06 jupiter)
+     */
+//    @Modifying
+//    @Transactional
+//    @Query("UPDATE Product p SET p.categoryId = :categoryId, p.productBrand = :productBrand, " +
+//            "p.productName = :productName, p.productPrice = :productPrice, " +
+//            "p.productSalePrice = :productSalePrice, p.productDescription = :productDescription " +
+//            "WHERE p.productId = :productId")
+//    void updateProductDetails(@Param("productId") Long productId,
+//                              @Param("categoryId") Long categoryId,
+//                              @Param("productBrand") String productBrand,
+//                              @Param("productName") String productName,
+//                              @Param("productPrice") Integer productPrice,
+//                              @Param("productSalePrice") Integer productSalePrice,
+//                              @Param("productDescription") String productDescription);
 
 
     //상품 재고 추가

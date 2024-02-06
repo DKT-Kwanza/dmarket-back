@@ -82,6 +82,7 @@ public class AdminService {
     private final WishlistRepository wishlistRepository;
 
     private final UserService userService;
+    private final ProductService productService;
     private final JWTUtil jwtUtil;
     private final ApplicationEventPublisher publisher;
 
@@ -269,8 +270,8 @@ public class AdminService {
 
     @Transactional
     public void updateProduct(ProductReqDto productReqDto) {
-        Category category = categoryRepository.findIdByCategoryName(productReqDto.getCategoryName());
 
+        Category category = categoryRepository.findIdByCategoryName(productReqDto.getCategoryName());
         Long categoryId = category.getCategoryId();
 
         // Product 엔티티를 찾거나 없으면 새로 생성 (업데이트 로직)
@@ -281,19 +282,30 @@ public class AdminService {
                         .productName(productReqDto.getProductName())
                         .productPrice(productReqDto.getProductPrice())
                         .productSalePrice(productReqDto.getProductSalePrice())
+                        .productDiscountRate(productReqDto.getProductDiscountRate())
                         .productDescription(productReqDto.getProductDes())
                         .build());
         productRepository.save(product);
 
         // Product 필드 업데이트
-        productRepository.updateProductDetails(
-                productReqDto.getProductId(),
+        product.updateProduct(
                 categoryId,
                 productReqDto.getProductBrand(),
                 productReqDto.getProductName(),
                 productReqDto.getProductPrice(),
                 productReqDto.getProductSalePrice(),
-                productReqDto.getProductDes());
+                productReqDto.getProductDiscountRate(),
+                productReqDto.getProductDes()
+        );
+
+//        productRepository.updateProductDetails(
+//                productReqDto.getProductId(),
+//                categoryId,
+//                productReqDto.getProductBrand(),
+//                productReqDto.getProductName(),
+//                productReqDto.getProductPrice(),
+//                productReqDto.getProductSalePrice(),
+//                productReqDto.getProductDes());
 
         // ProductOption 리스트 처리 전, 기존 옵션 삭제
         if (!productReqDto.getOptionList().isEmpty()) {
@@ -330,18 +342,26 @@ public class AdminService {
 
     // 상품 상세 정보 조회
     public ProductResDto.ProductInfoResDto getProductInfo(Long productId) {
+
         // 싱품 정보 조회
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new NotFoundException(PRODUCT_NOT_FOUND));
+        Product product = productService.findProductById(productId);
+//        Product product = productRepository.findById(productId)
+//                .orElseThrow(() -> new NotFoundException(PRODUCT_NOT_FOUND));
+
         // 상품의 카테고리 depth 1, depth2 조회 후 합치기
         Category category = categoryRepository.findByCategoryId(product.getCategoryId());
+
         String productCategory = category.getCategoryName();
+
         // 상품의 리뷰 개수 조회
         Long reviewCnt = productReviewRepository.countByProductId(productId);
+
         // 상품 옵션 목록, 옵션별 재고 조회
         List<ProductCommonDto.ProductOptionDto> opts = productOptionRepository.findOptionsByProductId(productId);
+
         // 상품 이미지 목록 조회
         List<String> imgs = productImgsRepository.findAllByProductId(productId);
+
         // DTO 생성 및 반환
         return new ProductResDto.ProductInfoResDto(product, productCategory, reviewCnt, opts, imgs);
     }
