@@ -43,6 +43,7 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -177,9 +178,14 @@ public class AdminService {
             User user = findUserById(mileageReq.getUserId());
             user.updateMileage(mileageReq.getMileageReqAmount());
 
+            // 마일리지 1000단위 콤마
+            DecimalFormat df = new DecimalFormat("###,###");
+            String mileageAmount = df.format(mileageReq.getMileageReqAmount());
+
+
             // 알림 전송
             publisher.publishEvent(SendNotificationEvent.of("mileage", user.getUserId(),
-                    user.getUserName() + "님의 " + mileageReq.getMileageReqAmount() + "마일리지 충전 요청이 승인되었습니다.",
+                    user.getUserName() + "님의 " + mileageAmount + "마일리지 충전 요청이 승인되었습니다.",
                     "/mydkt/mileageInfo"));
 
             // 사용자 마일리지 사용 내역에 추가

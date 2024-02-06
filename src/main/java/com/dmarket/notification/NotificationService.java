@@ -108,7 +108,19 @@ public class NotificationService {
         notification.setIsRead();
     }
 
+    // 알림 전체 읽음
+    @Transactional
+    public void readAllNotifications(Long userId) {
+        notificationRepository.readAllNotification(userId);
+    }
+
     public Long getUnreadCount(Long userId) {
         return notificationRepository.countByReceiverAndIsRead(userId, false);
+    }
+
+    // 알림 전체 삭제
+    @Transactional
+    public void deleteAllNotifications(Long userId) {
+        notificationRepository.deleteAllByReceiver(userId);
     }
 }
