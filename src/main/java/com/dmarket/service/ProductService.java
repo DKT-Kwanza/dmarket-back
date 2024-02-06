@@ -19,6 +19,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -114,8 +116,24 @@ public class ProductService {
         return productRepository.findNewProducts();
     }
 
+    // 할인율 높은 순으로 조회
     public List<ProductResDto.NewProductResDto> findHighDiscountRateProducts(Long categoryId) {
         return productRepository.findHighDiscountRateProducts(categoryId);
+    }
+
+    // 할인율 높은 순 상품 limit개 조회
+    public List<ProductResDto.NewProductResDto> findHighDiscountRateProducts(Long categoryId, Integer limit) {
+
+        ArrayList<ProductResDto.NewProductResDto> totalList = new ArrayList<>();
+        List<Long> childCategoriesId = categoryRepository.findCategoryIdByParentId(categoryId);
+
+        for (Long id : childCategoriesId) {
+            List<ProductResDto.NewProductResDto> products = productRepository.findProductsByDiscountRate(id, PageRequest.of(0, limit));
+            totalList.addAll(products);
+        }
+
+//        return totalList.stream().sorted(Comparator.comparing(ProductResDto.NewProductResDto::getProductDiscountRate)).limit(limit).collect(Collectors.toList());
+        return totalList.stream().sorted(Comparator.comparing(ProductResDto.NewProductResDto::getProductDiscountRate).reversed()).limit(limit).collect(Collectors.toList());
     }
 
     // 최신 상품 조회 - 매핑

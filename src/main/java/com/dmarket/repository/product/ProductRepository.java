@@ -84,8 +84,18 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "LEFT JOIN ProductImgs pi ON p.productId = pi.productId " +
             "WHERE p.categoryId = :categoryId " +
             "GROUP BY p.productId " +
-            "ORDER BY p.productDiscountRate DESC")
+            "ORDER BY p.productDiscountRate DESC ")
     List<ProductResDto.NewProductResDto> findHighDiscountRateProducts(@Param("categoryId") Long categoryId);
+
+    // 카테고리별 할인율 높은 순으로 상품 조회 2
+    @Query("SELECT NEW com.dmarket.dto.response.ProductResDto$NewProductResDto(" +
+            "p.productId, p.productBrand, p.productName, MIN(pi.imgAddress), p.productPrice, p.productDiscountRate, p.productSalePrice) " +
+            "FROM Product p " +
+            "LEFT JOIN ProductImgs pi ON p.productId = pi.productId " +
+            "WHERE p.categoryId = :categoryId " +
+            "GROUP BY p.productId " +
+            "ORDER BY p.productDiscountRate DESC ")
+    List<ProductResDto.NewProductResDto> findProductsByDiscountRate(@Param("categoryId") Long categoryId, Pageable pageable);
 
     /**
      * Deprecated: Product 엔티티 내에 업데이트 로직 추가 (2024-02-06 jupiter)
