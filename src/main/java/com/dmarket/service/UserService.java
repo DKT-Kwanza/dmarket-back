@@ -408,7 +408,7 @@ public class UserService {
                     List<ProductCommonDto.ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByOrderId(o.getOrderId());
                     return new OrderCommonDto.OrderListDto(o, productDetailListDtos);
                 });
-        Page<Order> orders = orderRepository.findByUserId(pageable, userId);
+//        Page<Order> orders = orderRepository.findByUserId(pageable, userId);
 
         Long confPayCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_COMPLETE);
         Long preShipCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_READY);
@@ -421,36 +421,43 @@ public class UserService {
 
         OrderResDto.OrderListResDto orderListResDto = new OrderResDto.OrderListResDto();
 
-        if (confPayCount == null) {
-            orderListResDto.setConfPayCount(0L);
-        } else {
-            orderListResDto.setConfPayCount(confPayCount);
-        }
-        if (preShipCount == null) {
-            orderListResDto.setPreShipCount(0L);
-        } else {
-            orderListResDto.setPreShipCount(preShipCount);
-        }
-        if (inTransitCount == null) {
-            orderListResDto.setInTransitCount(0L);
-        } else {
-            orderListResDto.setInTransitCount(inTransitCount);
-        }
-        if (cmpltDilCount == null) {
-            orderListResDto.setCmpltDilCount(0L);
-        } else {
-            orderListResDto.setCmpltDilCount(cmpltDilCount);
-        }
-        if (orderCancelCount == null) {
-            orderListResDto.setOrderCancelCount(0L);
-        } else {
-            orderListResDto.setOrderCancelCount(orderCancelCount);
-        }
-        if (returnCount == null) {
-            orderListResDto.setReturnCount(0L);
-        } else {
-            orderListResDto.setReturnCount(returnCount);
-        }
+//        if (confPayCount == null) {
+//            orderListResDto.setConfPayCount(0L);
+//        } else {
+//            orderListResDto.setConfPayCount(confPayCount);
+//        }
+//        if (preShipCount == null) {
+//            orderListResDto.setPreShipCount(0L);
+//        } else {
+//            orderListResDto.setPreShipCount(preShipCount);
+//        }
+//        if (inTransitCount == null) {
+//            orderListResDto.setInTransitCount(0L);
+//        } else {
+//            orderListResDto.setInTransitCount(inTransitCount);
+//        }
+//        if (cmpltDilCount == null) {
+//            orderListResDto.setCmpltDilCount(0L);
+//        } else {
+//            orderListResDto.setCmpltDilCount(cmpltDilCount);
+//        }
+//        if (orderCancelCount == null) {
+//            orderListResDto.setOrderCancelCount(0L);
+//        } else {
+//            orderListResDto.setOrderCancelCount(orderCancelCount);
+//        }
+//        if (returnCount == null) {
+//            orderListResDto.setReturnCount(0L);
+//        } else {
+//            orderListResDto.setReturnCount(returnCount);
+//        }
+
+        orderListResDto.setConfPayCount(confPayCount);
+        orderListResDto.setPreShipCount(preShipCount);
+        orderListResDto.setInTransitCount(inTransitCount);
+        orderListResDto.setCmpltDilCount(cmpltDilCount);
+        orderListResDto.setOrderCancelCount(orderCancelCount);
+        orderListResDto.setReturnCount(returnCount);
         orderListResDto.setOrderList(orderList);
 
         return orderListResDto;
