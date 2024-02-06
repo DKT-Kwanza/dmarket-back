@@ -259,7 +259,7 @@ public class AdminController {
     @GetMapping("/products/categories/{cateId}")
     public ResponseEntity<?> getProductsListAdmin(@PathVariable(name = "cateId") Long cateId,
                                                   @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
-        ProductResDto.ProductListAdminResDto resDto = adminService.getProductListByCateogryId(cateId, pageNo);
+        ProductResDto.ProductListAdminResDto resDto = adminService.getProductListByCategoryId(cateId, pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(resDto), HttpStatus.OK);
     }
 

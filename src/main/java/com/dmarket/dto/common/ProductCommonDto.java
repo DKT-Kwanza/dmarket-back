@@ -95,6 +95,7 @@ public class ProductCommonDto {
         private String productBrand;
         private String productName;
         private Integer productSalePrice;
+        private Integer productDiscountRate;
         private String productCategory;
         private Long optionId;
         private String optionName;
@@ -108,6 +109,7 @@ public class ProductCommonDto {
             this.productBrand = product.getProductBrand();
             this.productName = product.getProductName();
             this.productSalePrice = product.getProductSalePrice();
+            this.productDiscountRate = product.getProductDiscountRate();
             this.productCategory = category.getCategoryName();
             this.optionId = productOption!=null ? productOption.getOptionId() : null;
             this.optionName = productOption!=null ? productOption.getOptionName() : null;

@@ -749,7 +749,7 @@ public class AdminService {
     }
 
      //상품 목록 조회
-    public ProductResDto.ProductListAdminResDto getProductListByCateogryId(Long cateId, int pageNo) {
+    public ProductResDto.ProductListAdminResDto getProductListByCategoryId(Long cateId, int pageNo) {
         pageNo = pageValidation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "productCreatedDate"));
         Page<Object[]> products = productRepository.findProductsByCateId(pageable, cateId);
