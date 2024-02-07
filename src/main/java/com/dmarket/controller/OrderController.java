@@ -24,7 +24,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping("/products")
-    public ResponseEntity<?> productToOrder(@RequestBody ProductReqDto.ProductToOrderReqDto dto) {
+    public ResponseEntity<CMResDto<?>> productToOrder(@RequestBody ProductReqDto.ProductToOrderReqDto dto) {
         try {
             ProductResDto.ProductToOrderRespDto respDto = orderService.getProductToOrder(dto);
             return new ResponseEntity<>(CMResDto.builder()
@@ -39,7 +39,7 @@ public class OrderController {
     }
 
     @PostMapping("/payment")
-    public ResponseEntity<CMResDto<?>> payment(@RequestBody OrderReqDto.OrderPaymentReqDto dto) {
+    public ResponseEntity<CMResDto<OrderResDto<String>>> payment(@RequestBody OrderReqDto.OrderPaymentReqDto dto) {
         OrderResDto<String> resDto = orderService.payment(dto);
         return new ResponseEntity<>(CMResDto.successDataRes(resDto), HttpStatus.OK);
     }

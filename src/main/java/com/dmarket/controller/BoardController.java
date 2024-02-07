@@ -26,23 +26,23 @@ public class BoardController {
     private final BoardService boardService;
 
     @GetMapping("/notice")
-    public ResponseEntity<?> getNotices(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
+    public ResponseEntity<CMResDto<Page<NoticeResDto>>> getNotices(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
 
         Page<Notice> noticesPage = boardService.getAllNotices(pageNo);
         Page<NoticeResDto> mappedNotices = boardService.mapToNoticeResDto(noticesPage);
-        CMResDto<?> response = CMResDto.successDataRes(mappedNotices);
+        CMResDto<Page<NoticeResDto>> response = CMResDto.successDataRes(mappedNotices);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // faq 조회 ( 페이지네이션 제거 )
     @GetMapping("/faq")
-    public ResponseEntity<?> getFaqs() {
+    public ResponseEntity<CMResDto<List<FaqResDto.FaqListResDto>>> getFaqs() {
 
         List<Faq> faqs = boardService.getAllFaqs();
         List<FaqResDto.FaqListResDto> mappedFaqs = boardService.mapToFaqListResDto(faqs);
 
-        CMResDto<?> response = CMResDto.successDataRes(mappedFaqs);
+        CMResDto<List<FaqResDto.FaqListResDto>> response = CMResDto.successDataRes(mappedFaqs);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

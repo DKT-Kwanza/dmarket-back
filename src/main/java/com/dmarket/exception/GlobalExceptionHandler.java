@@ -36,7 +36,7 @@ public class GlobalExceptionHandler {
 
     // 토큰이 없는 경우 401
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<?> handleAuthenticationException(AuthenticationException e) {
+    public ResponseEntity<CMResDto<String>> handleAuthenticationException(AuthenticationException e) {
         log.error("[AuthenticationException] message: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.UNAUTHORIZED);
@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
 
     // 권한 없는 경로 접근한 경우 403
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<?> handleAuthorizationServiceException(AccessDeniedException e) {
+    public ResponseEntity<CMResDto<String>> handleAuthorizationServiceException(AccessDeniedException e) {
         log.error("[AccessDeniedException] message: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.FORBIDDEN;
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.FORBIDDEN);
@@ -52,7 +52,7 @@ public class GlobalExceptionHandler {
 
     // 잘못된 경로 에러 404
     @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<?> handleNoHandlerFoundException(NoHandlerFoundException e, HttpServletRequest request) {
+    public ResponseEntity<CMResDto<String>> handleNoHandlerFoundException(NoHandlerFoundException e, HttpServletRequest request) {
         log.error("[NoHandlerFoundException] message: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.NOT_FOUND;
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.NOT_FOUND);
@@ -60,7 +60,7 @@ public class GlobalExceptionHandler {
 
     //Path Value가 없거나 잘못 입력되었을 때 404
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<?> handleNoHandlerFoundException(NoResourceFoundException e, HttpServletRequest request) {
+    public ResponseEntity<CMResDto<String>> handleNoHandlerFoundException(NoResourceFoundException e, HttpServletRequest request) {
         log.error("[NoResourceFoundException] message: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.NOT_VALID_PATH_VALUE;
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.NOT_FOUND);
@@ -68,7 +68,7 @@ public class GlobalExceptionHandler {
 
     // Http Method 에러
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<?> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
+    public ResponseEntity<CMResDto<String>> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
         log.error("[HttpRequestMethodNotSupportedException] message: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.METHOD_NOT_ALLOWED;
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.METHOD_NOT_ALLOWED);
@@ -76,7 +76,7 @@ public class GlobalExceptionHandler {
 
     // reqeust param 없을 때
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<?> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+    public ResponseEntity<CMResDto<String>> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
         log.error("[MissingServletRequestParameterException] message: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.MISSING_REQUEST_PARAM;
         return new ResponseEntity<>(CMResDto.errorWithMsgRes(errorCode, e.getMessage()), HttpStatus.BAD_REQUEST);
@@ -84,7 +84,7 @@ public class GlobalExceptionHandler {
 
     // reqeust param 타입이 안 맞을 때 400
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<?> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
+    public ResponseEntity<CMResDto<String>> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
         log.error("[MethodArgumentTypeMismatchException] message: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.INVALID_TYPE_REQUEST_VALUE;
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.BAD_REQUEST);
@@ -92,7 +92,7 @@ public class GlobalExceptionHandler {
 
     // request body의 유효성 에러 400
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+    public ResponseEntity<CMResDto<String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         log.error("[MethodArgumentNotValidException] message: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.INVALID_REQUEST_BODY;
         // 유효성 결과 message에 할당
@@ -102,7 +102,7 @@ public class GlobalExceptionHandler {
 
     // IllegalArgumentException
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<?> handleIllegalArgumentException(IllegalArgumentException e) {
+    public ResponseEntity<CMResDto<String>> handleIllegalArgumentException(IllegalArgumentException e) {
         log.error("[IllegalArgumentException] message: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.BAD_REQUEST;
         String message = e.getMessage();
@@ -111,7 +111,7 @@ public class GlobalExceptionHandler {
 
     // IllegalStateException
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<?> handleIllegalStateException(IllegalStateException e) {
+    public ResponseEntity<CMResDto<String>> handleIllegalStateException(IllegalStateException e) {
         log.error("[IllegalStateException] message: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.BAD_REQUEST;
         String message = e.getMessage();
@@ -120,7 +120,7 @@ public class GlobalExceptionHandler {
 
     // 각종 400 에러
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<?> handleBadRequestException(BadRequestException e) {
+    public ResponseEntity<CMResDto<String>> handleBadRequestException(BadRequestException e) {
         log.error("[BadRequestException] message: {}", e.getMessage());
         ErrorCode errorCode = e.getErrorCode();
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.BAD_REQUEST);
@@ -128,7 +128,7 @@ public class GlobalExceptionHandler {
 
     // 각종 404 에러
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<?> handleNotFoundException(NotFoundException e) {
+    public ResponseEntity<CMResDto<String>> handleNotFoundException(NotFoundException e) {
         log.error("[NotFoundException] message: {}", e.getMessage());
         ErrorCode errorCode = e.getErrorCode();
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.NOT_FOUND);
@@ -136,7 +136,7 @@ public class GlobalExceptionHandler {
 
     // 각종 409 에러
     @ExceptionHandler(ConflictException.class)
-    public ResponseEntity<?> handleConflictException(ConflictException e) {
+    public ResponseEntity<CMResDto<String>> handleConflictException(ConflictException e) {
         log.error("[ConflictException] message: {}", e.getMessage());
         ErrorCode errorCode = e.getErrorCode();
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.CONFLICT);
@@ -144,7 +144,7 @@ public class GlobalExceptionHandler {
 
     // 위의 경우를 제외한 모든 에러 500
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleException(Exception e) {
+    public ResponseEntity<CMResDto<String>> handleException(Exception e) {
         log.error("[Exception] message: {}", e.getMessage());
         ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.INTERNAL_SERVER_ERROR);
