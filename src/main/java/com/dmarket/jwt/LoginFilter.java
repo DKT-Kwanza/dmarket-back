@@ -81,7 +81,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         refreshTokenRepository.save(new RefreshToken(refreshtoken, accesstoken, email));
 
-        UserCommonDto.TokenResponseDto tokenResponseDto = new UserCommonDto.TokenResponseDto(accesstoken, refreshtoken, userId);
+        UserCommonDto.TokenResponseDto tokenResponseDto = new UserCommonDto.TokenResponseDto(accesstoken, refreshtoken, userId, role);
 
         CMResDto<UserCommonDto.TokenResponseDto> cmRespDto = CMResDto.<UserCommonDto.TokenResponseDto>builder()
                 .code(200)

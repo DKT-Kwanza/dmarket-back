@@ -8,11 +8,11 @@ import org.hibernate.validator.constraints.URL;
 import java.util.List;
 
 @Data
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductReqDto {
 
-    @NotNull
     private Long productId;
 
     @NotEmpty
@@ -30,6 +30,9 @@ public class ProductReqDto {
     @NotNull
     private Integer productSalePrice;
 
+    @NotNull
+    private Integer productDiscountRate;
+
     @NotEmpty
     private String productDes;
 
@@ -46,9 +49,10 @@ public class ProductReqDto {
         private String brand;
         private String productName;
         private String categoryName;
-        private String productPrice;
         private String productDes;
-        private String productSalePrice;
+        private Integer productPrice;
+        private Integer productSalePrice;
+        private Integer productDiscountRate;
         private List<String> imgList;
         private List<Option> optionList;
 

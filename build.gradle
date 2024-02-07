@@ -2,6 +2,8 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.2.2'
 	id 'io.spring.dependency-management' version '1.1.4'
+	id 'jacoco'
+	id 'org.sonarqube' version '4.4.1.3373'
 }
 
 group = 'com'
@@ -42,6 +44,7 @@ dependencies {
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 	annotationProcessor 'org.projectlombok:lombok'
 
+	testImplementation 'org.mockito:mockito-core:3.12.4'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	//testImplementation 'org.springframework.kafka:spring-kafka-test'
@@ -49,4 +52,26 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+jacoco {
+	toolVersion = "0.8.7"
+}
+
+test {
+	ignoreFailures = true
+	finalizedBy jacocoTestReport // 테스트 후 JaCoCo 리포트 생성
+}
+
+jacocoTestReport {
+	reports {
+		xml.required = true
+	}
+}
+sonarqube {
+	properties {
+		property "sonar.host.url", "http://localhost:9000"
+		property "sonar.login", "squ_41e1412a77ea741d440f4dd0533054033c8a8ede"
+		property "sonar.language", "java"
+		property "sonar.encoding", "UTF-8"
+	}
 }

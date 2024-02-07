@@ -4,7 +4,6 @@ import com.dmarket.domain.product.Product;
 import com.dmarket.domain.product.Qna;
 import com.dmarket.domain.product.QnaReply;
 import com.dmarket.domain.user.User;
-import com.dmarket.dto.common.QnaDto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,12 +11,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public class QnaResDto {
 
     // qna 작성
     @Getter
+    @NoArgsConstructor
     public static class QnaWriteResponseDto {
         private Boolean qnaIsSecret;
         private String qnaWriter;
@@ -97,13 +96,6 @@ public class QnaResDto {
             this.qnaReplyDate = qnaReplyDate;
             this.qnaReplyContents = qnaReplyContents;
         }
-    }
-
-    @Getter
-    @AllArgsConstructor
-    public static class QnaListResDto {
-        private Integer totalPage;
-        private List<QnaDto> qnaList;
     }
 
     @Getter

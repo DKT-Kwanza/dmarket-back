@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Getter
@@ -28,6 +29,6 @@ public class QnaReply {
     public QnaReply(Long qnaId, String qnaReplyContents) {
         this.qnaId = qnaId;
         this.qnaReplyContents = qnaReplyContents;
-        this.qnaReplyDate = LocalDateTime.now().withNano(0);
+        this.qnaReplyDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
     }
 }

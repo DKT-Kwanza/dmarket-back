@@ -1,8 +1,6 @@
 package com.dmarket.dto.common;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 public class UserCommonDto {
 
@@ -13,5 +11,6 @@ public class UserCommonDto {
         private String accesstoken;
         private String refreshtoken;
         private Long userId;
+        private String role;
     }
 }

@@ -15,6 +15,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,31 +25,28 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Objects;
 
-
+@Slf4j
+@RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
 
-    @Value("${application.security.jwt.expireT}")
-    private Long jwtExpiration;
-
-    @Value("${application.security.jwt.ReFreshexpireT}")
-    private Long RefreshjwtExpiration;
-
     private final JWTUtil jwtUtil;
-
     private final UserRepository userRepository;
-
     private final RefreshTokenRepository refreshTokenRepository;
 
+    @Value("${spring.jwt.expireT}")
+    private Long jwtExpiration;
 
-    public JWTFilter(JWTUtil jwtUtil, UserRepository userRepository, RefreshTokenRepository refreshTokenRepository) {
-        this.userRepository = userRepository;
-        this.jwtUtil = jwtUtil;
-        this.refreshTokenRepository = refreshTokenRepository;
-    }
+    @Value("${spring.jwt.ReFreshexpireT}")
+    private Long RefreshJwtExpiration;
+
+//    public JWTFilter(JWTUtil jwtUtil, UserRepository userRepository, RefreshTokenRepository refreshTokenRepository) {
+//        this.userRepository = userRepository;
+//        this.jwtUtil = jwtUtil;
+//        this.refreshTokenRepository = refreshTokenRepository;
+//    }
 
 
     @Override
@@ -61,8 +60,8 @@ public class JWTFilter extends OncePerRequestFilter {
 
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             CMResDto<Void> cmRespDto = CMResDto.<Void>builder()
-                    .code(HttpServletResponse.SC_UNAUTHORIZED) // 401 Unauthorized
-                    .msg("토큰이 잘 못되었습니다.")
+                    .code(HttpServletResponse.SC_UNAUTHORIZED)  // 401 Unauthorized
+                    .msg("잘못된 토큰입니다.")
                     .build();
 
             writeResponse(response, cmRespDto);
@@ -77,12 +76,11 @@ public class JWTFilter extends OncePerRequestFilter {
         try {
             jwtUtil.isExpired(token);
         } catch (ExpiredJwtException e) {
-
-            System.out.println("token expired");
+            log.info("token expired");
 
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             CMResDto<Void> cmRespDto = CMResDto.<Void>builder()
-                    .code(HttpServletResponse.SC_UNAUTHORIZED) // 401 Unauthorized
+                    .code(HttpServletResponse.SC_UNAUTHORIZED)  // 401 Unauthorized
                     .msg("토큰이 만료되었습니다.")
                     .build();
 
@@ -99,14 +97,15 @@ public class JWTFilter extends OncePerRequestFilter {
 
 
         // 타입이 refresh 인 경우 검증해서 재발급
-        if(Objects.equals(type, "RTK")){
-            if(refreshTokenRepository.existsById(token)){
+        if (Objects.equals(type, "RTK")) {
+            // refresh 토큰이 있으면
+            if (refreshTokenRepository.existsById(token)) {
                 refreshTokenRepository.deleteById(token);
-                String newAccessToken = jwtUtil.createAccessJwt(tokenUserId,email,role);
-                String newRefreshtoken = jwtUtil.createRefreshJwt();
-                refreshTokenRepository.save(new RefreshToken(newRefreshtoken, newAccessToken, email));
+                String newAccessToken = jwtUtil.createAccessJwt(tokenUserId, email, role);
+                String newRefreshToken = jwtUtil.createRefreshJwt();
+                refreshTokenRepository.save(new RefreshToken(newRefreshToken, newAccessToken, email));
 
-                UserCommonDto.TokenResponseDto tokenResponseDto = new UserCommonDto.TokenResponseDto(newAccessToken,newRefreshtoken,tokenUserId);
+                UserCommonDto.TokenResponseDto tokenResponseDto = new UserCommonDto.TokenResponseDto(newAccessToken, newRefreshToken, tokenUserId, role);
 
                 CMResDto<UserCommonDto.TokenResponseDto> cmRespDto = CMResDto.<UserCommonDto.TokenResponseDto>builder()
                         .code(200)
@@ -115,16 +114,13 @@ public class JWTFilter extends OncePerRequestFilter {
                         .build();
 
                 writeResponse(response, cmRespDto);
-
                 return;
-
-            }
-            // refresh 토큰이 없다면 다시 로그인 유도
-            else {
+            } else {
+                // refresh 토큰이 없다면 다시 로그인 유도
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 CMResDto<Void> cmRespDto = CMResDto.<Void>builder()
                         .code(HttpServletResponse.SC_UNAUTHORIZED) // 401 Unauthorized
-                        .msg("Refresh토큰이 없습니다. 다시 로그인 해주세요")
+                        .msg("Refresh토큰이 없습니다. 다시 로그인 해주세요.")
                         .build();
 
                 writeResponse(response, cmRespDto);
@@ -132,7 +128,7 @@ public class JWTFilter extends OncePerRequestFilter {
             }
         }
 
-        User userEntity = new User(email, 777, "temppassword", "username", LocalDate.now(), "77-89", 11, " ", "");
+        User userEntity = userRepository.findByUserId(tokenUserId);
         UserResDto.CustomUserDetails customUserDetails = new UserResDto.CustomUserDetails(userEntity);
         Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authToken);
@@ -162,13 +158,13 @@ public class JWTFilter extends OncePerRequestFilter {
 
         } catch (IOException e) {
             // 에러 핸들링
-            e.printStackTrace();
+            log.warn(e.getMessage(), e.getCause());
         }
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        String[] excludePath = {"/api/users/login", "/api/users/join"};
+        String[] excludePath = {"/", "/api/users/login", "/api/users/join", "api/users/email/**"};
         String path = request.getRequestURI();
         return Arrays.stream(excludePath).anyMatch(path::startsWith);
     }

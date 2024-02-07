@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Getter
@@ -28,6 +29,6 @@ public class InquiryReply {
     public InquiryReply(Long inquiryId, String inquiryReplyContents) {
         this.inquiryId = inquiryId;
         this.inquiryReplyContents = inquiryReplyContents;
-        this.inquiryReplyDate = LocalDateTime.now().withNano(0);
+        this.inquiryReplyDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
     }
 }

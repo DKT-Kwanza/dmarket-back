@@ -8,6 +8,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Getter
@@ -88,14 +89,30 @@ public class User {
         this.userDktNum = userDktNum;
         this.userName = userName;
         this.userPhoneNum = userPhoneNum;
-        this.userMileage = 0;  //초기 마일리지는 0원으로 설정
+        this.userMileage = initMileage(userJoinDate);  //초기 마일리지는 입사일 기준 분기별 지급
         this.userRole = Role.ROLE_USER;  //초기 Role은 USER로 설정
 
         this.userJoinDate = userJoinDate;
-        this.userRegisterDate = LocalDateTime.now().withNano(0);
+        this.userRegisterDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
 
         this.userPostalCode = userPostalCode;
         this.userAddress = userAddress;
         this.userAddressDetail = userAddressDetail;
+    }
+
+    private Integer initMileage(LocalDate userJoinDate) {
+        int monthValue = userJoinDate.getMonthValue();
+
+        //1분기 (1, 2, 3)
+        if (monthValue < 4) return 1200000;
+
+        //2분기 (4, 5, 6)
+        if (monthValue < 7) return 900000;
+
+        //3분기 (7, 8, 9)
+        if (monthValue < 10) return 600000;
+
+        //4분기 (10, 11, 12)
+        return 300000;
     }
 }

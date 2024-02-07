@@ -14,6 +14,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> {
@@ -21,10 +22,11 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
     @Query("SELECT new com.dmarket.dto.response.OrderDetailResDto(od, p, pi, po) " +
             "FROM OrderDetail od " +
             "JOIN Product p ON p.productId = od.productId " +
-            "JOIN ProductImgs pi ON pi.productId = p.productId " +
-            "JOIN ProductOption po ON po.optionId = od.optionId " +
+            "LEFT JOIN ProductImgs pi ON pi.productId = p.productId " +
+            "LEFT JOIN ProductOption po ON po.optionId = od.optionId " +
             "LEFT JOIN ProductReview pr ON pr.orderDetailId = od.orderDetailId " +
-            "WHERE od.orderId = :orderId AND pr.reviewId IS NULL AND pi.imgId = (" +
+            "WHERE od.orderId = :orderId AND pr.reviewId IS NULL " +
+            "AND od.orderDetailState = com.dmarket.constant.OrderDetailState.DELIVERY_COMPLETE AND pi.imgId = (" +
             "SELECT MIN(pi2.imgId) FROM ProductImgs pi2 WHERE pi2.productId = od.productId" +
             ")")
     List<OrderDetailResDto> findOrderDetailsWithoutReviewByOrder(@Param("orderId") Long orderId);
@@ -32,10 +34,11 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
     @Query("SELECT new com.dmarket.dto.response.ReviewResDto(od, p, pi, po, pr) " +
             "FROM OrderDetail od " +
             "JOIN Product p ON p.productId = od.productId " +
-            "JOIN ProductImgs pi ON pi.productId = p.productId " +
-            "JOIN ProductOption po ON po.optionId = od.optionId " +
+            "LEFT JOIN ProductImgs pi ON pi.productId = p.productId " +
+            "LEFT JOIN ProductOption po ON po.optionId = od.optionId " +
             "JOIN ProductReview pr ON pr.orderDetailId = od.orderDetailId " +
-            "WHERE od.orderId = :orderId AND pi.imgId = (" +
+            "WHERE od.orderId = :orderId " +
+            "AND od.orderDetailState = com.dmarket.constant.OrderDetailState.DELIVERY_COMPLETE AND pi.imgId = (" +
             "SELECT MIN(pi2.imgId) FROM ProductImgs pi2 WHERE pi2.productId = od.productId" +
             ")")
     List<ReviewResDto> findOrderDetailsWithReviewByOrder(@Param("orderId") Long orderId);
@@ -84,7 +87,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
             "GROUP BY od.orderDetailState")
     Long countOrderDetailByUserIdAndOrderDetailState(@Param("userId") Long userId, @Param("orderDetailState") OrderDetailState orderDetailState);
 
-    @Query("SELECT " +
+    @Query("SELECT new com.dmarket.dto.response.OrderResDto$OrderCancelResDto(" +
             "   prod.productId, " +
             "   ord.orderId, " +
             "   prod.productName, " +
@@ -94,7 +97,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
             "   popt.optionName, " +
             "   ord.orderDate, " +
             "   od.orderDetailCount, " +
-            "   od.orderDetailState " + // Enum 값 그대로 조회
+            "   od.orderDetailState ) " + // Enum 값 그대로 조회
             "FROM OrderDetail od " +
             "JOIN Order ord ON od.orderId = ord.orderId " +
             "JOIN Product prod ON od.productId = prod.productId " +
@@ -102,7 +105,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
             "JOIN ProductImgs img ON prod.productId = img.productId " +
             "WHERE od.orderDetailState = :orderCancelState " +
             "GROUP BY prod.productId, ord.orderId, prod.productName, prod.productBrand, popt.optionValue, popt.optionName, ord.orderDate, od.orderDetailCount, od.orderDetailState")
-    List<Object[]> findOrderCancelResDtosByOrderDetailState(@Param("orderCancelState") OrderDetailState orderCancelState);
+    Page<OrderResDto.OrderCancelResDto> findOrderCancelResDtosByOrderDetailState(Pageable pageable,@Param("orderCancelState") OrderDetailState orderCancelState);
 
 
     // 시간업데이트 및 상태변경
@@ -149,4 +152,9 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
 
 
     OrderDetail findByOrderDetailId(Long orderDetailId);
+
+    //반품 상태 변경 userId검색을 위한 OrderDetailId검색
+    @Query("SELECT od.orderId FROM OrderDetail od WHERE od.orderDetailId = :orderDetailId")
+    Optional<Long> findOrderIdByOrderDetailId(@Param("orderDetailId") Long orderDetailId);
+
 }

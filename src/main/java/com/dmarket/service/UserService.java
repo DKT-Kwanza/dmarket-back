@@ -37,7 +37,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.dmarket.exception.ErrorCode.*;
 
@@ -71,8 +70,6 @@ public class UserService {
 
     /**
      * 회원가입
-     *
-     * @Return userId
      */
     @Transactional
     public Long join(UserReqDto.Join dto) {
@@ -115,8 +112,8 @@ public class UserService {
         }
     }
 
+    //이메일 유효성 검사
     public void isValidEmail(String email) {
-
         //이메일이 gachon.ac.kr로 끝나야 함
         if (!email.endsWith("gachon.ac.kr")) {
             throw new IllegalArgumentException("이메일이 gachon.ac.kr로 끝나지 않습니다.");
@@ -127,6 +124,7 @@ public class UserService {
         }
     }
 
+    //이메일 인증 코드 발송
     public void sendCodeToEmail(String toEmail) {
         isValidEmail(toEmail);
         String title = "Dmarket 회원가입 인증번호";
@@ -137,7 +135,7 @@ public class UserService {
         redisService.setValues(AUTH_CODE_PREFIX + toEmail, authCode, Duration.ofMillis(this.authCodeExpirationMillis));
     }
 
-    // Redis 구현 후 완성
+    //이메일 인증 코드 유효성 검사
     public void isValidEmailCode(String email, String authCode) {
         isValidEmail(email);
         String redisAuthCode = redisService.getValues(AUTH_CODE_PREFIX + email);
@@ -150,6 +148,7 @@ public class UserService {
         }
     }
 
+    //이메일 인증 코드 생성
     private String createCode() {
         int length = 6;
         try {
@@ -165,13 +164,41 @@ public class UserService {
         }
     }
 
-    public List<CartCommonDto.CartListDto> getCartsfindByUserId(Long userId) {
+    /**
+     * 장바구니 (cart)
+     */
+    // 장바구니 상품 개수 조회
+    public CartResDto.CartCountResDto getCartCount(Long userId) {
+        return cartRepository.findCountByUserId(userId);
+    }
+
+    public List<CartCommonDto.CartListDto> getCartsFindByUserId(Long userId) {
         List<CartCommonDto.CartListDto> originalList = cartRepository.getCartsfindByUserId(userId);
         return originalList;
     }
 
+    // 장바구니 추가
     @Transactional
-    public void deleteCartByCartId(Long userId, Long cartId) {
+    public void addCart(Long userId, Long productId, Long optionId, Integer productCount) {
+        // 장바구니에 존재하는 상품과 옵션인지 확인
+        Optional<Cart> existingCart = cartRepository.findByUserIdAndOptionId(userId, optionId);
+        if (existingCart.isPresent()) {
+            // 수량만 추가
+            existingCart.get().updateCartCount(productCount);
+        } else {
+            // 장바구니에 저장
+            Cart cart = Cart.builder()
+                    .userId(userId)
+                    .productId(productId)
+                    .optionId(optionId)
+                    .cartCount(productCount)
+                    .build();
+            cartRepository.save(cart);
+        }
+    }
+
+    @Transactional
+    public void deleteCartByCartId(Long cartId) {
         cartRepository.deleteByCartId(cartId);
 
     }
@@ -183,39 +210,41 @@ public class UserService {
         return qnaRepository.getQnasfindByUserId(userId, pageable);
     }
 
-    public Page<OrderResDto> getOrderDetailsWithoutReviewByUserId(Long userId, int pageNo) {
-        List<OrderResDto> orderResDtos = new ArrayList<>();
+    public Page<OrderResDto<OrderDetailResDto>> getOrderDetailsWithoutReviewByUserId(Long userId, int pageNo) {
+        List<OrderResDto<OrderDetailResDto>> orderResDtos = new ArrayList<>();
         pageNo = pageVaildation(pageNo);
-        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "reviewId"));
-        Page<Order> ordersPage = orderRepository.findByUserIdOrderedByOrderIdDesc(userId, pageable);
+        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_SIZE);
+        List<Order> ordersPage = orderRepository.findByUserId(userId);
 
         for (Order order : ordersPage) {
             List<OrderDetailResDto> orderDetailResDtos = orderDetailRepository
                     .findOrderDetailsWithoutReviewByOrder(order.getOrderId());
             if (!orderDetailResDtos.isEmpty()) {
-                orderResDtos.add(new OrderResDto(order, orderDetailResDtos));
+                orderResDtos.add(new OrderResDto<>(order, orderDetailResDtos));
             }
         }
         // PageImpl을 사용하여 List를 Page로 변환합니다.
-        return new PageImpl<>(orderResDtos, pageable, ordersPage.getTotalElements());
+        int start = (int)pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()),orderResDtos.size());
+        return new PageImpl<>(orderResDtos.subList(start,end), pageable, orderResDtos.size());
     }
 
-    public Page<OrderResDto> getOrderDetailsWithReviewByUserId(Long userId, int pageNo) {
-        List<OrderResDto> orderResDtos = new ArrayList<>();
+    public Page<OrderResDto<ReviewResDto>> getOrderDetailsWithReviewByUserId(Long userId, int pageNo) {
+        List<OrderResDto<ReviewResDto>> orderResDtos = new ArrayList<>();
         pageNo = pageVaildation(pageNo);
-        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "reviewId"));
-        Page<Order> ordersPage = orderRepository.findByUserIdOrderedByOrderIdDesc(userId, pageable);
+        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "orderDate"));
+        List<Order> ordersPage = orderRepository.findByUserId(userId);
 
         for (Order order : ordersPage) {
             List<ReviewResDto> orderDetailResDtos = orderDetailRepository
                     .findOrderDetailsWithReviewByOrder(order.getOrderId());
             if (!orderDetailResDtos.isEmpty()) {
-                orderResDtos.add(new OrderResDto(order, orderDetailResDtos));
+                orderResDtos.add(new OrderResDto<>(order, orderDetailResDtos));
             }
         }
-
-        // PageImpl을 사용하여 List를 Page로 변환합니다.
-        return new PageImpl<>(orderResDtos, pageable, ordersPage.getTotalElements());
+        int start = (int)pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()),orderResDtos.size());
+        return new PageImpl<>(orderResDtos.subList(start,end), pageable, orderResDtos.size());
     }
 
     // 사용자 정보 조회
@@ -226,19 +255,14 @@ public class UserService {
     private final InquiryRepository inquiryRepository;
 
     // 위시리스트 조회
-    public WishlistResDto getWishlistByUserId(Long userId, int pageNo) {
+    public WishResDto.WishlistResDto getWishlistByUserId(Long userId, int pageNo) {
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE);
         Page<WishlistItemDto> wishlistItems = wishlistRepository.findWishlistItemsByUserId(pageable, userId);
-        WishlistResDto wishlistResDto = new WishlistResDto();
+        WishResDto.WishlistResDto wishlistResDto = new WishResDto.WishlistResDto();
         wishlistResDto.setWishCount(wishlistRepository.countByUserId(userId));
         wishlistResDto.setWishListItem(wishlistItems);
         return wishlistResDto;
-    }
-
-    // 장바구니 상품 개수 조회
-    public CartResDto.CartCountResDto getCartCount(Long userId) {
-        return cartRepository.findCountByUserId(userId);
     }
 
     // 마이페이지 서브헤더 사용자 정보 및 마일리지 조회
@@ -262,6 +286,10 @@ public class UserService {
         wishlistRepository.save(wishlist);
     }
 
+    public WishResDto.IsWishResDto checkIsWish(Long userId, Long productId) {
+        return new WishResDto.IsWishResDto(wishlistRepository.existsByUserIdAndProductId(userId, productId));
+    }
+
     // 위시리스트 삭제
     @Transactional
     public void deleteWishlistById(Long wishlistId) {
@@ -272,26 +300,6 @@ public class UserService {
     @Transactional
     public Inquiry createInquiry(Inquiry inquiry) {
         return inquiryRepository.save(inquiry);
-    }
-
-    // 장바구니 추가
-    @Transactional
-    public void addCart(Long userId, Long productId, Long optionId, Integer productCount) {
-        // 장바구니에 존재하는 상품과 옵션인지 확인
-        Optional<Cart> existingCart = cartRepository.findByUserIdAndOptionId(userId, optionId);
-        if (existingCart.isPresent()) {
-            // 수량만 추가
-            existingCart.get().updateCartCount(productCount);
-        } else {
-            // 장바구니에 저장
-            Cart cart = Cart.builder()
-                    .userId(userId)
-                    .productId(productId)
-                    .optionId(optionId)
-                    .cartCount(productCount)
-                    .build();
-            cartRepository.save(cart);
-        }
     }
 
     //사용자 배송지 변경
@@ -336,22 +344,15 @@ public class UserService {
         }
     }
 
+    /**
+     * 마일리지
+     */
     // 마일리지 사용(충전) 내역 조회
-    public MileageResDto.MileageListResDto getMileageUsage(Long userId, int pageNo) {
+    public Page<MileageCommonDto.MileageDto> getMileageUsage(Long userId, int pageNo) {
         findUserById(userId);
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "mileageDate"));
-        Page<Mileage> mileages = mileageRepository.findByUserId(pageable, userId);
-
-        List<MileageCommonDto.MileageDto> mileageChageList = mileages.getContent().stream().map(
-                (o) -> MileageCommonDto.MileageDto.builder()
-                        .mileageChangeDate(o.getMileageDate())
-                        .mileageContents(o.getMileageInfo())
-                        .changeMileage(o.getChangeMileage())
-                        .remainMileage(o.getRemainMileage())
-                        .build()).collect(Collectors.toList());
-
-        return new MileageResDto.MileageListResDto(mileages.getTotalPages(), mileageChageList);
+        return mileageRepository.findByUserId(pageable, userId);
     }
 
     // 마일리지 충전 요청
@@ -366,6 +367,17 @@ public class UserService {
                 .build();
 
         mileageReqRepository.save(mileageReq);
+    }
+
+    // 마일리지 사용 내역 추가
+    @Transactional
+    public void addMileageHistory(Long userId, Integer remainMileage, Integer changeMileage, MileageContents mileageInfo) {
+        Mileage mileage = Mileage.builder()
+                .userId(userId)
+                .remainMileage(remainMileage)
+                .changeMileage(changeMileage)
+                .mileageInfo(mileageInfo).build();
+        mileageRepository.save(mileage);
     }
 
     // 사용자 문의 전체 조회
@@ -389,14 +401,14 @@ public class UserService {
     // 주문 / 배송 내역 조회
     public OrderResDto.OrderListResDto getOrderListResByUserId(Long userId, int pageNo) {
         pageNo = pageVaildation(pageNo);
-        Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE,Sort.by(Sort.Direction.DESC, "orderDate"));
+        Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "orderDate"));
 
         Page<OrderCommonDto.OrderListDto> orderList = orderRepository.findByUserId(pageable, userId)
                 .map((o) -> {
                     List<ProductCommonDto.ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByOrderId(o.getOrderId());
                     return new OrderCommonDto.OrderListDto(o, productDetailListDtos);
                 });
-        Page<Order> orders = orderRepository.findByUserId(pageable ,userId);
+//        Page<Order> orders = orderRepository.findByUserId(pageable, userId);
 
         Long confPayCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.ORDER_COMPLETE);
         Long preShipCount = orderDetailRepository.safeCountOrderDetailByUserIdAndOrderDetailState(userId, OrderDetailState.DELIVERY_READY);
@@ -409,36 +421,43 @@ public class UserService {
 
         OrderResDto.OrderListResDto orderListResDto = new OrderResDto.OrderListResDto();
 
-        if (confPayCount == null) {
-            orderListResDto.setConfPayCount(0L);
-        } else {
-            orderListResDto.setConfPayCount(confPayCount);
-        }
-        if (preShipCount == null) {
-            orderListResDto.setPreShipCount(0L);
-        } else {
-            orderListResDto.setPreShipCount(preShipCount);
-        }
-        if (inTransitCount == null) {
-            orderListResDto.setInTransitCount(0L);
-        } else {
-            orderListResDto.setInTransitCount(inTransitCount);
-        }
-        if (cmpltDilCount == null) {
-            orderListResDto.setCmpltDilCount(0L);
-        } else {
-            orderListResDto.setCmpltDilCount(cmpltDilCount);
-        }
-        if (orderCancelCount == null) {
-            orderListResDto.setOrderCancelCount(0L);
-        } else {
-            orderListResDto.setOrderCancelCount(orderCancelCount);
-        }
-        if (returnCount == null) {
-            orderListResDto.setReturnCount(0L);
-        } else {
-            orderListResDto.setReturnCount(returnCount);
-        }
+//        if (confPayCount == null) {
+//            orderListResDto.setConfPayCount(0L);
+//        } else {
+//            orderListResDto.setConfPayCount(confPayCount);
+//        }
+//        if (preShipCount == null) {
+//            orderListResDto.setPreShipCount(0L);
+//        } else {
+//            orderListResDto.setPreShipCount(preShipCount);
+//        }
+//        if (inTransitCount == null) {
+//            orderListResDto.setInTransitCount(0L);
+//        } else {
+//            orderListResDto.setInTransitCount(inTransitCount);
+//        }
+//        if (cmpltDilCount == null) {
+//            orderListResDto.setCmpltDilCount(0L);
+//        } else {
+//            orderListResDto.setCmpltDilCount(cmpltDilCount);
+//        }
+//        if (orderCancelCount == null) {
+//            orderListResDto.setOrderCancelCount(0L);
+//        } else {
+//            orderListResDto.setOrderCancelCount(orderCancelCount);
+//        }
+//        if (returnCount == null) {
+//            orderListResDto.setReturnCount(0L);
+//        } else {
+//            orderListResDto.setReturnCount(returnCount);
+//        }
+
+        orderListResDto.setConfPayCount(confPayCount);
+        orderListResDto.setPreShipCount(preShipCount);
+        orderListResDto.setInTransitCount(inTransitCount);
+        orderListResDto.setCmpltDilCount(cmpltDilCount);
+        orderListResDto.setOrderCancelCount(orderCancelCount);
+        orderListResDto.setReturnCount(returnCount);
         orderListResDto.setOrderList(orderList);
 
         return orderListResDto;
@@ -469,6 +488,7 @@ public class UserService {
         List<ProductCommonDto.ProductDetailListDto> productDetailList = orderDetailRepository.findOrderDetailByOrderId(order.getOrderId());
         return new OrderResDto.OrderDetailListResDto(order, user, productDetailList);
     }
+
     // 주문 취소
     @Transactional
     public OrderResDto.OrderDetailListResDto postOrderCancel(Long orderId, Long orderDetailId, Long userId, int pageNo) {

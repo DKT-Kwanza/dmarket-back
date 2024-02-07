@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Getter
@@ -25,6 +26,7 @@ public class ProductReview {
 
     @Column(nullable = false)
     private Long userId;
+
     @Column(nullable = false)
     private Long orderDetailId;
 
@@ -42,13 +44,14 @@ public class ProductReview {
 
 
     @Builder
-    public ProductReview(Long optionId, Long productId, Long userId, Integer reviewRating, String reviewContents, String reviewImg) {
+    public ProductReview(Long optionId, Long orderDetailId, Long productId, Long userId, Integer reviewRating, String reviewContents, String reviewImg) {
         this.optionId = optionId;
         this.productId = productId;
+        this.orderDetailId = orderDetailId;
         this.userId = userId;
         this.reviewRating = reviewRating;
         this.reviewContents = reviewContents;
         this.reviewImg = reviewImg;
-        this.reviewCreatedDate = LocalDateTime.now().withNano(0);
+        this.reviewCreatedDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
     }
 }

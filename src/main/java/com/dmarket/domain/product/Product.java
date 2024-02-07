@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Getter
@@ -31,6 +32,9 @@ public class Product {
     @Column(nullable = false)
     private Integer productSalePrice;
 
+    @Column(nullable = true)
+    private Integer productDiscountRate;
+
     @Column(nullable = false, columnDefinition="TEXT")
     private String productDescription;
 
@@ -41,15 +45,30 @@ public class Product {
     private LocalDateTime productCreatedDate;
 
 
-    @Builder
-    public Product(Long categoryId, String productBrand, String productName, Integer productPrice, Integer productSalePrice, String productDescription, Float productRating) {
+    public void updateRating(Float newRating) {
+        this.productRating = newRating;
+    }
+
+    public void updateProduct(Long categoryId, String productBrand, String productName, Integer productPrice, Integer productSalePrice, Integer productDiscountRate, String productDescription) {
         this.categoryId = categoryId;
         this.productBrand = productBrand;
         this.productName = productName;
         this.productPrice = productPrice;
         this.productSalePrice = productSalePrice;
+        this.productDiscountRate = productDiscountRate;
         this.productDescription = productDescription;
-        this.productRating = productRating;
-        this.productCreatedDate = LocalDateTime.now().withNano(0);
+    }
+
+    @Builder
+    public Product(Long categoryId, String productBrand, String productName, Integer productPrice, Integer productSalePrice, String productDescription, Integer productDiscountRate) {
+        this.categoryId = categoryId;
+        this.productBrand = productBrand;
+        this.productName = productName;
+        this.productPrice = productPrice;
+        this.productSalePrice = productSalePrice;
+        this.productDiscountRate = productDiscountRate;
+        this.productDescription = productDescription;
+        this.productRating = (float) 0;
+        this.productCreatedDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
     }
 }

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Getter
@@ -44,11 +45,11 @@ public class MileageReq {
         this.mileageReqAmount = mileageReqAmount;
         this.mileageReqReason = mileageReqReason;
         this.mileageReqState = mileageReqState;
-        this.mileageReqDate = LocalDateTime.now().withNano(0);
+        this.mileageReqDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
     }
 
     public void updateState(MileageReqState mileageReqState){
         this.mileageReqState = mileageReqState;
-        this.mileageReqUpdatedDate = LocalDateTime.now().withNano(0);
+        this.mileageReqUpdatedDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
     }
 }
