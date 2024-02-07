@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Getter
@@ -44,7 +45,7 @@ public class Qna {
         this.qnaContents = qnaContents;
         this.qnaSecret = qnaSecret;
         this.qnaState = qnaState;
-        this.qnaCreatedDate = LocalDateTime.now().withNano(0);
+        this.qnaCreatedDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
     }
 
     // 답변 상태 업데이트

@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Getter
@@ -39,7 +40,7 @@ public class Return {
         this.orderDetailId = orderDetailId;
         this.returnState = returnState;
         this.returnReason = returnReason;
-        this.returnRequestDate = LocalDateTime.now().withNano(0);
-        this.returnUpdatedDate = LocalDateTime.now().withNano(0);
+        this.returnRequestDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
+        this.returnUpdatedDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
     }
 }

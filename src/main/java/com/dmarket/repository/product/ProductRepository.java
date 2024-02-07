@@ -102,7 +102,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // 카테고리별 할인율 높은 순으로 상품 조회
     @Query("SELECT NEW com.dmarket.dto.response.ProductResDto$NewProductResDto(" +
-            "p.productId, p.productBrand, p.productName, MIN(pi.imgAddress), p.productPrice, p.productDiscountRate, p.productSalePrice) " +
+            "p.productId, p.productBrand, p.productName, MIN(pi.imgAddress), p.productPrice, p.productSalePrice, p.productDiscountRate) " +
             "FROM Product p " +
             "LEFT JOIN ProductImgs pi ON p.productId = pi.productId " +
             "WHERE p.categoryId = :categoryId " +

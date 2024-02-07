@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Getter
 @NoArgsConstructor
@@ -22,7 +23,7 @@ public class CMResDto<T> {
     @Builder
     public CMResDto(int code, String msg, T data) {
         this.code = code;
-        this.time = LocalDateTime.now().withNano(0);
+        this.time = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
         this.msg = msg;
         this.data = data;
     }

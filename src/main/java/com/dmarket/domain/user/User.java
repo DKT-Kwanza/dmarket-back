@@ -8,6 +8,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Getter
@@ -92,7 +93,7 @@ public class User {
         this.userRole = Role.ROLE_USER;  //초기 Role은 USER로 설정
 
         this.userJoinDate = userJoinDate;
-        this.userRegisterDate = LocalDateTime.now().withNano(0);
+        this.userRegisterDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
 
         this.userPostalCode = userPostalCode;
         this.userAddress = userAddress;

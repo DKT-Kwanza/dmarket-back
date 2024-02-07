@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Getter
@@ -43,7 +44,7 @@ public class Inquiry {
         this.inquiryContents = inquiryContents;
         this.inquiryImg = inquiryImg;
         this.inquiryState = inquiryState;
-        this.inquiryCreatedDate = LocalDateTime.now().withNano(0);
+        this.inquiryCreatedDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
     }
 
     // 문의 답변시 status 변경
