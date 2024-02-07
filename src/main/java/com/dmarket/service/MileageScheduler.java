@@ -30,7 +30,7 @@ public class MileageScheduler {
 
         // 마일리지 사용 내역에 자동충전 기록 추가
         for (Long user : users){
-            Mileage mileage = Mileage.MileageAutoCharge(user);
+            Mileage mileage = Mileage.mileageAutoCharge(user);
             mileageRepository.save(mileage);
         }
 
