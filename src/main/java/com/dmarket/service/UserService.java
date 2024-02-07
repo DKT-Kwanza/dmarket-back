@@ -210,32 +210,32 @@ public class UserService {
         return qnaRepository.getQnasfindByUserId(userId, pageable);
     }
 
-    public Page<OrderResDto<OrderDetailResDto>> getOrderDetailsWithoutReviewByUserId(Long userId, int pageNo) {
-        List<OrderResDto<OrderDetailResDto>> orderResDtos = new ArrayList<>();
-        pageNo = pageVaildation(pageNo);
-        Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_SIZE);
-        List<Order> ordersPage = orderRepository.findByUserId(userId);
+public Page<OrderResDto<OrderDetailResDto>> getOrderDetailsWithoutReviewByUserId(Long userId, int pageNo) {
+    List<OrderResDto<OrderDetailResDto>> orderResDtos = new ArrayList<>();
+    pageNo = pageVaildation(pageNo);
+    Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_SIZE);
+    Page<Order> ordersPage = orderRepository.findByUserId(userId, pageable);
 
-        for (Order order : ordersPage) {
-            List<OrderDetailResDto> orderDetailResDtos = orderDetailRepository
-                    .findOrderDetailsWithoutReviewByOrder(order.getOrderId());
-            if (!orderDetailResDtos.isEmpty()) {
-                orderResDtos.add(new OrderResDto<>(order, orderDetailResDtos));
-            }
+    for (Order order : ordersPage.getContent()) { 
+        List<OrderDetailResDto> orderDetailResDtos = orderDetailRepository
+                .findOrderDetailsWithoutReviewByOrder(order.getOrderId()); 
+        if (!orderDetailResDtos.isEmpty()) {
+            orderResDtos.add(new OrderResDto<>(order, orderDetailResDtos)); 
         }
-        // PageImpl을 사용하여 List를 Page로 변환합니다.
-        int start = (int)pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()),orderResDtos.size());
-        return new PageImpl<>(orderResDtos.subList(start,end), pageable, orderResDtos.size());
     }
+    // PageImpl을 사용하여 List를 Page로 변환합니다.
+    int start = (int)pageable.getOffset();
+    int end = Math.min((start + pageable.getPageSize()), orderResDtos.size());
+    return new PageImpl<>(orderResDtos.subList(start, end), pageable, orderResDtos.size());
+}
 
     public Page<OrderResDto<ReviewResDto>> getOrderDetailsWithReviewByUserId(Long userId, int pageNo) {
         List<OrderResDto<ReviewResDto>> orderResDtos = new ArrayList<>();
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, REVIEW_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "orderDate"));
-        List<Order> ordersPage = orderRepository.findByUserId(userId);
+        Page<Order> ordersPage = orderRepository.findByUserId(userId, pageable);
 
-        for (Order order : ordersPage) {
+        for (Order order : ordersPage.getContent()) {
             List<ReviewResDto> orderDetailResDtos = orderDetailRepository
                     .findOrderDetailsWithReviewByOrder(order.getOrderId());
             if (!orderDetailResDtos.isEmpty()) {
@@ -403,7 +403,7 @@ public class UserService {
         pageNo = pageVaildation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "orderDate"));
 
-        Page<OrderCommonDto.OrderListDto> orderList = orderRepository.findByUserId(pageable, userId)
+        Page<OrderCommonDto.OrderListDto> orderList = orderRepository.findByUserId(userId, pageable)
                 .map((o) -> {
                     List<ProductCommonDto.ProductDetailListDto> productDetailListDtos = orderDetailRepository.findOrderDetailByOrderId(o.getOrderId());
                     return new OrderCommonDto.OrderListDto(o, productDetailListDtos);
