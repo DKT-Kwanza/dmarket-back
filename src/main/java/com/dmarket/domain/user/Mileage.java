@@ -45,7 +45,7 @@ public class Mileage {
         this.mileageDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
     }
 
-    public static Mileage MileageAutoCharge(Long userId){
+    public static Mileage mileageAutoCharge(Long userId){
         return Mileage.builder()
                 .userId(userId)
                 .remainMileage(1200000)

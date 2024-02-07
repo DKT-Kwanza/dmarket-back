@@ -394,8 +394,8 @@ public class AdminController {
      */
     // 주문 취소 -> 마일리지 환불
     @PutMapping("/cancel-order-details")
-    public ResponseEntity<CMResDto<String>> putRefund(@Valid @RequestBody RefundReqDto RefundReqDto) {
-        adminService.putRefund(RefundReqDto);
+    public ResponseEntity<CMResDto<String>> putRefund(@Valid @RequestBody RefundReqDto refundReqDto) {
+        adminService.putRefund(refundReqDto);
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
 
@@ -422,21 +422,9 @@ public class AdminController {
     // 반품 상태 변경
     @PutMapping("/orders/returns/{returnId}")
     public ResponseEntity<CMResDto<String>> changeReturnStatus(@PathVariable Long returnId,
-                                                @Valid @RequestBody ReturnReqDto.ChangeReturnStateDto ChangeReturnStateDto) {
-        adminService.updateReturnState(returnId, ChangeReturnStateDto.getReturnStatus());
+                                                @Valid @RequestBody ReturnReqDto.ChangeReturnStateDto changeReturnStateDto) {
+        adminService.updateReturnState(returnId, changeReturnStateDto.getReturnStatus());
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
 
-
-    private ResponseEntity<CMResDto<String>> checkAuthorization(Long userId, HttpServletRequest request) {
-        String authorization = request.getHeader("Authorization");
-        log.debug("userId={}", userId);
-        String token = authorization.split(" ")[1];
-        Long tokenUserId = jwtUtil.getUserId(token);
-        log.debug("tokenUserId={}", tokenUserId);
-        if (!Objects.equals(tokenUserId, userId)) {
-            return new ResponseEntity<>(CMResDto.errorRes(ErrorCode.FORBIDDEN), HttpStatus.FORBIDDEN);
-        }
-        return null;  // 인증 및 권한 검사가 성공한 경우
-    }
 }
