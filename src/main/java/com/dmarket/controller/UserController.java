@@ -381,10 +381,8 @@ public class UserController {
     // 인증 및 권한 검사 메서드
     private ResponseEntity<CMResDto<String>> checkAuthorization(Long userId, HttpServletRequest request) {
         String authorization = request.getHeader("Authorization");
-        System.out.println("userId = " + userId);
         String token = authorization.split(" ")[1];
         Long tokenUserId = jwtUtil.getUserId(token);
-        System.out.println("tokenUserId = " + tokenUserId);
         if (!Objects.equals(tokenUserId, userId)) {
             return new ResponseEntity<>(CMResDto.errorRes(ErrorCode.FORBIDDEN), HttpStatus.FORBIDDEN);
         }
