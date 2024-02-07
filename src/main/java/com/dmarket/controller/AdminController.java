@@ -7,10 +7,6 @@ import com.dmarket.domain.board.InquiryReply;
 import com.dmarket.dto.common.*;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
-import com.dmarket.dto.common.InquiryCommonDto;
-import com.dmarket.dto.common.MileageCommonDto;
-import com.dmarket.dto.common.OrderCommonDto;
-import com.dmarket.dto.common.QnaDto;
 import com.dmarket.exception.ErrorCode;
 import com.dmarket.jwt.JWTUtil;
 import com.dmarket.service.AdminService;
@@ -40,7 +36,7 @@ public class AdminController {
      */
     // 관리자 조회
     @GetMapping("/admin-users")
-    public ResponseEntity<?> getAdmins(@RequestParam(value = "q", required = false) Integer dktNum) {
+    public ResponseEntity<CMResDto<?>> getAdmins(@RequestParam(value = "q", required = false) Integer dktNum) {
 
         // 사원번호가 존재하면 해당 사원 검색
         if (dktNum != null) {
@@ -55,7 +51,7 @@ public class AdminController {
 
     // 권한 부여
     @PutMapping("/admin-users/{userId}")
-    public ResponseEntity<?> changeRole(@PathVariable Long userId, @Valid @RequestBody UserReqDto.ChangeRole newRole) {
+    public ResponseEntity<CMResDto<UserCommonDto.TokenResponseDto>> changeRole(@PathVariable Long userId, @Valid @RequestBody UserReqDto.ChangeRole newRole) {
         // 사용한 ChangeRoleReqDto -> UserReqDto.ChangeRole로 변경
         UserCommonDto.TokenResponseDto tokenResponseDto = adminService.changeRole(userId, newRole);
         return new ResponseEntity<>(CMResDto.successDataRes(tokenResponseDto), HttpStatus.OK);
@@ -66,14 +62,14 @@ public class AdminController {
      */
     // 사용자 조회
     @GetMapping("/admin-user")
-    public ResponseEntity<?> getUsers(@RequestParam(value = "q", required = true) String email) {
+    public ResponseEntity<CMResDto<List<UserResDto.Search>>> getUsers(@RequestParam(value = "q", required = true) String email) {
         List<UserResDto.Search> userResDtos = adminService.getUsersFindByEmail(email);
         return new ResponseEntity<>(CMResDto.successDataRes(userResDtos), HttpStatus.OK);
     }
 
     // 사용자 삭제
     @DeleteMapping("/users/{userId}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long userId, HttpServletRequest request) {
+    public ResponseEntity<CMResDto<String>> deleteUser(@PathVariable Long userId, HttpServletRequest request) {
         adminService.deleteUserByUserId(userId);
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
@@ -84,7 +80,7 @@ public class AdminController {
      */
     //마일리지 충전 요청/처리 내역 조회
     @GetMapping("/users/mileage-history")
-    public ResponseEntity<?> getMileageRequests(@RequestParam(required = true, value = "status", defaultValue = "PROCESSING") String status,
+    public ResponseEntity<CMResDto<Page<MileageCommonDto.MileageReqListDto>>> getMileageRequests(@RequestParam(required = true, value = "status", defaultValue = "PROCESSING") String status,
                                                 @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
 
         Page<MileageCommonDto.MileageReqListDto> requests = adminService.getMileageRequests(status, pageNo);
@@ -94,7 +90,7 @@ public class AdminController {
 
     //마일리지 충전 요청 승인
     @PutMapping("/users/mileage/approval/{mileageReqId}")
-    public ResponseEntity<?> approveMileageReq(@PathVariable(name = "mileageReqId") Long mileageReqId) {
+    public ResponseEntity<CMResDto<String>> approveMileageReq(@PathVariable(name = "mileageReqId") Long mileageReqId) {
         //true인 경우 승인, false인 경우 거부
         adminService.approveMileageReq(mileageReqId, true);
         log.info("데이터 변경 완료");
@@ -103,7 +99,7 @@ public class AdminController {
 
     //마일리지 충전 요청 거부
     @PutMapping("/users/mileage/refusal/{mileageReqId}")
-    public ResponseEntity<?> refusalMileageReq(@PathVariable(name = "mileageReqId") Long mileageReqId) {
+    public ResponseEntity<CMResDto<String>> refusalMileageReq(@PathVariable(name = "mileageReqId") Long mileageReqId) {
         //true인 경우 승인, false인 경우 거부
         adminService.approveMileageReq(mileageReqId, false);
         log.info("데이터 변경 완료");
@@ -116,7 +112,7 @@ public class AdminController {
      */
     // 공지사항 목록 조회 with 페이지네이션
     @GetMapping("/board/notices")
-    public ResponseEntity<?> getNotices(@RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
+    public ResponseEntity<CMResDto<Page<NoticeResDto>>> getNotices(@RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo) {
 
         Page<NoticeResDto> noticeResDtos = adminService.getNotices(pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(noticeResDtos), HttpStatus.OK);
@@ -124,7 +120,7 @@ public class AdminController {
 
     // 공지사항 작성
     @PostMapping("/board/notice")
-    public ResponseEntity<?> postNotice(@Valid @RequestBody NoticeReqDto noticeReqDto,
+    public ResponseEntity<CMResDto<Page<NoticeResDto>>> postNotice(@Valid @RequestBody NoticeReqDto noticeReqDto,
                                         @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
         // 공지사항 작성
         Long userId = noticeReqDto.getUserId();
@@ -137,7 +133,7 @@ public class AdminController {
 
     // 공지사항 삭제
     @DeleteMapping("/board/notice/{noticeId}")
-    public ResponseEntity<?> deleteNotice(@PathVariable Long noticeId) {
+    public ResponseEntity<CMResDto<String>> deleteNotice(@PathVariable Long noticeId) {
         adminService.deleteNoticeByNoticeId(noticeId);
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
@@ -148,7 +144,7 @@ public class AdminController {
      */
     // 문의 목록 조회(카테고리별)
     @GetMapping("/board/inquiry")
-    public ResponseEntity<?> getInquiries(@RequestParam(required = false, value = "type") String type,
+    public ResponseEntity<CMResDto<Page<InquiryResDto.InquiryListResDto>>> getInquiries(@RequestParam(required = false, value = "type") String type,
                                           @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
         InquiryType inquiryType = null;
         if (type != null) {
@@ -159,22 +155,22 @@ public class AdminController {
         }
         Page<InquiryResDto.InquiryListResDto> mappedInquiries = adminService.getAllInquiriesByType(inquiryType, pageNo);
 
-        CMResDto<?> response = CMResDto.successDataRes(mappedInquiries);
+        CMResDto<Page<InquiryResDto.InquiryListResDto>> response = CMResDto.successDataRes(mappedInquiries);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // 문의 내역 상세 조회
     @GetMapping("/board/inquiry/{inquiryId}")
-    public ResponseEntity<?> getInquiryDetail(@PathVariable Long inquiryId) {
+    public ResponseEntity<CMResDto<InquiryResDto.InquiryDetailResDto>> getInquiryDetail(@PathVariable Long inquiryId) {
         InquiryResDto.InquiryDetailResDto inquiryDetail = adminService.getInquiryDetail(inquiryId);
-        CMResDto<?> response = CMResDto.successDataRes(inquiryDetail);
+        CMResDto<InquiryResDto.InquiryDetailResDto> response = CMResDto.successDataRes(inquiryDetail);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // 문의 삭제
     @DeleteMapping("/board/inquiry/{inquiryId}")
-    public ResponseEntity<?> deleteInquiry(@PathVariable Long inquiryId) {
+    public ResponseEntity<CMResDto<String>> deleteInquiry(@PathVariable Long inquiryId) {
         adminService.deleteInquiry(inquiryId);
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
@@ -185,7 +181,7 @@ public class AdminController {
      */
     // 문의 답변 등록
     @PostMapping("/board/inquiry/reply/{inquiryId}")
-    public ResponseEntity<?> postInquiryReply(@PathVariable Long inquiryId,
+    public ResponseEntity<CMResDto<InquiryCommonDto.InquiryDetailsDto>> postInquiryReply(@PathVariable Long inquiryId,
                                               @Valid @RequestBody InquiryReqDto.InquiryReplyRequestDto inquiryReplyRequestDto) {
         InquiryReply inquiryReply = InquiryReply.builder()
                 .inquiryId(inquiryId)
@@ -200,7 +196,7 @@ public class AdminController {
 
     // 문의 답변 삭제
     @DeleteMapping("/board/inquiry/reply/{inquiryReplyId}")
-    public ResponseEntity<?> deleteInquiryReply(@PathVariable Long inquiryReplyId) {
+    public ResponseEntity<CMResDto<String>> deleteInquiryReply(@PathVariable Long inquiryReplyId) {
         adminService.deleteInquiryReply(inquiryReplyId);
 
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
@@ -212,7 +208,7 @@ public class AdminController {
      */
     // FAQ 조회
     @GetMapping("/board/faq")
-    public ResponseEntity<?> getFaqs(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
+    public ResponseEntity<CMResDto<Page<FaqResDto.FaqListResDto>>> getFaqs(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo,
                                      @RequestParam(required = false, value = "type") String type) {
         FaqType faqType = null;
         if (type != null) {
@@ -224,13 +220,13 @@ public class AdminController {
         Page<Faq> faqsPage = adminService.getAllFaqs(FaqType.fromLabel(type), pageNo);
         Page<FaqResDto.FaqListResDto> mappedFaqs = adminService.mapToFaqListResDto(faqsPage);
 
-        CMResDto<?> response = CMResDto.successDataRes(mappedFaqs);
+        CMResDto<Page<FaqResDto.FaqListResDto>> response = CMResDto.successDataRes(mappedFaqs);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // FAQ 등록
     @PostMapping("/board/faq")
-    public ResponseEntity<?> postFaq(@Valid @RequestBody FaqReqDto faqReqDto) {
+    public ResponseEntity<CMResDto<FaqResDto.FaqListResDto>> postFaq(@Valid @RequestBody FaqReqDto faqReqDto) {
         // FAQ 등록
         FaqType faqType = FaqType.fromLabel(faqReqDto.getFaqType());
         if (faqType == null) {
@@ -246,7 +242,7 @@ public class AdminController {
 
     // FAQ 삭제
     @DeleteMapping("/board/faq/{faqId}")
-    public ResponseEntity<?> deleteFaq(@PathVariable(name = "faqId") Long faqId) {
+    public ResponseEntity<CMResDto<String>> deleteFaq(@PathVariable(name = "faqId") Long faqId) {
         adminService.deleteFaqByFaqId(faqId);
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
@@ -257,7 +253,7 @@ public class AdminController {
      */
     // 상품 목록 조회
     @GetMapping("/products/categories/{cateId}")
-    public ResponseEntity<?> getProductsListAdmin(@PathVariable(name = "cateId") Long cateId,
+    public ResponseEntity<CMResDto<ProductResDto.ProductListAdminResDto>> getProductsListAdmin(@PathVariable(name = "cateId") Long cateId,
                                                   @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
         ProductResDto.ProductListAdminResDto resDto = adminService.getProductListByCategoryId(cateId, pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(resDto), HttpStatus.OK);
@@ -265,7 +261,7 @@ public class AdminController {
 
     //상품 목록 카테고리별 검색 조회 api
     @GetMapping("/products/categories/{cateId}/search")
-    public ResponseEntity<?> getSearchProductList(@PathVariable(name = "cateId") Long cateId,
+    public ResponseEntity<CMResDto<ProductResDto.ProductListAdminResDto>> getSearchProductList(@PathVariable(name = "cateId") Long cateId,
                                                   @RequestParam(required = true, value = "q") String query,
                                                   @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo){
         ProductResDto.ProductListAdminResDto resDto = adminService.getProductListBySearch(cateId, query, pageNo);
@@ -274,21 +270,21 @@ public class AdminController {
 
     // 상품 상세 정보 조회 api
     @GetMapping("/products/{productId}")
-    public ResponseEntity<?> getProductInfo(@PathVariable Long productId) {
+    public ResponseEntity<CMResDto<ProductResDto.ProductInfoResDto>> getProductInfo(@PathVariable Long productId) {
         ProductResDto.ProductInfoResDto res = adminService.getProductInfo(productId);
         return new ResponseEntity<>(CMResDto.successDataRes(res), HttpStatus.OK);
     }
 
     // 새로운 상품 추가
     @PostMapping("/product")
-    public ResponseEntity<?> addNewProduct(@Valid @RequestBody ProductReqDto.ProductListDto productList) {
+    public ResponseEntity<CMResDto<String>> addNewProduct(@Valid @RequestBody ProductReqDto.ProductListDto productList) {
         adminService.saveProductList(productList);
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
 
     // 상품 수정
     @PutMapping("/products/{productId}")
-    public ResponseEntity<?> updateProduct(@PathVariable Long productId, @Valid @RequestBody ProductReqDto productReqDto) {
+    public ResponseEntity<CMResDto<String>> updateProduct(@PathVariable Long productId, @Valid @RequestBody ProductReqDto productReqDto) {
         // 상품 수정
         productReqDto.setProductId(productId);
         adminService.updateProduct(productReqDto);
@@ -297,7 +293,7 @@ public class AdminController {
 
     //재고 추가
     @PutMapping("/products/stock")
-    public ResponseEntity<?> addProductStock(@RequestBody ProductReqDto.StockReqDto stockReqDto) {
+    public ResponseEntity<CMResDto<List<ProductResDto.ProductInfoOptionResDto>>> addProductStock(@RequestBody ProductReqDto.StockReqDto stockReqDto) {
         adminService.addProductStock(stockReqDto);
         Long productId = stockReqDto.getProductId();
         ProductResDto.ProductInfoOptionResDto productInfoOptionResDto = adminService.getProductInfoWithOption(productId);
@@ -311,7 +307,7 @@ public class AdminController {
      */
     // 상품 옵션 삭제
     @DeleteMapping("/products/{productId}/{optionId}")
-    public ResponseEntity<?> deleteOption(@PathVariable(name = "productId") Long productId,
+    public ResponseEntity<CMResDto<String>> deleteOption(@PathVariable(name = "productId") Long productId,
                                           @PathVariable(name = "optionId") Long optionId) {
         adminService.deleteOptionByOptionId(optionId);
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
@@ -323,7 +319,7 @@ public class AdminController {
      */
     // 상품 리뷰
     @GetMapping("/products/review")
-    public ResponseEntity<?> getReviews(@RequestParam(required = false, defaultValue = "0") Integer pageNo) {
+    public ResponseEntity<CMResDto<Page<AdminResDto.AdminReviewsResDto>>> getReviews(@RequestParam(required = false, defaultValue = "0") Integer pageNo) {
         Page<AdminResDto.AdminReviewsResDto> adminReviewsResDtos = adminService.getProductReviews(pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(adminReviewsResDtos), HttpStatus.OK);
     }
@@ -334,28 +330,28 @@ public class AdminController {
      */
     // 상품 QnA 전체 조회 api
     @GetMapping("/products/qna")
-    public ResponseEntity<?> getQnAList(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
+    public ResponseEntity<CMResDto<Page<QnaDto>>> getQnAList(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
         Page<QnaDto> qnaList = adminService.getQnaList(pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(qnaList), HttpStatus.OK);
     }
 
     // 상품 QnA 상세 + 답변 조회 api
     @GetMapping("/products/qna/{qnaId}")
-    public ResponseEntity<?> getQnADetailed(@PathVariable Long qnaId) {
+    public ResponseEntity<CMResDto<QnaResDto.QnaDetailResDto>> getQnADetailed(@PathVariable Long qnaId) {
         QnaResDto.QnaDetailResDto qnaDetail = adminService.getQnADetail(qnaId);
         return new ResponseEntity<>(CMResDto.successDataRes(qnaDetail), HttpStatus.OK);
     }
 
     // 상품 QnA 답변 작성 api
     @PostMapping("/products/qna/{qnaId}")
-    public ResponseEntity<?> writeQnaReply(@PathVariable Long qnaId, @Valid @RequestBody QnaReqDto.QnaReplyReqDto qnaReplyReqDto) {
+    public ResponseEntity<CMResDto<QnaResDto.QnaDetailResDto>> writeQnaReply(@PathVariable Long qnaId, @Valid @RequestBody QnaReqDto.QnaReplyReqDto qnaReplyReqDto) {
         QnaResDto.QnaDetailResDto qnaDetail = adminService.createQnaReply(qnaId, qnaReplyReqDto.getQnaReplyContents());
         return new ResponseEntity<>(CMResDto.successDataRes(qnaDetail), HttpStatus.OK);
     }
 
     // 상품 QnA 답변 삭제 api
     @DeleteMapping("/products/qna/reply/{qnaReplyId}")
-    public ResponseEntity<?> writeQnaReply(@PathVariable Long qnaReplyId) {
+    public ResponseEntity<CMResDto<QnaResDto.QnaDetailResDto>> writeQnaReply(@PathVariable Long qnaReplyId) {
         QnaResDto.QnaDetailResDto qnaDetail = adminService.deleteQnaReply(qnaReplyId);
         return new ResponseEntity<>(CMResDto.successDataRes(qnaDetail), HttpStatus.OK);
     }
@@ -366,7 +362,7 @@ public class AdminController {
      */
     // 배송 목록 조회
     @GetMapping("/orders")
-    public ResponseEntity<?> getOrdersByStatus(@RequestParam String status,
+    public ResponseEntity<CMResDto<Map<String, Object>>> getOrdersByStatus(@RequestParam String status,
                                                @RequestParam(required = false, defaultValue = "0") int pageNo) {
         OrderCommonDto.OrderDetailStateCountsDto statusCounts = adminService.getOrderDetailStateCounts();
         Page<OrderListAdminResDto> orderList = adminService.getOrdersByStatus(status, pageNo);
@@ -385,7 +381,7 @@ public class AdminController {
 
     // 배송 상태 변경
     @PutMapping("/orders/{detailId}")
-    public ResponseEntity<?> updateOrderStatus(@PathVariable Long detailId,
+    public ResponseEntity<CMResDto<String>> updateOrderStatus(@PathVariable Long detailId,
                                                @Valid @RequestBody OrderReqDto.OrderStatusReqDto requestDto) {
         String orderStatus = requestDto.getOrderStatus();
         adminService.updateOrderDetailState(detailId, orderStatus);
@@ -398,14 +394,14 @@ public class AdminController {
      */
     // 주문 취소 -> 마일리지 환불
     @PutMapping("/cancel-order-details")
-    public ResponseEntity<?> putRefund(@Valid @RequestBody RefundReqDto RefundReqDto) {
+    public ResponseEntity<CMResDto<String>> putRefund(@Valid @RequestBody RefundReqDto RefundReqDto) {
         adminService.putRefund(RefundReqDto);
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
 
     // 주문 취소 목록 조회
     @GetMapping("/cancel-order-details")
-    public ResponseEntity<?> getCanceledOrder(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
+    public ResponseEntity<CMResDto<Page<OrderResDto.OrderCancelResDto>>> getCanceledOrder(@RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
         Page<OrderResDto.OrderCancelResDto> orderCancleList = adminService.orderCancle(pageNo);
         return new ResponseEntity<>(CMResDto.successDataRes(orderCancleList), HttpStatus.OK);
     }
@@ -416,7 +412,7 @@ public class AdminController {
      */
     // 상태별 반품 목록 조회
     @GetMapping("/orders/returns")
-    public ResponseEntity<?> getReturnsList(@RequestParam(required = true, value = "status") String returnStatus,
+    public ResponseEntity<CMResDto<ReturnResDto.ReturnListResDto>> getReturnsList(@RequestParam(required = true, value = "status") String returnStatus,
                                             @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
 
         ReturnResDto.ReturnListResDto returnListResDto = adminService.getReturns(returnStatus, pageNo);
@@ -425,14 +421,14 @@ public class AdminController {
 
     // 반품 상태 변경
     @PutMapping("/orders/returns/{returnId}")
-    public ResponseEntity<?> changeReturnStatus(@PathVariable Long returnId,
+    public ResponseEntity<CMResDto<String>> changeReturnStatus(@PathVariable Long returnId,
                                                 @Valid @RequestBody ReturnReqDto.ChangeReturnStateDto ChangeReturnStateDto) {
         adminService.updateReturnState(returnId, ChangeReturnStateDto.getReturnStatus());
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
 
 
-    private ResponseEntity<?> checkAuthorization(Long userId, HttpServletRequest request) {
+    private ResponseEntity<CMResDto<String>> checkAuthorization(Long userId, HttpServletRequest request) {
         String authorization = request.getHeader("Authorization");
         log.debug("userId={}", userId);
         String token = authorization.split(" ")[1];

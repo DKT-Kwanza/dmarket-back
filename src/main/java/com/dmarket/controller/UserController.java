@@ -35,7 +35,7 @@ public class UserController {
 
     //회원가입
     @PostMapping("/join")
-    public ResponseEntity<?> join(@Valid @RequestBody UserReqDto.Join dto) {
+    public ResponseEntity<CMResDto<String>> join(@Valid @RequestBody UserReqDto.Join dto) {
 
         userService.verifyJoin(dto);
         Long userId = userService.join(dto);
@@ -44,22 +44,22 @@ public class UserController {
 
     // 이메일 인증 코드 전송
     @PostMapping("/email")
-    public ResponseEntity<?> email(@Valid @RequestBody String userEmail) {
+    public ResponseEntity<CMResDto<String>> email(@Valid @RequestBody String userEmail) {
         userService.sendCodeToEmail(userEmail);
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
 
     //이메일 인증 코드 확인
     @PostMapping("/email/verify")
-    public ResponseEntity<?> emailVerify(@Valid @RequestBody UserReqDto.Emails dto) {
+    public ResponseEntity<CMResDto<String>> emailVerify(@Valid @RequestBody UserReqDto.Emails dto) {
         userService.isValidEmailCode(dto.getUserEmail(), dto.getCode());
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
 
     // 장바구니 추가 api
     @PostMapping("/{userId}/cart")
-    public ResponseEntity<?> addCart(@PathVariable Long userId, @Valid @RequestBody CartReqDto.AddCartReqDto addCartReqDto, HttpServletRequest request) {
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+    public ResponseEntity<CMResDto<String>> addCart(@PathVariable Long userId, @Valid @RequestBody CartReqDto.AddCartReqDto addCartReqDto, HttpServletRequest request) {
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -72,8 +72,8 @@ public class UserController {
 
     // 위시리스트 추가 api
     @PostMapping("/{userId}/wish")
-    public ResponseEntity<?> addWish(@PathVariable Long userId, @Valid @RequestBody WishListReqDto.AddWishReqDto addWishReqDto, HttpServletRequest request) {
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+    public ResponseEntity<CMResDto<String>> addWish(@PathVariable Long userId, @Valid @RequestBody WishListReqDto.AddWishReqDto addWishReqDto, HttpServletRequest request) {
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -86,7 +86,7 @@ public class UserController {
 
     // 위시리스트에 담긴 상품인지 확인 api
     @GetMapping("/{userId}/wish/{productId}")
-    public ResponseEntity<?> checkIsWish(@PathVariable Long userId,
+    public ResponseEntity<CMResDto<WishResDto.IsWishResDto>> checkIsWish(@PathVariable Long userId,
                                          @PathVariable Long productId){
         WishResDto.IsWishResDto isWishResDto = userService.checkIsWish(userId, productId);
         return new ResponseEntity<>(CMResDto.successDataRes(isWishResDto), HttpStatus.OK);
@@ -96,7 +96,7 @@ public class UserController {
     @GetMapping("/{userId}/wish")
     public ResponseEntity<?> getWishlistByUserId(@PathVariable(name = "userId") Long userId,
                                                  @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo, HttpServletRequest request) {
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -108,7 +108,7 @@ public class UserController {
     // 장바구니 상품 개수 조회
     @GetMapping("{userId}/cart-count")
     public ResponseEntity<?> getCartCount(@PathVariable(name = "userId") Long userId, HttpServletRequest request) {
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -121,7 +121,7 @@ public class UserController {
     // 마이페이지 서브헤더 사용자 정보 및 마일리지 조회
     @GetMapping("/{userId}/mypage/mileage")
     public ResponseEntity<?> getSubHeader(@PathVariable(name = "userId") Long userId, HttpServletRequest request) {
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -132,9 +132,9 @@ public class UserController {
 
     // 위시리스트 삭제
     @DeleteMapping("/{userId}/wish/{wishlistIds}")
-    public ResponseEntity<?> deleteWishlistId(@PathVariable(name = "userId") Long userId,
+    public ResponseEntity<CMResDto<String>> deleteWishlistId(@PathVariable(name = "userId") Long userId,
                                               @PathVariable(name = "wishlistIds") List<Long> wishlistIds, HttpServletRequest request) {
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -149,7 +149,7 @@ public class UserController {
     @GetMapping("/{userId}/mypage/myinfo")
     public ResponseEntity<?> getUserInfoByUserId(HttpServletRequest request,
                                                  @PathVariable(name = "userId") Long userId) {
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -162,10 +162,10 @@ public class UserController {
 
     // 사용자 비밀번호 변경
     @PutMapping("{userId}/mypage/change-pwd")
-    public ResponseEntity<?> updatePassword(HttpServletRequest request,
+    public ResponseEntity<CMResDto<String>> updatePassword(HttpServletRequest request,
                                             @PathVariable(name = "userId") Long userId,
                                             @Valid @RequestBody UserReqDto.ChangePwd changePwdReqDto) {
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -184,7 +184,7 @@ public class UserController {
     public ResponseEntity<?> updateAddress(HttpServletRequest request,
                                            @PathVariable(name = "userId") Long userId,
                                            @Valid @RequestBody UserReqDto.UserAddress userAddressReqDto) {
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -198,7 +198,7 @@ public class UserController {
     @GetMapping("/{userId}/cart")
     public ResponseEntity<?> getCarts(@PathVariable Long userId, HttpServletRequest request) {
         // 권한 검증 메서드
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -210,10 +210,10 @@ public class UserController {
 
     // 장바구니 삭제
     @DeleteMapping("/{userId}/cart/{cartIds}")
-    public ResponseEntity<?> deleteCart(@PathVariable Long userId,
+    public ResponseEntity<CMResDto<String>> deleteCart(@PathVariable Long userId,
                                         @PathVariable(name = "cartIds") List<Long> cartIds, HttpServletRequest request) {
 
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -229,7 +229,7 @@ public class UserController {
     @GetMapping("/{userId}/mypage/qna")
     public ResponseEntity<?> getQna(@PathVariable Long userId,
                                     @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo, HttpServletRequest request) {
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -241,7 +241,7 @@ public class UserController {
     @GetMapping("/{userId}/mypage/available-reviews")
     public ResponseEntity<?> getAvailableReviews(@PathVariable Long userId,
                                                  @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo , HttpServletRequest request) {
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -253,7 +253,7 @@ public class UserController {
     @GetMapping("/{userId}/mypage/written-reviews")
     public ResponseEntity<?> getWrittenReviews(@PathVariable Long userId,
                                                @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo,HttpServletRequest request) {
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -263,7 +263,7 @@ public class UserController {
 
     // 문의 작성
     @PostMapping("/{userId}/board/inquiry")
-    public ResponseEntity<CMResDto> createInquiry(@PathVariable Long userId,
+    public ResponseEntity<CMResDto<String>> createInquiry(@PathVariable Long userId,
                                                      @Valid @RequestBody InquiryRequestDto inquiryRequestDto, HttpServletRequest request) {
 
         InquiryType inquiryType = InquiryType.fromLabel(inquiryRequestDto.getInquiryType());
@@ -288,7 +288,7 @@ public class UserController {
     @GetMapping("/{userId}/mypage/mileage-usage")
     public ResponseEntity<?> getMileageUsage(@PathVariable Long userId,
                                              @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo, HttpServletRequest request) {
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -300,9 +300,9 @@ public class UserController {
 
     // 마일리지 충전 요청 api
     @PostMapping("/{userId}/mypage/mileage-charge")
-    public ResponseEntity<?> mileageChargeReq(@PathVariable Long userId,
+    public ResponseEntity<CMResDto<String>> mileageChargeReq(@PathVariable Long userId,
                                               @Valid @RequestBody MileageReqDto.MileageChargeReqDto mileageChargeReqDto, HttpServletRequest request) {
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -316,7 +316,7 @@ public class UserController {
     @GetMapping("/{userId}/mypage/inquiry")
     public ResponseEntity<?> getUserInquiryAllByUserId(@PathVariable(name = "userId") Long userId,
                                                        @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo, HttpServletRequest request) {
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -331,7 +331,7 @@ public class UserController {
                                                              @PathVariable(name = "orderId") Long orderId,
                                                              @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo,HttpServletRequest request) {
 
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -344,7 +344,7 @@ public class UserController {
     @GetMapping("/{userId}/mypage/orders")
     public ResponseEntity<?> getUserOrderList(@PathVariable(name = "userId") Long userId,
                                               @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo,HttpServletRequest request) {
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -359,7 +359,7 @@ public class UserController {
                                              @Valid @RequestBody OrderCancelReqDto orderCancelReqDto,
                                              @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo,HttpServletRequest request) {
 
-        ResponseEntity<?> authorization = checkAuthorization(userId, request);
+        ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
         }
@@ -370,7 +370,7 @@ public class UserController {
 
     // 반품 요청(신청)
     @PostMapping("/{userId}/mypage/order/return")
-    public ResponseEntity<?> postOrderReturn(@PathVariable(name = "userId") Long userId,
+    public ResponseEntity<CMResDto<OrderResDto.OrderDetailListResDto>> postOrderReturn(@PathVariable(name = "userId") Long userId,
                                              @Valid @RequestBody OrderReturnReqDto orderReturnReqDto,
                                              @RequestParam(required = false, value = "page", defaultValue = "0") Integer pageNo, HttpServletRequest request) {
 
@@ -379,7 +379,7 @@ public class UserController {
     }
 
     // 인증 및 권한 검사 메서드
-    private ResponseEntity<?> checkAuthorization(Long userId, HttpServletRequest request) {
+    private ResponseEntity<CMResDto<String>> checkAuthorization(Long userId, HttpServletRequest request) {
         String authorization = request.getHeader("Authorization");
         System.out.println("userId = " + userId);
         String token = authorization.split(" ")[1];
