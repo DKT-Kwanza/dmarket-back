@@ -4,13 +4,15 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Getter
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Notification {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long notiId;
@@ -31,7 +33,7 @@ public class Notification {
                 .content(sendNotificationEvent.getContent())
                 .url(sendNotificationEvent.getUrl())
                 .isRead(false)
-                .notificationCreatedDate(LocalDateTime.now().withNano(0))
+                .notificationCreatedDate(LocalDateTime.now().truncatedTo(ChronoUnit.MICROS))
                 .build();
     }
 

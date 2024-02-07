@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Getter
@@ -36,6 +37,6 @@ public class Notice {
         this.userId = userId;
         this.noticeTitle = noticeTitle;
         this.noticeContents = noticeContents;
-        this.noticeCreatedDate = LocalDateTime.now().withNano(0);
+        this.noticeCreatedDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
     }
 }

@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Getter
@@ -51,6 +52,6 @@ public class ProductReview {
         this.reviewRating = reviewRating;
         this.reviewContents = reviewContents;
         this.reviewImg = reviewImg;
-        this.reviewCreatedDate = LocalDateTime.now().withNano(0);
+        this.reviewCreatedDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
     }
 }
