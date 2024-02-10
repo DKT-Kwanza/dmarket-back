@@ -11,6 +11,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,6 +25,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 
+@Slf4j
 // SpringSecurity 로그인 경로 설정 문제로 @RequiredArgsConstructor 설정 X
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
@@ -54,9 +56,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         return authenticationManager.authenticate(authToken);
     }
-
-    // 객체로 변환 필요
-    private ObjectMapper objectMapper = new ObjectMapper();
 
     // 요청받은 정보가 DB에 있는 사용자인 경우
     @Override
@@ -128,7 +127,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         } catch (IOException e) {
             // 에러 핸들링
-            e.printStackTrace();
+            log.warn(e.getMessage(), e.getCause());
         }
     }
 

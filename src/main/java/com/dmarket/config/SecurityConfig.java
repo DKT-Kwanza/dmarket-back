@@ -1,12 +1,9 @@
 package com.dmarket.config;
 
-import com.dmarket.jwt.JWTFilter;
-import com.dmarket.jwt.JWTUtil;
-import com.dmarket.jwt.LoginFilter;
+import com.dmarket.jwt.*;
 import com.dmarket.repository.user.RefreshTokenRepository;
 import com.dmarket.repository.user.UserRepository;
 import com.dmarket.service.LogoutService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +15,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -26,6 +24,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Collections;
 import java.util.List;
@@ -47,20 +46,19 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-
         return configuration.getAuthenticationManager();
     }
 
     // 계층 권한 설정
     @Bean
     public RoleHierarchy roleHierarchy() {
-
         RoleHierarchyImpl hierarchy = new RoleHierarchyImpl();
-
-        hierarchy.setHierarchy("ROLE_GM > ROLE_PM\n" +
-                "ROLE_GM > ROLE_SM\n" +
-                "ROLE_PM > ROLE_USER\n" +
-                "ROLE_SM > ROLE_USER"
+        hierarchy.setHierarchy("""
+                ROLE_GM > ROLE_PM
+                ROLE_GM > ROLE_SM
+                ROLE_PM > ROLE_USER
+                ROLE_SM > ROLE_USER
+                """
         );
 
         return hierarchy;
@@ -74,56 +72,26 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        // cors
         http
-                .cors((corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
+                .cors(corsConfigurer -> corsConfigurer.configurationSource(corsConfiguration()));
 
-                    @Override
-                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-
-                        CorsConfiguration configuration = new CorsConfiguration();
-
-                        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
-                        configuration.setAllowedOriginPatterns(corsPath);  //2024-02-02 수정
-                        configuration.setAllowedMethods(Collections.singletonList("*"));
-                        configuration.setAllowCredentials(true);
-                        configuration.setAllowedHeaders(Collections.singletonList("*"));
-                        configuration.setMaxAge(3600L);
-
-                        configuration.setExposedHeaders(Collections.singletonList("Authorization"));
-
-                        return configuration;
-                    }
-                })));
-
-        //csrf disable
+        // csrf disable
         http
-                .csrf((auth) -> auth.disable());
+                .csrf(AbstractHttpConfigurer::disable);
 
-        //From 로그인 방식 disable
+        // From 로그인 방식 disable
         http
-                .formLogin((auth) -> auth.disable());
+                .formLogin(AbstractHttpConfigurer::disable);
 
-        //http basic 인증 방식 disable
+        // http basic 인증 방식 disable
         http
-                .httpBasic((auth) -> auth.disable());
+                .httpBasic(AbstractHttpConfigurer::disable);
 
-        // 접근 권한 설정
-        // 계층 권한으로 페이지 접근 제한
+        // Session 설정
         http
-                .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/", "/api/users/login", "/api/users/email/**", "/api/users/join").permitAll()
-//                        .requestMatchers("/api/admin/**").hasAnyRole("GM", "SM", "PM")
-//                        .anyRequest().authenticated());
-                        .anyRequest().permitAll());
-
-
-        // 커스텀 필터 적용
-        http
-                .addFilterBefore(new JWTFilter(jwtUtil, userRepository, refreshTokenRepository), LoginFilter.class);
-
-        // 커스텀 필터 적용
-        http
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshTokenRepository), UsernamePasswordAuthenticationFilter.class);
+                .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         // 로그아웃 접근 경로 설정, 접근 시 동작할 서비스(logoutService) 지정
         http
@@ -132,11 +100,48 @@ public class SecurityConfig {
                         .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext())
                 );
 
-        //세션 설정
+        // 접근 권한 설정
+        // 계층 권한으로 페이지 접근 제한
         http
-                .sessionManagement((session) -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                .authorizeHttpRequests((auth) -> auth
+                        .requestMatchers("/", "/api/users/login", "/api/users/email/**", "/api/users/join").permitAll()
+                        .requestMatchers("/api/admin/**").hasAnyRole("GM", "SM", "PM")
+                        .anyRequest().permitAll());
+//                        .anyRequest().authenticated());
+
+
+        // Error Handling
+        http
+                .exceptionHandling((eh) -> eh
+                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint(jwtUtil))
+                        .accessDeniedHandler(new CustomAccessDeniedHandler()));
+
+        // UsernamePasswordAuthenticationFilter 자리에 LoginFilter 삽입 (실제로 override 되지는 않음)
+        http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshTokenRepository), UsernamePasswordAuthenticationFilter.class);
+
+        // LoginFilter 앞에 JWTFilter 삽입
+        http.addFilterBefore(new JWTFilter(jwtUtil, userRepository, refreshTokenRepository), LoginFilter.class);
+
+        // JWTFilter 앞에 ExceptionHandlerFilter 삽입
+        http.addFilterBefore(new ExceptionHandlerFilter(jwtUtil), JWTFilter.class);
 
         return http.build();
+    }
+
+    private CorsConfigurationSource corsConfiguration() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+        configuration.setAllowedOriginPatterns(corsPath);  //2024-02-02 수정
+        configuration.setAllowedMethods(Collections.singletonList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedHeaders(Collections.singletonList("*"));
+        configuration.setExposedHeaders(Collections.singletonList("Authorization"));
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
     }
 }
