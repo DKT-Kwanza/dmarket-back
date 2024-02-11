@@ -24,7 +24,7 @@ class UserTest {
 
         User user = User.builder()
                 .userEmail("test@gachon.com")
-                .password("test123!@#")
+                .userPassword("test123!@#")
                 .userDktNum(131)
                 .userName("홍길동")
                 .userPhoneNum("010-1234-1234")

@@ -4,6 +4,11 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.4'
 	id 'jacoco'
 	id 'org.sonarqube' version '4.4.1.3373'
+	id "org.asciidoctor.jvm.convert" version "3.3.2"
+}
+
+ext{
+    snippetDir = file('build/generated-snippets') //snippets 파일을 저장할 디렉토리 생성
 }
 
 group = 'com'
@@ -34,6 +39,7 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
 	implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
 	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+	implementation 'com.auth0:java-jwt:3.18.1'
 	//implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
 	//implementation 'org.springframework.kafka:spring-kafka'
 	//implementation 'org.apache.kafka:kafka-streams'
@@ -43,18 +49,20 @@ dependencies {
 //	runtimeOnly 'com.mysql:mysql-connector-j'
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 	annotationProcessor 'org.projectlombok:lombok'
+	
 
 	testImplementation 'org.mockito:mockito-core:3.12.4'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	//testImplementation 'org.springframework.kafka:spring-kafka-test'
+	testImplementation group: 'org.springframework.restdocs', name: 'spring-restdocs-mockmvc'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 }
 jacoco {
-	toolVersion = "0.8.7"
+    toolVersion = "0.8.8"
 }
 
 test {
@@ -74,4 +82,16 @@ sonarqube {
 		property "sonar.language", "java"
 		property "sonar.encoding", "UTF-8"
 	}
+}
+asciidoctor{ //asciidoctor 설정 task
+    inputs.dir snippetDir //snippets 디렉토리를 입력으로 함
+    dependsOn test // test task를 의존하도록 하여, 문서 생성 전에 test를 수행하도록 함
+}
+ 
+bootJar{ //springboot를 이용한 jar 파일 생성 시 필요한 설정 task
+    dependsOn asciidoctor //asciidoctor 를 의존하도록 하여, bootJar 생성 전에 asciidoctor task를 수행하도록 함
+    // (jar 파일 생성 시, 문서 생성을 보장 함)
+    from("build/docs/asciidoc"){ //문서 생성 시, Jar 파일 내 static/docs 에도 복사되도록 함
+        into 'BOOT-INF/classes/static/docs'
+    }
 }

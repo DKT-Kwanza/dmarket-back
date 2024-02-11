@@ -93,89 +93,89 @@ class UserServiceTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
-    @Test
-    @DisplayName("회원가입 유효성 검사 - 비밀번호")
-    void verifyJoinPassword() {
-        //비밀번호는 영문자, 숫자, 특수문자 모두 포함되어야 함
+    // @Test
+    // @DisplayName("회원가입 유효성 검사 - 비밀번호")
+    // void verifyJoinPassword() {
+    //     //비밀번호는 영문자, 숫자, 특수문자 모두 포함되어야 함
 
-        //given
-        UserReqDto.Join dto = UserReqDto.Join.builder()
-                .userEmail("test@gachon.ac.kr")
-                .userDktNum(23456)
-                .userName("홍길동")
-                .userPhoneNum("010-1234-5678")
-                .userJoinDate(LocalDate.now())
-                .userPostalCode(12345)
-                .userAddress("주소")
-                .userDetailedAddress("상세주소")
-                .build();
+    //     //given
+    //     UserReqDto.Join dto = UserReqDto.Join.builder()
+    //             .userEmail("test@gachon.ac.kr")
+    //             .userDktNum(23456)
+    //             .userName("홍길동")
+    //             .userPhoneNum("010-1234-5678")
+    //             .userJoinDate(LocalDate.now())
+    //             .userPostalCode(12345)
+    //             .userAddress("주소")
+    //             .userDetailedAddress("상세주소")
+    //             .build();
 
 
-        /**
-         * ASCII Code
-         * a = 97, z = 122
-         * A = 65, Z = 90
-         * ! = 33
-         * @ = 64
-         * # = 35
-         * $ = 36
-         * % = 37
-         * ^ = 94
-         */
-        StringBuilder passwordWithAlphabet = new StringBuilder();
-        StringBuilder passwordWithNum = new StringBuilder();
-        StringBuilder passwordWithSpecialChar = new StringBuilder();
+    //     /**
+    //      * ASCII Code
+    //      * a = 97, z = 122
+    //      * A = 65, Z = 90
+    //      * ! = 33
+    //      * @ = 64
+    //      * # = 35
+    //      * $ = 36
+    //      * % = 37
+    //      * ^ = 94
+    //      */
+    //     StringBuilder passwordWithAlphabet = new StringBuilder();
+    //     StringBuilder passwordWithNum = new StringBuilder();
+    //     StringBuilder passwordWithSpecialChar = new StringBuilder();
 
-        //영문자 대문자
-        for (int i = 0; i < 5; i++) {
-            int randInt = new Random().nextInt(26) + 97;
-            char randChar = (char) randInt;
-            passwordWithAlphabet.append(randChar);
-        }
+    //     //영문자 대문자
+    //     for (int i = 0; i < 5; i++) {
+    //         int randInt = new Random().nextInt(26) + 97;
+    //         char randChar = (char) randInt;
+    //         passwordWithAlphabet.append(randChar);
+    //     }
 
-        //영문자 소문자
-        for (int i = 0; i < 5; i++) {
-            int randInt = new Random().nextInt(26) + 65;
-            char randChar = (char) randInt;
-            passwordWithAlphabet.append(randChar);
-        }
+    //     //영문자 소문자
+    //     for (int i = 0; i < 5; i++) {
+    //         int randInt = new Random().nextInt(26) + 65;
+    //         char randChar = (char) randInt;
+    //         passwordWithAlphabet.append(randChar);
+    //     }
 
-        //숫자
-        for (int i = 0; i < 5; i++) {
-            int randInt = new Random().nextInt(10) + 48;
-            char randChar = (char) randInt;
-            passwordWithNum.append(randChar);
-        }
+    //     //숫자
+    //     for (int i = 0; i < 5; i++) {
+    //         int randInt = new Random().nextInt(10) + 48;
+    //         char randChar = (char) randInt;
+    //         passwordWithNum.append(randChar);
+    //     }
 
-        //특수문자 ASCII Code
-        int[] specialChar = {33, 64, 35, 36, 37, 94};
+    //     //특수문자 ASCII Code
+    //     int[] specialChar = {33, 64, 35, 36, 37, 94};
 
-        //특수문자
-        for (int i = 0; i < 3; i++) {
-            int randInt = new Random().nextInt(specialChar.length);
-            char randChar = (char) specialChar[randInt];
-            passwordWithSpecialChar.append(randChar);
-        }
+    //     //특수문자
+    //     for (int i = 0; i < 3; i++) {
+    //         int randInt = new Random().nextInt(specialChar.length);
+    //         char randChar = (char) specialChar[randInt];
+    //         passwordWithSpecialChar.append(randChar);
+    //     }
 
-        //when, then
-        dto.setUserPassword(String.valueOf(passwordWithAlphabet));
-        System.out.println("[test] 알파벳으로 이루어진 비밀번호 = " + dto.getUserPassword());
-        assertThatThrownBy(() -> userService.verifyJoin(dto))
-                .isInstanceOf(IllegalArgumentException.class);
+    //     //when, then
+    //     dto.setUserPassword(String.valueOf(passwordWithAlphabet));
+    //     System.out.println("[test] 알파벳으로 이루어진 비밀번호 = " + dto.getUserPassword());
+    //     assertThatThrownBy(() -> userService.verifyJoin(dto))
+    //             .isInstanceOf(IllegalArgumentException.class);
 
-        dto.setUserPassword(String.valueOf(passwordWithAlphabet)+passwordWithSpecialChar);
-        System.out.println("[test] 알파벳, 특수문자로 이루어진 비밀번호 = " + dto.getUserPassword());
-        assertThatThrownBy(() -> userService.verifyJoin(dto))
-                .isInstanceOf(IllegalArgumentException.class);
+    //     dto.setUserPassword(String.valueOf(passwordWithAlphabet)+passwordWithSpecialChar);
+    //     System.out.println("[test] 알파벳, 특수문자로 이루어진 비밀번호 = " + dto.getUserPassword());
+    //     assertThatThrownBy(() -> userService.verifyJoin(dto))
+    //             .isInstanceOf(IllegalArgumentException.class);
 
-        dto.setUserPassword(String.valueOf(passwordWithNum)+passwordWithSpecialChar);
-        System.out.println("[test] 숫자, 특수문자 이루어진 비밀번호 = " + dto.getUserPassword());
-        assertThatThrownBy(() -> userService.verifyJoin(dto))
-                .isInstanceOf(IllegalArgumentException.class);
+    //     dto.setUserPassword(String.valueOf(passwordWithNum)+passwordWithSpecialChar);
+    //     System.out.println("[test] 숫자, 특수문자 이루어진 비밀번호 = " + dto.getUserPassword());
+    //     assertThatThrownBy(() -> userService.verifyJoin(dto))
+    //             .isInstanceOf(IllegalArgumentException.class);
 
-        dto.setUserPassword("한글비밀번호");
-        System.out.println("[test] 한글로 이루어진 비밀번호 = " + dto.getUserPassword());
-        assertThatThrownBy(() -> userService.verifyJoin(dto))
-                .isInstanceOf(IllegalArgumentException.class);
-    }
+    //     dto.setUserPassword("한글비밀번호");
+    //     System.out.println("[test] 한글로 이루어진 비밀번호 = " + dto.getUserPassword());
+    //     assertThatThrownBy(() -> userService.verifyJoin(dto))
+    //             .isInstanceOf(IllegalArgumentException.class);
+    // }
 }

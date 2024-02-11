@@ -7,6 +7,7 @@ public class UserCommonDto {
     @Getter
     @Setter
     @AllArgsConstructor
+    @ToString
     public static class TokenResponseDto {
         private String accesstoken;
         private String refreshtoken;
