@@ -32,4 +32,10 @@ public class Category {
 
     @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
     private List<Category> child = new ArrayList<>();
+
+    public class RedisCacheKey {
+
+        public static final String CATEGORY_LIST = "categoryList";
+        public static final String PRODUCT_LIST = "productList";
+    }
 }

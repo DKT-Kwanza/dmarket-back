@@ -113,8 +113,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/", "/api/users/login", "/api/users/email/**", "/api/users/join").permitAll()
 //                        .requestMatchers("/api/admin/**").hasAnyRole("GM", "SM", "PM")
-//                        .anyRequest().authenticated());
-                        .anyRequest().permitAll());
+                        .anyRequest().authenticated());
+             //           .anyRequest().permitAll());
 
 
         // 커스텀 필터 적용

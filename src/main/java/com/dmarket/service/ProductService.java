@@ -10,8 +10,11 @@ import com.dmarket.dto.response.QnaResDto;
 import com.dmarket.exception.BadRequestException;
 import com.dmarket.exception.NotFoundException;
 import com.dmarket.repository.product.*;
+import com.dmarket.repository.user.UserRepository;
+import com.dmarket.repository.user.WishlistRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,7 +39,9 @@ public class ProductService {
     // 조회가 아닌 메서드들은 꼭 @Transactional 넣어주세요 (CUD, 입력/수정/삭제)
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
     private final QnaRepository qnaRepository;
+    private final WishlistRepository wishlistRepository;
     private final ProductImgsRepository productImgsRepository;
     private final ProductOptionRepository productOptionRepository;
     private final ProductReviewRepository productReviewRepository;
@@ -47,11 +52,8 @@ public class ProductService {
     private static final int REVIEW_PAGE_POST_COUNT = 5;
     private static final Integer MAX_VALUE = 9999999;
 
-
-    /**
-     * 카테고리: Category
-     */
     // 카테고리 전체 목록 depth별로 조회
+    @Cacheable(value = Category.RedisCacheKey.CATEGORY_LIST, key = "#categoryDepthLevel", cacheManager = "redisCacheManager") // 캐시 적용, 캐시 키 설정, 캐시 저장 기간
     public List<CategoryResDto.CategoryListResDto> getCategories(Integer categoryDepthLevel) {
         return categoryRepository.findByCategoryDepth(categoryDepthLevel);
     }
@@ -76,7 +78,9 @@ public class ProductService {
     }
 
     // 카테고리별 상품 목록 필터링 조회
-    public Page<ProductResDto.ProductListResDto> getCategoryProducts(int pageNo, Long cateId, String sorter, Integer minPrice, Integer maxPrice, Float star) {
+    //@Cacheable(value = Category.RedisCacheKey.PRODUCT_LIST, key = "#productItemList", cacheManager = "redisCacheManager")
+    public Page<ProductResDto.ProductListResDto> getCategoryProducts(int pageNo, Long cateId,
+                                                 String sorter, Integer minPrice, Integer maxPrice, Float star) {
         findCategoryById(cateId);
         sorter = sorterValidation(sorter);
         pageNo = pageValidation(pageNo);
@@ -89,7 +93,8 @@ public class ProductService {
     }
 
     // 상품 목록 조건 검색
-    public Page<ProductResDto.ProductListResDto> getSearchProducts(int pageNo, String query, String sorter, Integer minPrice, Integer maxPrice, Float star) {
+    public Page<ProductResDto.ProductListResDto> getSearchProducts(int pageNo, String query,
+                                                     String sorter, Integer minPrice, Integer maxPrice, Float star) {
         if (query.isEmpty()) {
             throw new BadRequestException(INVALID_SEARCH_VALUE);
         }
@@ -163,21 +168,17 @@ public class ProductService {
     public ProductResDto.ProductInfoResDto getProductInfo(Long productId) {
 
         // 싱품 정보 조회
-        Product product = findProductById(productId);
-
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
         // 상품의 카테고리 depth 1, depth2 조회 후 합치기
         Category category = categoryRepository.findByCategoryId(product.getCategoryId());
         String productCategory = category.getParent().getCategoryName() + " > " + category.getCategoryName();
-
         // 상품의 리뷰 개수 조회
         Long reviewCnt = productReviewRepository.countByProductId(productId);
-
         // 상품 옵션 목록, 옵션별 재고 조회
         List<ProductCommonDto.ProductOptionDto> opts = productOptionRepository.findOptionsByProductId(productId);
-
         // 상품 이미지 목록 조회
         List<String> imgs = productImgsRepository.findAllByProductId(productId);
-
         // DTO 생성 및 반환
         return new ProductResDto.ProductInfoResDto(product, productCategory, reviewCnt, opts, imgs);
     }
@@ -269,7 +270,6 @@ public class ProductService {
                 .reviewImg(reviewReqDto.getReviewImg())
                 .build();
         productReviewRepository.save(productReview);
-
         // 상품 정보에 별점 반영
         updateProductRating(productId, reviewReqDto.getReviewRating());
     }

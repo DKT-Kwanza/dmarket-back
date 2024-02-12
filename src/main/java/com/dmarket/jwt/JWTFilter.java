@@ -54,6 +54,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
         //request에서 Authorization 헤더를 찾음
         String authorization = request.getHeader("Authorization");
+        System.out.println("authorization = " + authorization);
 
         //Authorization 헤더 검증
         if (authorization == null || !authorization.startsWith("Bearer ")) {
@@ -91,6 +92,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
         //토큰에서 정보 추출
         String type = jwtUtil.getType(token);
+        System.out.println("type = " + type);
         String email = jwtUtil.getEmail(token);
         String role = jwtUtil.getRole(token);
         Long tokenUserId = jwtUtil.getUserId(token);
@@ -102,7 +104,7 @@ public class JWTFilter extends OncePerRequestFilter {
             if (refreshTokenRepository.existsById(token)) {
                 refreshTokenRepository.deleteById(token);
                 String newAccessToken = jwtUtil.createAccessJwt(tokenUserId, email, role);
-                String newRefreshToken = jwtUtil.createRefreshJwt();
+                String newRefreshToken = jwtUtil.createRefreshJwt(tokenUserId);
                 refreshTokenRepository.save(new RefreshToken(newRefreshToken, newAccessToken, email));
 
                 UserCommonDto.TokenResponseDto tokenResponseDto = new UserCommonDto.TokenResponseDto(newAccessToken, newRefreshToken, tokenUserId, role);
@@ -110,7 +112,7 @@ public class JWTFilter extends OncePerRequestFilter {
                 CMResDto<UserCommonDto.TokenResponseDto> cmRespDto = CMResDto.<UserCommonDto.TokenResponseDto>builder()
                         .code(200)
                         .msg("새로운 토큰 발급 Success")
-                        //.data(tokenResponseDto)
+                        .data(tokenResponseDto)
                         .build();
 
                 writeResponse(response, cmRespDto);

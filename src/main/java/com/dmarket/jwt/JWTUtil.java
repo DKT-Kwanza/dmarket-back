@@ -81,8 +81,9 @@ public class JWTUtil {
                 .compact();
     }
 
-    public String createRefreshJwt() {
+    public String createRefreshJwt(Long userId) {
         return Jwts.builder()
+                .claim("userId",userId)
                 .claim("type", "RTK")
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + 240 * 60 * 60 * 1000))

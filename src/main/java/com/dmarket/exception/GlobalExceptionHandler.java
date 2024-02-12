@@ -145,7 +145,7 @@ public class GlobalExceptionHandler {
     // 위의 경우를 제외한 모든 에러 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<CMResDto<String>> handleException(Exception e) {
-        log.error("[Exception] message: {}", e.getMessage());
+        log.error("[Exception] message: {},{}", e.getMessage(), e.getClass(), e.getCause());
         ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
         return new ResponseEntity<>(CMResDto.errorRes(errorCode), HttpStatus.INTERNAL_SERVER_ERROR);
     }
