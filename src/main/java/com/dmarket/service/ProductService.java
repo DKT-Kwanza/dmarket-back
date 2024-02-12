@@ -2,6 +2,7 @@ package com.dmarket.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
@@ -121,8 +122,68 @@ public class ProductService {
 //        return productRepository.findByQuery(pageable, query, minPrice, maxPrice, star);
 //    }
 
+//    public SearchResponse<ProductDocument> getSearchProducts(int pageNo, String query, String sorter,
+//                                                                   Integer minPrice, Integer maxPrice, Float star) throws IOException {
+//        if (query.isEmpty()) {
+//            throw new BadRequestException(INVALID_SEARCH_VALUE);
+//        }
+//        sorter = sorterValidation(sorter);
+//        pageNo = pageValidation(pageNo);
+//        minPrice = minPrice > MAX_VALUE ? MAX_VALUE : minPrice;
+//        maxPrice = maxPrice < 0 ? MAX_VALUE : maxPrice;
+//        star = starValidation(star);
+//        Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
+//
+//        return elasticsearchService.getElasticSearchProducts(query);
+//
+////            System.out.println(response);
+////            List<ProductDocument> comments = new ArrayList<>();
+////
+////            for (Hit<ProductDocument> hit: response.hits().hits()) {
+////
+////                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+////                Date timeInDate =hit.source().getProduct_created_date();
+////                String timeInFormat = sdf.format(timeInDate);
+////
+////                System.out.println(hit.source().getProduct_id());
+////                System.out.println(timeInFormat);
+//
+////                comments.add(new BoardDocumentDto(hit.source().getBoard_id(),
+////                        hit.source().getMember_id(),hit.source().getNickname(),
+////                        hit.source().getLocal(),
+////                        hit.source().getTitle(), hit.source().getContents(),
+////                        hit.source().getSummary(),
+////                        timeInFormat,
+////                        hit.source().getViews(),
+////                        hit.source().getComment_size()));
+////            }
+//            //return comments;
+////            return response;
+////        } catch (ElasticsearchException | IOException e) {
+////            // TODO Auto-generated catch block
+////            e.printStackTrace();
+////            throw new IOException(e);
+////        }
+////        List<String> fields = new ArrayList<>();
+////        fields.add("product_name");
+////        fields.add("product_brand");
+////
+////        Supplier<Query> supplier = ESUtil.supplierQueryForMultiMatch(query, fields);
+////        SearchResponse<ProductDocument> response = client.search(s -> s
+////                            .index("sourcedb.dmarket.product").size(5000)
+////                            .query(supplier.get()), ProductDocument.class);
+//
+//
+//    }
+
+
+
+
+
+
+    //new getsearch
     public SearchResponse<ProductDocument> getSearchProducts(int pageNo, String query, String sorter,
-                                                                   Integer minPrice, Integer maxPrice, Float star) throws IOException {
+                                                             Integer minPrice, Integer maxPrice, Float star) throws IOException {
         if (query.isEmpty()) {
             throw new BadRequestException(INVALID_SEARCH_VALUE);
         }
@@ -133,47 +194,25 @@ public class ProductService {
         star = starValidation(star);
         Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
 
-        return elasticsearchService.getElasticSearchProducts(query);
+        SearchResponse<ProductDocument> response = elasticsearchService.getElasticSearchProducts(query);
 
-//            System.out.println(response);
-//            List<ProductDocument> comments = new ArrayList<>();
-//
-//            for (Hit<ProductDocument> hit: response.hits().hits()) {
-//
-//                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-//                Date timeInDate =hit.source().getProduct_created_date();
-//                String timeInFormat = sdf.format(timeInDate);
-//
-//                System.out.println(hit.source().getProduct_id());
-//                System.out.println(timeInFormat);
+        for (Hit<ProductDocument> hit: response.hits().hits()) {
+            ProductDocument product = hit.source();
+            // 상품 이름 출력
+            System.out.println("Product Name: " + product.getProduct_name());
+        }
 
-//                comments.add(new BoardDocumentDto(hit.source().getBoard_id(),
-//                        hit.source().getMember_id(),hit.source().getNickname(),
-//                        hit.source().getLocal(),
-//                        hit.source().getTitle(), hit.source().getContents(),
-//                        hit.source().getSummary(),
-//                        timeInFormat,
-//                        hit.source().getViews(),
-//                        hit.source().getComment_size()));
-//            }
-            //return comments;
-//            return response;
-//        } catch (ElasticsearchException | IOException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//            throw new IOException(e);
-//        }
-//        List<String> fields = new ArrayList<>();
-//        fields.add("product_name");
-//        fields.add("product_brand");
-//
-//        Supplier<Query> supplier = ESUtil.supplierQueryForMultiMatch(query, fields);
-//        SearchResponse<ProductDocument> response = client.search(s -> s
-//                            .index("sourcedb.dmarket.product").size(5000)
-//                            .query(supplier.get()), ProductDocument.class);
-
-
+        return response;
     }
+
+
+
+
+
+
+
+
+
 
     // 추천 상품 조회
     public List<ProductResDto.RecommendProductResDto> recommendProduct(Long productId) {

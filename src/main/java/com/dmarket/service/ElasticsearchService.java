@@ -24,6 +24,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ElasticsearchService {
+
+
     RestClient restClient = RestClient
             .builder(HttpHost.create(serverUrl))
             .setDefaultHeaders(new Header[]{
