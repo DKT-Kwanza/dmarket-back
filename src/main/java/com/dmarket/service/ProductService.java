@@ -1,5 +1,10 @@
 package com.dmarket.service;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.ElasticsearchTransport;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.dmarket.domain.product.*;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.*;
@@ -7,12 +12,17 @@ import com.dmarket.dto.request.ReviewReqDto;
 import com.dmarket.dto.response.CategoryResDto;
 import com.dmarket.dto.response.ProductResDto;
 import com.dmarket.dto.response.QnaResDto;
+import com.dmarket.elastic.ESUtil;
 import com.dmarket.exception.BadRequestException;
 import com.dmarket.exception.NotFoundException;
 import com.dmarket.repository.product.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
+import org.apache.http.Header;
+import org.apache.http.HttpHost;
+import org.apache.http.message.BasicHeader;
+import org.elasticsearch.client.RestClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +32,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.io.IOException;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.dmarket.exception.ErrorCode.*;
@@ -42,6 +54,7 @@ public class ProductService {
     private final ProductOptionRepository productOptionRepository;
     private final ProductReviewRepository productReviewRepository;
     private final UserService userService;
+    private final ElasticsearchService elasticsearchService;
 
     private static final int PRODUCT_PAGE_POST_COUNT = 16;
     private static final int QNA_PAGE_POST_COUNT = 5;
@@ -52,6 +65,7 @@ public class ProductService {
     /**
      * 카테고리: Category
      */
+
     // 카테고리 전체 목록 depth별로 조회
     @Cacheable(value = Category.RedisCacheKey.CATEGORY_LIST, key = "#categoryDepthLevel", cacheManager = "redisCacheManager") // 캐시 적용, 캐시 키 설정, 캐시 저장 기간
     public List<CategoryResDto.CategoryListResDto> getCategories(Integer categoryDepthLevel) {
@@ -92,7 +106,23 @@ public class ProductService {
     }
 
     // 상품 목록 조건 검색
-    public Page<ProductResDto.ProductListResDto> getSearchProducts(int pageNo, String query, String sorter, Integer minPrice, Integer maxPrice, Float star) {
+//    public Page<ProductResDto.ProductListResDto> getSearchProducts(int pageNo, String query,
+//                                                     String sorter, Integer minPrice, Integer maxPrice, Float star) {
+//        if (query.isEmpty()) {
+//            throw new BadRequestException(INVALID_SEARCH_VALUE);
+//        }
+//        sorter = sorterValidation(sorter);
+//        pageNo = pageVaildation(pageNo);
+//        minPrice = minPrice > MAX_VALUE ? MAX_VALUE : minPrice;
+//        maxPrice = maxPrice < 0 ? MAX_VALUE : maxPrice;
+//        star = starValidation(star);
+//
+//        Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
+//        return productRepository.findByQuery(pageable, query, minPrice, maxPrice, star);
+//    }
+
+    public SearchResponse<ProductDocument> getSearchProducts(int pageNo, String query, String sorter,
+                                                                   Integer minPrice, Integer maxPrice, Float star) throws IOException {
         if (query.isEmpty()) {
             throw new BadRequestException(INVALID_SEARCH_VALUE);
         }
@@ -101,9 +131,48 @@ public class ProductService {
         minPrice = minPrice > MAX_VALUE ? MAX_VALUE : minPrice;
         maxPrice = maxPrice < 0 ? MAX_VALUE : maxPrice;
         star = starValidation(star);
-
         Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
-        return productRepository.findByQuery(pageable, query, minPrice, maxPrice, star);
+
+        return elasticsearchService.getElasticSearchProducts(query);
+
+//            System.out.println(response);
+//            List<ProductDocument> comments = new ArrayList<>();
+//
+//            for (Hit<ProductDocument> hit: response.hits().hits()) {
+//
+//                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//                Date timeInDate =hit.source().getProduct_created_date();
+//                String timeInFormat = sdf.format(timeInDate);
+//
+//                System.out.println(hit.source().getProduct_id());
+//                System.out.println(timeInFormat);
+
+//                comments.add(new BoardDocumentDto(hit.source().getBoard_id(),
+//                        hit.source().getMember_id(),hit.source().getNickname(),
+//                        hit.source().getLocal(),
+//                        hit.source().getTitle(), hit.source().getContents(),
+//                        hit.source().getSummary(),
+//                        timeInFormat,
+//                        hit.source().getViews(),
+//                        hit.source().getComment_size()));
+//            }
+            //return comments;
+//            return response;
+//        } catch (ElasticsearchException | IOException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//            throw new IOException(e);
+//        }
+//        List<String> fields = new ArrayList<>();
+//        fields.add("product_name");
+//        fields.add("product_brand");
+//
+//        Supplier<Query> supplier = ESUtil.supplierQueryForMultiMatch(query, fields);
+//        SearchResponse<ProductDocument> response = client.search(s -> s
+//                            .index("sourcedb.dmarket.product").size(5000)
+//                            .query(supplier.get()), ProductDocument.class);
+
+
     }
 
     // 추천 상품 조회
