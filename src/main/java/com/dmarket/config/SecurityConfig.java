@@ -105,7 +105,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/", "/api/users/login", "/api/users/email/**", "/api/users/join").permitAll()
-                        .requestMatchers("/api/admin/**").hasAnyRole("GM", "SM", "PM")
+//                        .requestMatchers("/api/admin/**").hasAnyRole("GM", "SM", "PM")
                         .anyRequest().permitAll());
 //                        .anyRequest().authenticated());
 
