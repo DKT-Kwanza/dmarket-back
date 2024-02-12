@@ -12,6 +12,7 @@ import java.time.temporal.ChronoUnit;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(indexes = @Index(name = "idx_category_id", columnList = "category_id"))
 public class Product {
 
     @Id

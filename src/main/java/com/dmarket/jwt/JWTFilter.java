@@ -51,15 +51,15 @@ public class JWTFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        log.debug("JWTFilter");
+        log.info("JWTFilter");
 //        //request에서 Authorization 헤더를 찾음
         String authHeader = jwtUtil.getAuthHeader(request);
-        log.debug("authHeader={}", authHeader);
+        log.info("authHeader={}", authHeader);
         String token = null;
 
         try {
             token = jwtUtil.getToken(authHeader);
-            log.debug("token={}", token);
+            log.info("token={}", token);
         } catch (IllegalArgumentException e) {
             log.warn(e.getMessage(), e.getCause());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -70,7 +70,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
             writeResponse(response, cmRespDto);
             //조건이 해당되면 메소드 종료 (필수)
-            filterChain.doFilter(request, response);
+            return;
         }
 
 //         헤더가 있기 때문에 헤더를 추출
@@ -95,6 +95,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
         //토큰에서 정보 추출
         String type = jwtUtil.getType(token);
+        log.info("tokenType={}", type);
         String email = jwtUtil.getEmail(token);
         String role = jwtUtil.getRole(token);
         Long tokenUserId = jwtUtil.getUserId(token);
@@ -106,7 +107,7 @@ public class JWTFilter extends OncePerRequestFilter {
             if (refreshTokenRepository.existsById(token)) {
                 refreshTokenRepository.deleteById(token);
                 String newAccessToken = jwtUtil.createAccessJwt(tokenUserId, email, role);
-                String newRefreshToken = jwtUtil.createRefreshJwt();
+                String newRefreshToken = jwtUtil.createRefreshJwt(tokenUserId);
                 refreshTokenRepository.save(new RefreshToken(newRefreshToken, newAccessToken, email));
 
                 UserCommonDto.TokenResponseDto tokenResponseDto = new UserCommonDto.TokenResponseDto(newAccessToken, newRefreshToken, tokenUserId, role);

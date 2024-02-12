@@ -811,7 +811,7 @@ public class AdminService {
 
         // 토큰 재발급
         String newaccessToken = jwtUtil.createAccessJwt(userId, newRole.getNewRole(), user.getUserEmail());
-        String newrefreshToken = jwtUtil.createRefreshJwt();
+        String newrefreshToken = jwtUtil.createRefreshJwt(userId);
 
         return new UserCommonDto.TokenResponseDto(newaccessToken, newrefreshToken, userId, newRole.toString());
     }

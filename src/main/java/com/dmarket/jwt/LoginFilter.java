@@ -76,7 +76,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String accesstoken = jwtUtil.createAccessJwt(userId, email, role);
 
         // RefreshToken 만료 시간 240시간
-        String refreshtoken = jwtUtil.createRefreshJwt();
+        String refreshtoken = jwtUtil.createRefreshJwt(userId);
 
         refreshTokenRepository.save(new RefreshToken(refreshtoken, accesstoken, email));
 

@@ -12,6 +12,7 @@ import com.dmarket.exception.NotFoundException;
 import com.dmarket.repository.product.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -52,6 +53,7 @@ public class ProductService {
      * 카테고리: Category
      */
     // 카테고리 전체 목록 depth별로 조회
+    @Cacheable(value = Category.RedisCacheKey.CATEGORY_LIST, key = "#categoryDepthLevel", cacheManager = "redisCacheManager") // 캐시 적용, 캐시 키 설정, 캐시 저장 기간
     public List<CategoryResDto.CategoryListResDto> getCategories(Integer categoryDepthLevel) {
         return categoryRepository.findByCategoryDepth(categoryDepthLevel);
     }
@@ -76,6 +78,7 @@ public class ProductService {
     }
 
     // 카테고리별 상품 목록 필터링 조회
+    //@Cacheable(value = Category.RedisCacheKey.PRODUCT_LIST, key = "#productItemList", cacheManager = "redisCacheManager")
     public Page<ProductResDto.ProductListResDto> getCategoryProducts(int pageNo, Long cateId, String sorter, Integer minPrice, Integer maxPrice, Float star) {
         findCategoryById(cateId);
         sorter = sorterValidation(sorter);
@@ -163,8 +166,8 @@ public class ProductService {
     public ProductResDto.ProductInfoResDto getProductInfo(Long productId) {
 
         // 싱품 정보 조회
-        Product product = findProductById(productId);
-
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
         // 상품의 카테고리 depth 1, depth2 조회 후 합치기
         Category category = categoryRepository.findByCategoryId(product.getCategoryId());
         String productCategory = category.getParent().getCategoryName() + " > " + category.getCategoryName();
