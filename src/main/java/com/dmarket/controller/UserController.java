@@ -2,7 +2,6 @@ package com.dmarket.controller;
 
 import com.dmarket.constant.InquiryType;
 import com.dmarket.domain.board.Inquiry;
-import com.dmarket.domain.order.Order;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.CartCommonDto;
 import com.dmarket.dto.common.InquiryRequestDto;
@@ -108,7 +107,7 @@ public class UserController {
     // 장바구니 상품 개수 조회
     @GetMapping("{userId}/cart-count")
     public ResponseEntity<?> getCartCount(@PathVariable(name = "userId") Long userId, HttpServletRequest request) {
-        System.out.println("userId = " + userId);
+        //System.out.println("userId = " + userId);
         ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;
@@ -198,16 +197,16 @@ public class UserController {
     // 장바구니 조회
     @GetMapping("/{userId}/cart")
     public ResponseEntity<?> getCarts(@PathVariable Long userId, HttpServletRequest request) {
-        System.out.println("test.A");
-        System.out.println("userId = " + userId);
-        System.out.println("request = " + request);
+        log.info("test.A");
+        log.info("userId={}", userId);
+        log.info("request={}", request);
         // 권한 검증 메서드
         ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
-            System.out.println("test.B");
+            log.info("test.B");
             return authorization;
         }
-        System.out.println("test.C");
+        log.info("test.C");
         List<CartCommonDto.CartListDto> cartListDtos = userService.getCartsFindByUserId(userId);
         CartResDto.TotalCartResDto totalCartResDto = new CartResDto.TotalCartResDto(cartListDtos);
         return new ResponseEntity<>(CMResDto.successDataRes(totalCartResDto), HttpStatus.OK);

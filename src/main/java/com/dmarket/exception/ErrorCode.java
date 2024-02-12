@@ -18,6 +18,8 @@ public enum ErrorCode {
 
     UNAUTHORIZED(401, "로그인이 필요한 서비스"),
     FAIL_LOGIN(401, "아이디, 비밀번호 오류"),
+    INVALID_TOKEN(401, "잘못된 토큰입니다."),
+    EXPIRED_TOKEN(401, "만료된 토큰입니다."),
 
     FORBIDDEN(403, "접근 권한 없음"),
 

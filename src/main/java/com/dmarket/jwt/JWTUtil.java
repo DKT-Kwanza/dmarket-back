@@ -1,6 +1,5 @@
 package com.dmarket.jwt;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +14,6 @@ import java.util.Date;
 public class JWTUtil {
 
     private SecretKey secretKey;
-    private ObjectMapper objectMapper;
 
     public JWTUtil(@Value("${spring.jwt.secret}") String secret) {
         this.secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
@@ -54,17 +52,6 @@ public class JWTUtil {
         return header.substring("Bearer ".length());
     }
 
-    // 토큰 유효성, 만료일자 확인 반환
-    public boolean isTokenValid(String token) {
-        try {
-            Date now = new Date();
-            Date exp = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration();
-            return now.before(exp);
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
     public void isExpired(String token) {
         Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration();
     }
@@ -83,7 +70,7 @@ public class JWTUtil {
 
     public String createRefreshJwt(Long userId) {
         return Jwts.builder()
-                .claim("userId",userId)
+                .claim("userId", userId)
                 .claim("type", "RTK")
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + 240 * 60 * 60 * 1000))

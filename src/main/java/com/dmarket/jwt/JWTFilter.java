@@ -42,23 +42,26 @@ public class JWTFilter extends OncePerRequestFilter {
     @Value("${spring.jwt.ReFreshexpireT}")
     private Long RefreshJwtExpiration;
 
-//    public JWTFilter(JWTUtil jwtUtil, UserRepository userRepository, RefreshTokenRepository refreshTokenRepository) {
-//        this.userRepository = userRepository;
-//        this.jwtUtil = jwtUtil;
-//        this.refreshTokenRepository = refreshTokenRepository;
-//    }
-
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String[] excludePath = {"/", "/api/users/login", "/api/users/join", "api/users/email/**"};
+        String path = request.getRequestURI();
+        return Arrays.stream(excludePath).anyMatch(path::startsWith);
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        log.info("JWTFilter");
+//        //request에서 Authorization 헤더를 찾음
+        String authHeader = jwtUtil.getAuthHeader(request);
+        log.info("authHeader={}", authHeader);
+        String token = null;
 
-        //request에서 Authorization 헤더를 찾음
-        String authorization = request.getHeader("Authorization");
-        System.out.println("authorization = " + authorization);
-
-        //Authorization 헤더 검증
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-
+        try {
+            token = jwtUtil.getToken(authHeader);
+            log.info("token={}", token);
+        } catch (IllegalArgumentException e) {
+            log.warn(e.getMessage(), e.getCause());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             CMResDto<Void> cmRespDto = CMResDto.<Void>builder()
                     .code(HttpServletResponse.SC_UNAUTHORIZED)  // 401 Unauthorized
@@ -70,8 +73,8 @@ public class JWTFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 헤더가 있기 때문에 헤더를 추출
-        String token = authorization.split(" ")[1];
+//         헤더가 있기 때문에 헤더를 추출
+//        String token = authHeader.split(" ")[1];
 
         // 헤더가 만료되었는 확인
         try {
@@ -92,7 +95,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
         //토큰에서 정보 추출
         String type = jwtUtil.getType(token);
-        System.out.println("type = " + type);
+        log.info("tokenType={}", type);
         String email = jwtUtil.getEmail(token);
         String role = jwtUtil.getRole(token);
         Long tokenUserId = jwtUtil.getUserId(token);
@@ -134,11 +137,13 @@ public class JWTFilter extends OncePerRequestFilter {
         UserResDto.CustomUserDetails customUserDetails = new UserResDto.CustomUserDetails(userEntity);
         Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authToken);
+        log.info("userId={}", userEntity.getUserId());
         filterChain.doFilter(request, response);
     }
 
+
     // JSON 응답을 생성하는 메소드
-    private void writeResponse(HttpServletResponse response, CMResDto<?> cmRespDto) {
+    protected static void writeResponse(HttpServletResponse response, CMResDto<?> cmRespDto) {
         try {
             // cmRespDto 객체로 변환해서 타입 반환.
             ObjectMapper objectMapper = new ObjectMapper();
@@ -162,12 +167,5 @@ public class JWTFilter extends OncePerRequestFilter {
             // 에러 핸들링
             log.warn(e.getMessage(), e.getCause());
         }
-    }
-
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        String[] excludePath = {"/", "/api/users/login", "/api/users/join", "api/users/email/**"};
-        String path = request.getRequestURI();
-        return Arrays.stream(excludePath).anyMatch(path::startsWith);
     }
 }
