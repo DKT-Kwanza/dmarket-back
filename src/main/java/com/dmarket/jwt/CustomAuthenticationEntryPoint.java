@@ -24,8 +24,8 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         String authHeader = jwtUtil.getAuthHeader(request);
         try {
-            log.debug("commence");
-            log.debug("authException");
+            log.info("commence");
+            log.info("authException");
             log.debug(authException.getMessage(), authException.getCause());
 
             String token = jwtUtil.getToken(authHeader);

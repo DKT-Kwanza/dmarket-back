@@ -41,9 +41,8 @@ public class ExceptionHandlerFilter extends OncePerRequestFilter {
 
         } catch (JwtException | IllegalArgumentException e) {
             //유효하지 않은 토큰
-            String msg = ErrorCode.INVALID_TOKEN.getMsg();
-            log.warn(msg, e.getCause());
-            CMResDto<String> resDto = CMResDto.errorWithMsgRes(ErrorCode.INVALID_TOKEN, msg);
+            log.warn(e.getMessage(), e.getCause());
+            CMResDto<String> resDto = CMResDto.errorWithMsgRes(ErrorCode.INVALID_TOKEN, e.getMessage());
             JWTFilter.writeResponse(response, resDto);
 
         } catch (RuntimeException e) {

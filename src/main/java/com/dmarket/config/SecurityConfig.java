@@ -123,7 +123,7 @@ public class SecurityConfig {
         http.addFilterBefore(new JWTFilter(jwtUtil, userRepository, refreshTokenRepository), LoginFilter.class);
 
         // JWTFilter 앞에 ExceptionHandlerFilter 삽입
-        http.addFilterBefore(new ExceptionHandlerFilter(jwtUtil), JWTFilter.class);
+//        http.addFilterBefore(new ExceptionHandlerFilter(jwtUtil), JWTFilter.class);
 
         return http.build();
     }
