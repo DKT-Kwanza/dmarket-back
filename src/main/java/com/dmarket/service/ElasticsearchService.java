@@ -1,6 +1,7 @@
 package com.dmarket.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.FieldSort;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.MultiMatchQuery;
@@ -69,7 +70,7 @@ public class ElasticsearchService {
 //    }
 
 
-    public SearchResponse<ProductDocument> getElasticSearchProducts(int pageNo, String query,  Integer minPrice, Integer maxPrice, Float star) throws IOException {
+    public SearchResponse<ProductDocument> getElasticSearchProducts(int pageNo, String query, String sorter, Integer minPrice, Integer maxPrice, Float star) throws IOException {
         // 페이지네이션
         int pageSize = 10;
         // 별점 필터링
@@ -101,6 +102,12 @@ public class ElasticsearchService {
                                 .must(byRating)
                                 )
                         )
+                .sort(so -> so
+                        .field(f -> f
+                                .field(sorter)
+                                .order(SortOrder.Desc)
+                        )
+                )
                 ,
                 ProductDocument.class
         );

@@ -194,7 +194,7 @@ public class ProductService {
         star = starValidation(star);
 
         Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
-        SearchResponse<ProductDocument> response = elasticsearchService.getElasticSearchProducts(pageNo ,query, minPrice, maxPrice, star);
+        SearchResponse<ProductDocument> response = elasticsearchService.getElasticSearchProducts(pageNo ,query,sorter, minPrice, maxPrice, star);
         System.out.println(response);
         int cnt = 0;
         List<Hit<ProductDocument>> hits = response.hits().hits();
@@ -433,7 +433,7 @@ public class ProductService {
     // 정렬 예외 처리
     public String sorterValidation(String sorter) {
         if (!sorter.equals("productId") && !sorter.equals("reviewCnt") && !sorter.equals("productRating")) {
-            sorter = "reviewCnt";
+            sorter = "product_created_date";
         }
         return sorter;
     }
