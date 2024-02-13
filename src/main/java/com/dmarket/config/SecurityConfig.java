@@ -26,6 +26,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -133,6 +134,7 @@ public class SecurityConfig {
 
         configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
         configuration.setAllowedOriginPatterns(corsPath);  //2024-02-02 수정
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost*", "https://localhost*", "http://172.16.210*", "https://172.16.210*", "http://172.30.3.55*", "https://172.30.3.55*", "http://dmarketmall*", "https://dmarketmall*", "http://61.109.214.63*", "https://61.109.214.63*"));
         configuration.setAllowedMethods(Collections.singletonList("*"));
         configuration.setAllowCredentials(true);
         configuration.setAllowedHeaders(Collections.singletonList("*"));
