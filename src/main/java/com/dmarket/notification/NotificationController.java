@@ -4,6 +4,7 @@ import com.dmarket.dto.response.CMResDto;
 import com.dmarket.exception.ErrorCode;
 import com.dmarket.jwt.JWTUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,9 +28,10 @@ public class NotificationController {
     // sse 연결
     @GetMapping(value = "/subscribe/{userId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public ResponseEntity<SseEmitter> subscribe(@PathVariable Long userId,
-                                                @RequestHeader(value = "lastEventId", required = false, defaultValue = "") String lastEventId){
+                                                @RequestHeader(value = "lastEventId", required = false, defaultValue = "") String lastEventId,
+                                                HttpServletResponse response){
         log.info(lastEventId);
-        return new ResponseEntity<>(notificationService.subscribe(userId), HttpStatus.OK);
+        return new ResponseEntity<>(notificationService.subscribe(userId, response), HttpStatus.OK);
     }
 
     // 유저 별 알림 조회
