@@ -7,7 +7,6 @@ import com.dmarket.domain.board.InquiryReply;
 import com.dmarket.dto.common.*;
 import com.dmarket.dto.request.*;
 import com.dmarket.dto.response.*;
-import com.dmarket.exception.ErrorCode;
 import com.dmarket.jwt.JWTUtil;
 import com.dmarket.service.AdminService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,7 +18,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -377,6 +379,12 @@ public class AdminController {
         responseData.put("orderList", orderList);
 
         return new ResponseEntity<>(CMResDto.successDataRes(responseData), HttpStatus.OK);
+    }
+
+    @GetMapping("/orders/{orderId}/delivery-address")
+    public ResponseEntity<CMResDto<UserResDto.UserDeliveryAddress>> getDeliveryAddress(@PathVariable Long orderId){
+        UserResDto.UserDeliveryAddress deliveryAddress = adminService.getDeliveryAddress(orderId);
+        return new ResponseEntity<>(CMResDto.successDataRes(deliveryAddress), HttpStatus.OK);
     }
 
     // 배송 상태 변경

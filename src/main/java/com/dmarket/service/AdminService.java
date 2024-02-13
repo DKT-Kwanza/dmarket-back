@@ -5,6 +5,7 @@ import com.dmarket.domain.board.Faq;
 import com.dmarket.domain.board.Inquiry;
 import com.dmarket.domain.board.InquiryReply;
 import com.dmarket.domain.board.Notice;
+import com.dmarket.domain.order.Order;
 import com.dmarket.domain.order.OrderDetail;
 import com.dmarket.domain.order.Refund;
 import com.dmarket.domain.order.Return;
@@ -20,6 +21,7 @@ import com.dmarket.dto.request.UserReqDto;
 import com.dmarket.dto.response.*;
 import com.dmarket.exception.BadRequestException;
 import com.dmarket.exception.ConflictException;
+import com.dmarket.exception.ErrorCode;
 import com.dmarket.exception.NotFoundException;
 import com.dmarket.jwt.JWTUtil;
 import com.dmarket.notification.SendNotificationEvent;
@@ -746,6 +748,23 @@ public class AdminService {
                 productName + "(이)가 " + orderStatus + " 상태입니다.",
                 "/mydkt/orderInfo"));
 
+    }
+
+    // 주문 배송지 조회
+    public UserResDto.UserDeliveryAddress getDeliveryAddress(Long orderId){
+        // 주문 조회 시 없으면 예외 처리
+        Order order = orderRepository.findByOrderId(orderId);
+        if(order == null) {
+            throw new BadRequestException(ORDER_NOT_FOUND);
+        }
+
+        // 사용자 조회 시 없으면 예외처리
+        User user = userRepository.findByUserId(order.getUserId());
+        if(user == null){
+            throw new BadRequestException(USER_NOT_FOUND);
+        }
+
+        return new UserResDto.UserDeliveryAddress(user);
     }
 
     // 옵션 삭제
