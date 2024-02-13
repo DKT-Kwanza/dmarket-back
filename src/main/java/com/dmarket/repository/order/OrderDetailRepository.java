@@ -142,12 +142,12 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
             "FROM OrderDetail od " +
             "JOIN Order o ON od.orderId = o.orderId " +
             "JOIN Product p ON od.productId = p.productId " +
-            "LEFT JOIN ProductOption po ON po.productId = p.productId AND po.optionId IN " +
-            "  (SELECT min(po2.optionId) FROM ProductOption po2 WHERE po2.productId = p.productId) " +
+            "LEFT JOIN ProductOption po ON po.productId = p.productId " +
+//            "  (SELECT min(po2.optionId) FROM ProductOption po2 WHERE po2.productId = p.productId) " +
             "LEFT JOIN ProductImgs pi ON pi.productId = p.productId AND pi.imgId IN " +
             "  (SELECT min(pi2.imgId) FROM ProductImgs pi2 WHERE pi2.productId = p.productId) " +
             "WHERE od.orderDetailState = :status " +
-            "ORDER BY od.orderDetailUpdatedDate DESC")
+            "ORDER BY o.orderDate DESC")
     Page<OrderListAdminResDto> findByStatus(@Param("status") OrderDetailState status, Pageable pageable);
 
 
