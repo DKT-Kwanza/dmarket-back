@@ -1,6 +1,7 @@
 package com.dmarket.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.MultiMatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
@@ -19,6 +20,7 @@ import org.apache.http.message.BasicHeader;
 import org.elasticsearch.client.RestClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.data.elasticsearch.annotations.Setting;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -93,8 +95,19 @@ public class ElasticsearchService {
                                 .must(byName)
                                 .must(byPrice)
                                 .must(byRating)
+                                )
+                        )
+                .aggregations("product_ids", a -> a
+                        .terms(t -> t
+                                .field("product_id")
+                                )
+                        .aggregations("review_count", sa -> sa
+                                .cardinality(c -> c
+                                        .field("review_enriched.review_id")
+                                )
+                        )
                 )
-        ),
+                ,
                 ProductDocument.class
         );
         return response;
