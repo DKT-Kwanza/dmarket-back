@@ -10,7 +10,10 @@ import com.dmarket.dto.response.QnaResDto;
 import com.dmarket.exception.BadRequestException;
 import com.dmarket.exception.NotFoundException;
 import com.dmarket.repository.product.*;
+import com.dmarket.repository.user.UserRepository;
+import com.dmarket.repository.user.WishlistRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -37,11 +40,14 @@ public class ProductService {
     // 조회가 아닌 메서드들은 꼭 @Transactional 넣어주세요 (CUD, 입력/수정/삭제)
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
     private final QnaRepository qnaRepository;
+    private final WishlistRepository wishlistRepository;
     private final ProductImgsRepository productImgsRepository;
     private final ProductOptionRepository productOptionRepository;
     private final ProductReviewRepository productReviewRepository;
     private final UserService userService;
+
 
     private static final int PRODUCT_PAGE_POST_COUNT = 16;
     private static final int QNA_PAGE_POST_COUNT = 5;
@@ -55,6 +61,7 @@ public class ProductService {
     // 카테고리 전체 목록 depth별로 조회
     @Cacheable(value = Category.RedisCacheKey.CATEGORY_LIST, key = "#categoryDepthLevel", cacheManager = "redisCacheManager") // 캐시 적용, 캐시 키 설정, 캐시 저장 기간
     public List<CategoryResDto.CategoryListResDto> getCategories(Integer categoryDepthLevel) {
+        System.out.println("카테고리 전체 목록 조회");
         return categoryRepository.findByCategoryDepth(categoryDepthLevel);
     }
 
@@ -115,7 +122,9 @@ public class ProductService {
     }
 
     // 최신 상품 조회
+    @Cacheable(value = Category.RedisCacheKey.NEW_PRODUCTS , cacheManager = "redisCacheManager")
     public List<ProductResDto.NewProductResDto> findNewProducts() {
+        System.out.println("최신 상품 조회되었습니다." );
         return productRepository.findNewProducts();
     }
 
@@ -129,7 +138,9 @@ public class ProductService {
 //    }
 
     // 할인율 높은 순 상품 limit개 조회 (전체 카테고리)
+    @Cacheable(value = Category.RedisCacheKey.DISCOUNT_RATE, key = "#limit", cacheManager = "redisCacheManager")
     public List<ProductResDto.NewProductResDto> findHighDiscountRateProducts(Integer limit) {
+        System.out.println("할인률 상위 상품 조회되었습니다." );
         return productRepository.findProductsByDiscountRate(PageRequest.of(0, limit));
     }
 
@@ -166,8 +177,8 @@ public class ProductService {
     public ProductResDto.ProductInfoResDto getProductInfo(Long productId) {
 
         // 싱품 정보 조회
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
+        Product product = findProductById(productId);
+
         // 상품의 카테고리 depth 1, depth2 조회 후 합치기
         Category category = categoryRepository.findByCategoryId(product.getCategoryId());
         String productCategory = category.getParent().getCategoryName() + " > " + category.getCategoryName();

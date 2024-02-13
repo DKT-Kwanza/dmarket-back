@@ -18,8 +18,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.ContentHandler;
 import java.util.List;
 import java.util.Objects;
 
@@ -57,7 +59,7 @@ public class UserController {
 
     // 장바구니 추가 api
     @PostMapping("/{userId}/cart")
-    public ResponseEntity<CMResDto<String>> addCart(@PathVariable Long userId, @Valid @RequestBody CartReqDto.AddCartReqDto addCartReqDto, HttpServletRequest request) {
+    public ResponseEntity<CMResDto<String>> addCart(@PathVariable Long userId, @Valid @RequestBody CartReqDto.AddCartReqDto addCartReqDto,HttpServletRequest request) {
         ResponseEntity<CMResDto<String>> authorization = checkAuthorization(userId, request);
         if(authorization != null){
             return authorization;

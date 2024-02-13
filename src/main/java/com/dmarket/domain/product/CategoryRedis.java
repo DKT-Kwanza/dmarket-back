@@ -4,14 +4,15 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.RedisHash;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
+@RedisHash(value = "category")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Category {
+public class CategoryRedis {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,16 +29,15 @@ public class Category {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoryParentId", referencedColumnName = "categoryId", insertable=false, updatable=false)
-    private Category parent;
+    private CategoryRedis parent;
 
     @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
-    private List<Category> child = new ArrayList<>();
+    private List<CategoryRedis> child = new ArrayList<>();
 
-    public class RedisCacheKey {
-
-        public static final String CATEGORY_LIST = "categoryList";
-        public static final String BUCKET_COUNT = "bucketCount";
-        public static final String NEW_PRODUCTS = "newProducts";
-        public static final String DISCOUNT_RATE = "discountRate";
+    public CategoryRedis(Long categoryId, Long categoryParentId, String categoryName, Integer categoryDepth) {
+        this.categoryId = categoryId;
+        this.categoryParentId = categoryParentId;
+        this.categoryName = categoryName;
+        this.categoryDepth = categoryDepth;
     }
 }

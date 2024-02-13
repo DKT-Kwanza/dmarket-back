@@ -4,6 +4,7 @@ import com.dmarket.jwt.*;
 import com.dmarket.repository.user.RefreshTokenRepository;
 import com.dmarket.repository.user.UserRepository;
 import com.dmarket.service.LogoutService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,12 +47,14 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+
         return configuration.getAuthenticationManager();
     }
 
     // 계층 권한 설정
     @Bean
     public RoleHierarchy roleHierarchy() {
+
         RoleHierarchyImpl hierarchy = new RoleHierarchyImpl();
         hierarchy.setHierarchy("""
                 ROLE_GM > ROLE_PM
@@ -81,7 +84,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable);
 
-        // From 로그인 방식 disable
+        //From 로그인 방식 disable
         http
                 .formLogin(AbstractHttpConfigurer::disable);
 
@@ -106,8 +109,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/", "/api/users/login", "/api/users/email/**", "/api/users/join").permitAll()
 //                        .requestMatchers("/api/admin/**").hasAnyRole("GM", "SM", "PM")
-                        .anyRequest().permitAll());
 //                        .anyRequest().authenticated());
+                        .anyRequest().permitAll());
 
 
         // Error Handling

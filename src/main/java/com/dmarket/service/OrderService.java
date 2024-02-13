@@ -18,6 +18,7 @@ import com.dmarket.repository.order.OrderRepository;
 import com.dmarket.repository.product.ProductImgsRepository;
 import com.dmarket.repository.user.CartRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,7 +95,7 @@ public class OrderService {
 
     // 주문
     @Transactional
-    public OrderResDto<String> payment(OrderReqDto.OrderPaymentReqDto dto) {
+    public synchronized OrderResDto<String> payment(OrderReqDto.OrderPaymentReqDto dto) {
 
         //DTO 데이터 추출
         Long userId = dto.getUserId();

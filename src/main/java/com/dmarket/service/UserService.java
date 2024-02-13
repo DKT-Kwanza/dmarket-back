@@ -8,6 +8,7 @@ import com.dmarket.domain.board.Inquiry;
 import com.dmarket.domain.order.Order;
 import com.dmarket.domain.order.OrderDetail;
 import com.dmarket.domain.order.Return;
+import com.dmarket.domain.product.Category;
 import com.dmarket.domain.user.*;
 import com.dmarket.dto.common.*;
 import com.dmarket.dto.request.UserReqDto;
@@ -26,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -168,7 +170,9 @@ public class UserService {
      * 장바구니 (cart)
      */
     // 장바구니 상품 개수 조회
+    @Cacheable(value = Category.RedisCacheKey.BUCKET_COUNT, cacheManager = "redisCacheManager")
     public CartResDto.CartCountResDto getCartCount(Long userId) {
+        System.out.println("장바구니 갯수 조회");
         return cartRepository.findCountByUserId(userId);
     }
 
