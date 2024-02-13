@@ -17,6 +17,7 @@ import com.dmarket.elastic.ESUtil;
 import com.dmarket.exception.BadRequestException;
 import com.dmarket.exception.NotFoundException;
 import com.dmarket.repository.product.*;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -178,11 +179,8 @@ public class ProductService {
 
 
 
-
-
-
     //new getsearch
-    public SearchResponse<ProductDocument> getSearchProducts(int pageNo, String query, String sorter,
+    public SearchResponse<ObjectNode> getSearchProducts(int pageNo, String query, String sorter,
                                                              Integer minPrice, Integer maxPrice, Float star) throws IOException {
         if (query.isEmpty()) {
             throw new BadRequestException(INVALID_SEARCH_VALUE);
@@ -194,25 +192,24 @@ public class ProductService {
         star = starValidation(star);
         Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
 
-        SearchResponse<ProductDocument> response = elasticsearchService.getElasticSearchProducts(query);
-        int cnt = 0;
-        for (Hit<ProductDocument> hit: response.hits().hits()) {
-            ProductDocument product = hit.source();
+        SearchResponse<ObjectNode> response = elasticsearchService.getElasticSearchProducts(query);
+
+        for (Hit<ObjectNode> hit: response.hits().hits()) {
+            ObjectNode product = hit.source();
             // 상품 이름 출력
-            System.out.println("Product Name: " + product.getProduct_name());
-            System.out.println("Product Name: " + product.getProduct_description());
-            cnt ++;
+//            System.out.println("Product Name: " + product.getProduct_name());
+//            System.out.println("Product Id: " + product.getProduct_id());
+//            System.out.println("Product Img: " + product.getImgs_enriched().getImg_address());
+//            System.out.println("Product review: " + product.getReviews());
+            System.out.println("Product Name: " + product.get("product_name").asText());
+            System.out.println("Product Id: " + product.get("product_id"));
+            System.out.println("Product Img: " + product.get("imgs_enriched").get("img_address"));
+            System.out.println("Product Reviews: " + (product.get("review_enriched")==null ? 0 : (product.get("review_enriched").size())));
+
         }
-        System.out.println(cnt);
+        System.out.println(response.hits().total().value());
         return response;
     }
-
-
-
-
-
-
-
 
 
 
