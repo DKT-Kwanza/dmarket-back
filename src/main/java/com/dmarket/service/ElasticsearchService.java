@@ -69,7 +69,9 @@ public class ElasticsearchService {
 //    }
 
 
-    public SearchResponse<ProductDocument> getElasticSearchProducts(String query,  Integer minPrice, Integer maxPrice, Float star) throws IOException {
+    public SearchResponse<ProductDocument> getElasticSearchProducts(int pageNo, String query,  Integer minPrice, Integer maxPrice, Float star) throws IOException {
+        // 페이지네이션
+        int pageSize = 10;
         // 별점 필터링
         Query byRating = RangeQuery.of(r -> r
                 .field("product_rating")
@@ -90,6 +92,8 @@ public class ElasticsearchService {
         // 검색
         SearchResponse<ProductDocument> response = client.search(s -> s
                 .index("product-ngram")
+                .from(pageNo * pageSize)
+                .size(pageSize)
                 .query(q -> q
                         .bool(b -> b
                                 .must(byName)
@@ -97,16 +101,6 @@ public class ElasticsearchService {
                                 .must(byRating)
                                 )
                         )
-                .aggregations("product_ids", a -> a
-                        .terms(t -> t
-                                .field("product_id")
-                                )
-                        .aggregations("review_count", sa -> sa
-                                .cardinality(c -> c
-                                        .field("review_enriched.review_id")
-                                )
-                        )
-                )
                 ,
                 ProductDocument.class
         );

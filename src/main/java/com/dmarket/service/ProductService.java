@@ -194,7 +194,7 @@ public class ProductService {
         star = starValidation(star);
 
         Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
-        SearchResponse<ProductDocument> response = elasticsearchService.getElasticSearchProducts(query, minPrice, maxPrice, star);
+        SearchResponse<ProductDocument> response = elasticsearchService.getElasticSearchProducts(pageNo ,query, minPrice, maxPrice, star);
         System.out.println(response);
         int cnt = 0;
         List<Hit<ProductDocument>> hits = response.hits().hits();
