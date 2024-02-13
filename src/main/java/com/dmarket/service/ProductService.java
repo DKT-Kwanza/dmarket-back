@@ -189,21 +189,31 @@ public class ProductService {
         }
         sorter = sorterValidation(sorter);
         pageNo = pageValidation(pageNo);
-        minPrice = minPrice > MAX_VALUE ? MAX_VALUE : minPrice;
-        maxPrice = maxPrice < 0 ? MAX_VALUE : maxPrice;
+        minPrice = minPrice < 0 ? 0 : minPrice > MAX_VALUE ? MAX_VALUE : minPrice;
+        maxPrice = maxPrice < minPrice ? minPrice : maxPrice > MAX_VALUE ? MAX_VALUE : maxPrice;
         star = starValidation(star);
-        Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
 
-        SearchResponse<ProductDocument> response = elasticsearchService.getElasticSearchProducts(query);
+        Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
+        SearchResponse<ProductDocument> response = elasticsearchService.getElasticSearchProducts(query, minPrice, maxPrice, star);
+        System.out.println(response);
         int cnt = 0;
-        for (Hit<ProductDocument> hit: response.hits().hits()) {
+        List<Hit<ProductDocument>> hits = response.hits().hits();
+        for (Hit<ProductDocument> hit: hits) {
             ProductDocument product = hit.source();
-            // 상품 이름 출력
             System.out.println("Product Name: " + product.getProduct_name());
-            System.out.println("Product Name: " + product.getProduct_description());
+            System.out.println("Product Brand: " + product.getProduct_brand());
+            System.out.println("Product Description: " + product.getProduct_description());
             cnt ++;
         }
         System.out.println(cnt);
+//        for (Hit<ProductDocument> hit: response.hits().hits()) {
+//            ProductDocument product = hit.source();
+//            // 상품 이름 출력
+//            System.out.println("Product Name: " + product.getProduct_name());
+//            System.out.println("Product Name: " + product.getProduct_description());
+//            cnt ++;
+//        }
+//        System.out.println(cnt);
         return response;
     }
 
