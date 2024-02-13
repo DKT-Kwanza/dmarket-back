@@ -1,5 +1,6 @@
 package com.dmarket.notification;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ public class NotificationService {
     // timeout 시간 설정
     private static final long TIMEOUT = 60 * 1000L;
 
-    public SseEmitter subscribe(Long userId) {
+    public SseEmitter subscribe(Long userId, HttpServletResponse response) {
         // 기존의 연결 종료
         String existingId = userId + "_";
         Map<String, SseEmitter> existingEmitters = sseEmitters.findEmitter(existingId);
@@ -33,8 +34,9 @@ public class NotificationService {
         SseEmitter emitter = new SseEmitter(TIMEOUT);
         String id = userId + "_" + System.currentTimeMillis();
         sseEmitters.add(id, emitter);
-        log.info("emitter 생성: {}", emitter);
-        log.info(id);
+
+        // NGINX PROXY 에서의 필요 설정 불필요한 버퍼링방지
+        response.setHeader("X-Accel-Buffering", "no");
 
         Map<String, Object> testContent = new HashMap<>();
         testContent.put("content", "connected!");
