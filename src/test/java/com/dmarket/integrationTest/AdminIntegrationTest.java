@@ -1,5 +1,6 @@
 package com.dmarket.integrationTest;
 
+import com.dmarket.constant.MileageContents;
 import com.dmarket.constant.Role;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,13 +25,20 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.dmarket.TestUtility;
+import com.dmarket.domain.board.Notice;
+import com.dmarket.domain.user.Mileage;
+import com.dmarket.domain.user.MileageReq;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.MileageCommonDto;
 import com.dmarket.dto.common.UserCommonDto;
+import com.dmarket.dto.request.NoticeReqDto;
 import com.dmarket.dto.request.UserReqDto;
 import com.dmarket.dto.response.AdminResDto;
+import com.dmarket.dto.response.NoticeResDto;
 import com.dmarket.dto.response.UserResDto;
 import com.dmarket.jwt.JWTUtil;
+import com.dmarket.repository.board.NoticeRepository;
+import com.dmarket.repository.user.MileageRepository;
 import com.dmarket.repository.user.MileageReqRepository;
 import com.dmarket.repository.user.UserRepository;
 import com.dmarket.service.AdminService;
@@ -73,7 +81,13 @@ public class AdminIntegrationTest {
     private UserRepository userRepository;
 
     @MockBean
+    private MileageRepository mileageRepository;
+
+    @MockBean
     private MileageReqRepository mileageReqRepository;
+
+    @MockBean
+    private NoticeRepository noticeRepository;
 
     @MockBean
     private JWTUtil jwtUtil;
@@ -99,9 +113,6 @@ public class AdminIntegrationTest {
                 .sign(Algorithm.HMAC512("testSecret"));
     }
 
-    private int adminCount(List<User> users, Role role) {
-        return (int) users.stream().filter(user -> user.getUserRole() == role).count();
-    }
 
     @Test
     @DisplayName("관리자 검색")
@@ -133,9 +144,9 @@ public class AdminIntegrationTest {
         User testSM = TestUtility.createTestSM();
         List<User> testManagers = List.of(testGM, testPM, testSM);
         given(userRepository.findAllByUserRoleIsNot(any(Role.class))).willReturn(testManagers);
-        int gmCount = adminCount(testManagers, Role.ROLE_GM);
-        int smCount = adminCount(testManagers, Role.ROLE_SM);
-        int pmCount = adminCount(testManagers, Role.ROLE_PM);
+        int gmCount = adminService.adminCount(testManagers, Role.ROLE_GM);
+        int smCount = adminService.adminCount(testManagers, Role.ROLE_SM);
+        int pmCount = adminService.adminCount(testManagers, Role.ROLE_PM);
 
         mockMvc.perform(get("/api/admin/admin-users")
                 .header("Authorization", token)
@@ -192,8 +203,6 @@ public class AdminIntegrationTest {
                 .param("q", "testEmail")
                 .contentType("application/json"))
                 .andExpect(status().isOk())
-                .andDo(MockMvcRestDocumentation.document("get-user"))
-                .andDo(MockMvcResultHandlers.print())
                 .andExpect(jsonPath("$.data[0].userId").value(testUser.getUserId()))
                 .andExpect(jsonPath("$.data[0].userName").value(testUser.getUserName()))
                 .andExpect(jsonPath("$.data[0].userEmail").value(testUser.getUserEmail()))
@@ -225,7 +234,7 @@ public class AdminIntegrationTest {
     @Test
     @DisplayName("마일리지 충전 요청/처리 내역 조회")
     public void getMileageRequests() throws Exception {
-        MileageCommonDto.MileageReqListDto testMileageReq = TestUtility.createTestMileageReq();
+        MileageCommonDto.MileageReqListDto testMileageReq = TestUtility.createTestMileageReqDto();
         Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "mileageReqDate"));
         Page<MileageCommonDto.MileageReqListDto> dtos;
         List<MileageCommonDto.MileageReqListDto> list = Arrays.asList(testMileageReq);
@@ -242,5 +251,90 @@ public class AdminIntegrationTest {
                 .andExpect(jsonPath("$.data.content[0].mileageReqId").value(1))
                 .andDo(MockMvcRestDocumentation.document("get-mileage-requests"))
                 .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    @DisplayName("마일리지 요청 승인")
+    public void approveMileageReq() throws Exception {
+        MileageReq testMileageReq = TestUtility.createTestMileageReq();
+        given(mileageReqRepository.findById(any(Long.class))).willReturn(Optional.of(testMileageReq));
+        User testUser = TestUtility.createTestUser();
+        given(userRepository.findById(any(Long.class))).willReturn(Optional.of(testUser));
+        Long mileageReqId = 1L;
+
+        mockMvc.perform(put("/api/admin/users/mileage/approval/" + mileageReqId)
+                .header("Authorization", token)
+                .contentType("application/json"))
+                .andExpect(status().isOk())
+                .andDo(MockMvcRestDocumentation.document("approve-mileage-req"))
+                .andDo(MockMvcResultHandlers.print());
+
+        verify(mileageRepository, times(1)).save(any(Mileage.class));
+    }
+
+    @Test
+    @DisplayName("마일리지 요청 거부")
+    public void refusalMileageReq() throws Exception {
+        MileageReq testMileageReq = TestUtility.createTestMileageReq();
+        given(mileageReqRepository.findById(any(Long.class))).willReturn(Optional.of(testMileageReq));
+        User testUser = TestUtility.createTestUser();
+        given(userRepository.findById(any(Long.class))).willReturn(Optional.of(testUser));
+        Long mileageReqId = 1L;
+
+        mockMvc.perform(put("/api/admin/users/mileage/refusal/" + mileageReqId)
+                .header("Authorization", token)
+                .contentType("application/json"))
+                .andExpect(status().isOk())
+                .andDo(MockMvcRestDocumentation.document("refusal-mileage-req"))
+                .andDo(MockMvcResultHandlers.print());
+
+        verify(userRepository, times(1)).findById(any(Long.class));
+    }
+
+    @Test
+    @DisplayName("공지사항 목록 조회")
+    public void getNotices() throws Exception {
+        NoticeResDto testDto = TestUtility.createTestNoticeResDto();
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<NoticeResDto> dtos;
+        List<NoticeResDto> list = Arrays.asList(testDto);
+        dtos = new PageImpl<>(list, pageable, list.size());
+
+
+        given(noticeRepository.getNotices(any(Pageable.class))).willReturn(dtos);
+
+        mockMvc.perform(get("/api/admin/board/notices")
+                .header("Authorization", token)
+                .contentType("application/json"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements").value(1))
+                .andExpect(jsonPath("$.data.content[0].noticeTitle").value("testTitle"))
+                .andDo(MockMvcRestDocumentation.document("get-notices"))
+                .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    @DisplayName("공지사항 작성")
+    public void postNotice() throws Exception {
+        NoticeReqDto testNoticeReqDto = TestUtility.createTestNoticeReqDto();
+        Notice testNotice = TestUtility.createTestNotice();
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Notice> dtos;
+        List<Notice> list = Arrays.asList(testNotice);
+        dtos = new PageImpl<>(list, pageable, list.size());
+
+        given(noticeRepository.findAll(any(Pageable.class))).willReturn(dtos);
+
+        mockMvc.perform(post("/api/admin/board/notice")
+                .header("Authorization", token)
+                .content(objectMapper.writeValueAsString(testNoticeReqDto))
+                .contentType("application/json"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements").value(1))
+                .andExpect(jsonPath("$.data.content[0].noticeTitle").value("testTitle"))
+                .andDo(MockMvcRestDocumentation.document("post-notice"))
+                .andDo(MockMvcResultHandlers.print());
+
+        verify(noticeRepository, times(1)).save(any(Notice.class));
     }
 }

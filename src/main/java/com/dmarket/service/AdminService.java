@@ -791,7 +791,7 @@ public class AdminService {
     }
 
     // 관리자 권한 별 관리자 수 집계
-    private int adminCount(List<User> users, Role role) {
+    public int adminCount(List<User> users, Role role) {
         return (int) users.stream().filter(user -> user.getUserRole() == role).count();
     }
 
