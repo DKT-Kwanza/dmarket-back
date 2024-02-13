@@ -51,6 +51,25 @@ public class UserResDto {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class UserDeliveryAddress {
+        private String userName;
+        private String userPhoneNum;
+        private Integer userPostalCode;
+        private String userAddress;
+        private String userDetailedAddress;
+
+        public UserDeliveryAddress(User user){
+            this.userName = user.getUserName();
+            this.userPhoneNum = user.getUserPhoneNum();
+            this.userPostalCode = user.getUserPostalCode();
+            this.userAddress = user.getUserAddress();
+            this.userDetailedAddress = user.getUserAddressDetail();
+        }
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class UserHeaderInfo {
         private String userName;
         private LocalDate userJoinDate;
