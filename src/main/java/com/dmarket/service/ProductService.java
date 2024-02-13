@@ -195,13 +195,15 @@ public class ProductService {
         Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
 
         SearchResponse<ProductDocument> response = elasticsearchService.getElasticSearchProducts(query);
-
+        int cnt = 0;
         for (Hit<ProductDocument> hit: response.hits().hits()) {
             ProductDocument product = hit.source();
             // 상품 이름 출력
             System.out.println("Product Name: " + product.getProduct_name());
+            System.out.println("Product Name: " + product.getProduct_description());
+            cnt ++;
         }
-
+        System.out.println(cnt);
         return response;
     }
 
