@@ -126,7 +126,7 @@ public class ProductService {
 
 
     //new getsearch
-    public List<ProductResDto.ProductListResDto> getSearchProducts(int pageNo, String query, String sorter,
+    public ProductResDto.ProductSearchListResDto getSearchProducts(int pageNo, String query, String sorter,
                                                              Integer minPrice, Integer maxPrice, Float star) throws IOException {
         if (query.isEmpty()) {
             throw new BadRequestException(INVALID_SEARCH_VALUE);
@@ -137,7 +137,10 @@ public class ProductService {
         maxPrice = maxPrice < minPrice ? minPrice : maxPrice > MAX_VALUE ? MAX_VALUE : maxPrice;
         star = starValidation(star);
 
-        return elasticsearchService.getElasticSearchProducts(query, minPrice, maxPrice, star);
+//        if (sorter.equals("review_count")){
+//
+//        }
+        return elasticsearchService.getElasticSearchProducts(pageNo, query, sorter, minPrice, maxPrice, star);
     }
 
     // 추천 상품 조회
@@ -346,8 +349,8 @@ public class ProductService {
 
     // 정렬 예외 처리
     public String sorterValidation(String sorter) {
-        if (!sorter.equals("productId") && !sorter.equals("reviewCnt") && !sorter.equals("productRating")) {
-            sorter = "reviewCnt";
+        if (!sorter.equals("product_created_date") && !sorter.equals("review_count") && !sorter.equals("product_rating")) {
+            sorter = "product_created_date";
         }
         return sorter;
     }
