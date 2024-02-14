@@ -118,6 +118,18 @@ public class ProductCommonDto {
             this.productRegistDate = product.getProductCreatedDate();
             this.imgList = imgs;
         }
-
+    }
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ProductSearchListDto {
+        private Long productId;
+        private String productBrand;
+        private String productName;
+        private String productImg;
+        private Integer productSalePrice;
+        private Integer productDiscountRate;
+        private Float productRating;
+        private Long productReviewCount;
     }
 }

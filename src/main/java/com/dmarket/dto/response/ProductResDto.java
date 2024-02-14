@@ -32,6 +32,14 @@ public class ProductResDto {
 
     @Data
     @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ProductSearchListResDto {
+        private int totalPages;
+        private List<ProductCommonDto.ProductSearchListDto> productList;
+    }
+
+    @Data
+    @NoArgsConstructor
     public static class ProductInfoResDto {
         private Long productId;
         private String productCategory;

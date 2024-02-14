@@ -1,5 +1,12 @@
 package com.dmarket.service;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.ElasticsearchTransport;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
+import com.dmarket.domain.document.ProductDocument;
 import com.dmarket.domain.product.*;
 import com.dmarket.domain.user.User;
 import com.dmarket.dto.common.*;
@@ -7,12 +14,18 @@ import com.dmarket.dto.request.ReviewReqDto;
 import com.dmarket.dto.response.CategoryResDto;
 import com.dmarket.dto.response.ProductResDto;
 import com.dmarket.dto.response.QnaResDto;
+import com.dmarket.elastic.ESUtil;
 import com.dmarket.exception.BadRequestException;
 import com.dmarket.exception.NotFoundException;
 import com.dmarket.repository.product.*;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
+import org.apache.http.Header;
+import org.apache.http.HttpHost;
+import org.apache.http.message.BasicHeader;
+import org.elasticsearch.client.RestClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +35,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.io.IOException;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.dmarket.exception.ErrorCode.*;
@@ -42,6 +57,7 @@ public class ProductService {
     private final ProductOptionRepository productOptionRepository;
     private final ProductReviewRepository productReviewRepository;
     private final UserService userService;
+    private final ElasticsearchService elasticsearchService;
 
     private static final int PRODUCT_PAGE_POST_COUNT = 16;
     private static final int QNA_PAGE_POST_COUNT = 5;
@@ -52,6 +68,7 @@ public class ProductService {
     /**
      * 카테고리: Category
      */
+
     // 카테고리 전체 목록 depth별로 조회
     @Cacheable(value = Category.RedisCacheKey.CATEGORY_LIST, key = "#categoryDepthLevel", cacheManager = "redisCacheManager") // 캐시 적용, 캐시 키 설정, 캐시 저장 기간
     public List<CategoryResDto.CategoryListResDto> getCategories(Integer categoryDepthLevel) {
@@ -92,18 +109,38 @@ public class ProductService {
     }
 
     // 상품 목록 조건 검색
-    public Page<ProductResDto.ProductListResDto> getSearchProducts(int pageNo, String query, String sorter, Integer minPrice, Integer maxPrice, Float star) {
+//    public Page<ProductResDto.ProductListResDto> getSearchProducts(int pageNo, String query,
+//                                                     String sorter, Integer minPrice, Integer maxPrice, Float star) {
+//        if (query.isEmpty()) {
+//            throw new BadRequestException(INVALID_SEARCH_VALUE);
+//        }
+//        sorter = sorterValidation(sorter);
+//        pageNo = pageVaildation(pageNo);
+//        minPrice = minPrice > MAX_VALUE ? MAX_VALUE : minPrice;
+//        maxPrice = maxPrice < 0 ? MAX_VALUE : maxPrice;
+//        star = starValidation(star);
+//
+//        Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
+//        return productRepository.findByQuery(pageable, query, minPrice, maxPrice, star);
+//    }
+
+
+    //new getsearch
+    public ProductResDto.ProductSearchListResDto getSearchProducts(int pageNo, String query, String sorter,
+                                                             Integer minPrice, Integer maxPrice, Float star) throws IOException {
         if (query.isEmpty()) {
             throw new BadRequestException(INVALID_SEARCH_VALUE);
         }
         sorter = sorterValidation(sorter);
         pageNo = pageValidation(pageNo);
-        minPrice = minPrice > MAX_VALUE ? MAX_VALUE : minPrice;
-        maxPrice = maxPrice < 0 ? MAX_VALUE : maxPrice;
+        minPrice = minPrice < 0 ? 0 : minPrice > MAX_VALUE ? MAX_VALUE : minPrice;
+        maxPrice = maxPrice < minPrice ? minPrice : maxPrice > MAX_VALUE ? MAX_VALUE : maxPrice;
         star = starValidation(star);
 
-        Pageable pageable = PageRequest.of(pageNo, PRODUCT_PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, sorter));
-        return productRepository.findByQuery(pageable, query, minPrice, maxPrice, star);
+//        if (sorter.equals("review_count")){
+//
+//        }
+        return elasticsearchService.getElasticSearchProducts(pageNo, query, sorter, minPrice, maxPrice, star);
     }
 
     // 추천 상품 조회
@@ -312,8 +349,8 @@ public class ProductService {
 
     // 정렬 예외 처리
     public String sorterValidation(String sorter) {
-        if (!sorter.equals("productId") && !sorter.equals("reviewCnt") && !sorter.equals("productRating")) {
-            sorter = "reviewCnt";
+        if (!sorter.equals("product_created_date") && !sorter.equals("review_count") && !sorter.equals("product_rating")) {
+            sorter = "product_created_date";
         }
         return sorter;
     }

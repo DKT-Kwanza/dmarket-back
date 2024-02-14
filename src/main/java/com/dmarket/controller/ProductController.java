@@ -1,5 +1,7 @@
 package com.dmarket.controller;
 
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import com.dmarket.domain.document.ProductDocument;
 import com.dmarket.dto.request.QnaReqDto;
 import com.dmarket.dto.request.ReviewReqDto;
 import com.dmarket.dto.response.CMResDto;
@@ -7,6 +9,7 @@ import com.dmarket.dto.response.CategoryResDto;
 import com.dmarket.dto.response.ProductResDto;
 import com.dmarket.dto.response.QnaResDto;
 import com.dmarket.service.ProductService;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @Slf4j
@@ -56,13 +60,16 @@ public class ProductController {
 
     // 상품 목록 조건 검색 api
     @GetMapping("/search")
-    public ResponseEntity<CMResDto<Page<ProductResDto.ProductListResDto>>> getSearchProducts(@RequestParam(required = true, value = "q") String query,
+    public ResponseEntity<CMResDto<ProductResDto.ProductSearchListResDto>> getSearchProducts(@RequestParam(required = true, value = "q") String query,
             @RequestParam(required = false, value = "sorter", defaultValue = "reviewCnt") String sorter,
             @RequestParam(required = false, value = "min-price", defaultValue = "0") Integer minPrice,
             @RequestParam(required = false, value = "max-price", defaultValue = "9999999") Integer maxPrice,
             @RequestParam(required = false, value = "star", defaultValue = "0") Float star,
-            @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) {
-        Page<ProductResDto.ProductListResDto> products = productService.getSearchProducts(pageNo, query, sorter, minPrice, maxPrice, star);
+            @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) throws IOException {
+
+        //Page<ProductResDto.ProductListResDto> products = productService.getSearchProducts(pageNo, query, sorter, minPrice, maxPrice, star);
+        ProductResDto.ProductSearchListResDto products = productService.getSearchProducts(pageNo , query,
+                sorter, minPrice, maxPrice, star);
         log.info("데이터 조회 완료");
         return new ResponseEntity<>(CMResDto.successDataRes(products), HttpStatus.OK);
     }
