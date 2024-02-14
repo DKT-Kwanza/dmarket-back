@@ -19,6 +19,7 @@ import com.dmarket.dto.response.ProductResDto;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
@@ -28,6 +29,9 @@ import org.elasticsearch.client.RestClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.elasticsearch.annotations.Setting;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,30 +44,32 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-@PropertySource("classpath:application-elastic.properties")
 public class ElasticsearchService {
+    @Value("${elasticsearch.serverUrl}")
+    private String serverUrl;
+    @Value("${elasticsearch.apiKey}")
+    private String apiKey;
 
-    private final String serverUrl = "https://96cf190a5133454f97f8cf99af05d321.us-central1.gcp.cloud.es.io:443";
-    private final String apiKey = "dE5TSW5vMEJmNHV1eUxBVlVSR3Q6OUxrY2Q4T2tSVHFIT0lhcFRHR1BaZw==";
     private static final int PAGE_SIZE = 16;
 
-//    @Value("${elastic.serverUrl}")
-//    private String serverUrl;
-//    @Value("${elastic.apiKey}")
-//    private String apiKey;
+    private RestClient restClient;
+    private ElasticsearchTransport transport;
+    private ElasticsearchClient client;
 
-    RestClient restClient = RestClient
-            .builder(HttpHost.create(serverUrl))
-            .setDefaultHeaders(new Header[]{
-                    new BasicHeader("Authorization", "ApiKey " + apiKey)
-            })
-            .build();
+    @PostConstruct
+    public void init() {
+        restClient = RestClient
+                .builder(HttpHost.create(serverUrl))
+                .setDefaultHeaders(new Header[]{
+                        new BasicHeader("Authorization", "ApiKey " + apiKey)
+                })
+                .build();
 
-    ElasticsearchTransport transport = new RestClientTransport(
-            restClient, new JacksonJsonpMapper());
+        transport = new RestClientTransport(
+                restClient, new JacksonJsonpMapper());
 
-    ElasticsearchClient client = new ElasticsearchClient(transport);
-
+        client = new ElasticsearchClient(transport);
+    }
 
     public ProductResDto.ProductSearchListResDto getElasticSearchProducts(int pageNo, String query, String sorter,
                                                                           Integer minPrice, Integer maxPrice, Float star) throws IOException {
