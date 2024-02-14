@@ -66,6 +66,7 @@ public class ProductController {
             @RequestParam(required = false, value = "max-price", defaultValue = "9999999") Integer maxPrice,
             @RequestParam(required = false, value = "star", defaultValue = "0") Float star,
             @RequestParam(required = false, value = "page", defaultValue = "0") int pageNo) throws IOException {
+
         //Page<ProductResDto.ProductListResDto> products = productService.getSearchProducts(pageNo, query, sorter, minPrice, maxPrice, star);
         ProductResDto.ProductSearchListResDto products = productService.getSearchProducts(pageNo , query,
                 sorter, minPrice, maxPrice, star);

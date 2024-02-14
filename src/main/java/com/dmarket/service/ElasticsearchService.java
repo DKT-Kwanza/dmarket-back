@@ -25,15 +25,14 @@ import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.message.BasicHeader;
 import org.elasticsearch.client.RestClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.elasticsearch.annotations.Setting;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Arrays;
 import java.util.List;
 
@@ -80,7 +79,7 @@ public class ElasticsearchService {
                 .gte(JsonData.of(minPrice))
                 .lte(JsonData.of(maxPrice))
         )._toQuery();
-        // 검색어 필터링 기본
+        // 검색어 필터링
         List<String> fields = Arrays.asList("product_name", "product_brand", "product_description");
         Query byName = MultiMatchQuery.of(m -> m
                 .fields(fields)
@@ -118,9 +117,7 @@ public class ElasticsearchService {
                                         .field(sorter)
                                         .order(SortOrder.Desc)
                                 )
-                        )
-                ,
-                ProductDocument.class
+                        ),ProductDocument.class
         );
     int totalValues = (int)response.hits().total().value();
     int totalPages = getTotalPages(totalValues);
