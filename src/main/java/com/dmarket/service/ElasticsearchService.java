@@ -2,6 +2,7 @@ package com.dmarket.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.FieldSort;
+import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.MultiMatchQuery;
@@ -22,6 +23,8 @@ import org.elasticsearch.client.RestClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.elasticsearch.annotations.Setting;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,20 +87,35 @@ public class ElasticsearchService {
                 .gte(JsonData.of(minPrice))
                 .lte(JsonData.of(maxPrice))
         )._toQuery();
-        // 검색어 필터링
+        // 검색어 필터링 기본
         List<String> fields = Arrays.asList("product_name", "product_brand", "product_description");
         Query byName = MultiMatchQuery.of(m -> m
                 .fields(fields)
                 .query(query)
         )._toQuery();
+        // 검색어 필터링 nori
+        List<String> norifields = Arrays.asList("product_name.nori", "product_brand.nori", "product_description.nori");
+        Query byNoriname = MultiMatchQuery.of(m -> m
+                .fields(norifields)
+                .query(query)
+        )._toQuery();
+        // 검색어 필터링 ngram
+        List<String> ngramfields = Arrays.asList("product_name.ngram", "product_brand.ngram", "product_description.ngram");
+        Query byNgramName = MultiMatchQuery.of(m -> m
+                .fields(ngramfields)
+                .query(query)
+        )._toQuery();
         // 검색
         SearchResponse<ProductDocument> response = client.search(s -> s
-                .index("product-ngram")
+                .index("new-product")
                 .from(pageNo * pageSize)
                 .size(pageSize)
                 .query(q -> q
                         .bool(b -> b
-                                .must(byName)
+                                .should(byName)
+                                .should(byNoriname)
+                                .should(byNgramName)
+                                .minimumShouldMatch("1")
                                 .must(byPrice)
                                 .must(byRating)
                                 )
@@ -108,7 +126,7 @@ public class ElasticsearchService {
                                 .order(SortOrder.Desc)
                         )
                 )
-                ,
+                       ,
                 ProductDocument.class
         );
         return response;
