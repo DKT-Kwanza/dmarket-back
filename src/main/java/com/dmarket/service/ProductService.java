@@ -99,6 +99,7 @@ public class ProductService {
     public Page<ProductResDto.ProductListResDto> getCategoryProducts(int pageNo, Long cateId, String sorter, Integer minPrice, Integer maxPrice, Float star) {
         findCategoryById(cateId);
         sorter = sorterValidation(sorter);
+        sorter = sorterTranslate(sorter);
         pageNo = pageValidation(pageNo);
         minPrice = minPrice > MAX_VALUE ? MAX_VALUE : minPrice;
         maxPrice = maxPrice < 0 ? MAX_VALUE : maxPrice;
@@ -137,9 +138,9 @@ public class ProductService {
         maxPrice = maxPrice < minPrice ? minPrice : maxPrice > MAX_VALUE ? MAX_VALUE : maxPrice;
         star = starValidation(star);
 
-//        if (sorter.equals("review_count")){
-//
-//        }
+        if (sorter.equals("review_count")){
+            return elasticsearchService.getElasticSearchProductsReviewORder(pageNo, query, sorter, minPrice, maxPrice, star);
+        }
         return elasticsearchService.getElasticSearchProducts(pageNo, query, sorter, minPrice, maxPrice, star);
     }
 
@@ -353,6 +354,16 @@ public class ProductService {
             sorter = "product_created_date";
         }
         return sorter;
+    }
+
+    public String sorterTranslate(String sorter){
+        if (sorter.equals("product_created_date")){
+            return "productCreatedDate";
+        } else if (sorter.equals("review_count")){
+            return "reviewCnt";
+        } else {
+            return "productRating";
+        }
     }
 
     // 상품 평점 예외 처리

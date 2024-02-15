@@ -48,7 +48,7 @@ public class ProductController {
     // 카테고리별 상품 목록 조건 조회 api
     @GetMapping(value = "/categories/{cateId}")
     public ResponseEntity<CMResDto<Page<ProductResDto.ProductListResDto>>> getCategoryProducts(@PathVariable Long cateId,
-            @RequestParam(required = false, value = "sorter", defaultValue = "reviewCnt") String sorter,
+            @RequestParam(required = false, value = "sorter", defaultValue = "review_count") String sorter,
             @RequestParam(required = false, value = "min-price", defaultValue = "0") Integer minPrice,
             @RequestParam(required = false, value = "max-price", defaultValue = "9999999") Integer maxPrice,
             @RequestParam(required = false, value = "star", defaultValue = "0.0F") Float star,
@@ -61,7 +61,7 @@ public class ProductController {
     // 상품 목록 조건 검색 api
     @GetMapping("/search")
     public ResponseEntity<CMResDto<ProductResDto.ProductSearchListResDto>> getSearchProducts(@RequestParam(required = true, value = "q") String query,
-            @RequestParam(required = false, value = "sorter", defaultValue = "reviewCnt") String sorter,
+            @RequestParam(required = false, value = "sorter", defaultValue = "review_count") String sorter,
             @RequestParam(required = false, value = "min-price", defaultValue = "0") Integer minPrice,
             @RequestParam(required = false, value = "max-price", defaultValue = "9999999") Integer maxPrice,
             @RequestParam(required = false, value = "star", defaultValue = "0") Float star,

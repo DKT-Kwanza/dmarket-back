@@ -12,7 +12,6 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 @AllArgsConstructor
 @NoArgsConstructor
 //@Document(indexName = "product-ngram")
-//@Mapping(mappingPath = "elastic/comment-mapping.json")
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class ReviewDocument {
 

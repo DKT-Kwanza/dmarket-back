@@ -1,7 +1,6 @@
 package com.dmarket.domain.document;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,8 +15,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Document(indexName = "product-ngram")
-//@Mapping(mappingPath = "elastic/comment-mapping.json")
+@Document(indexName = "new-product")
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class ProductDocument {
 
