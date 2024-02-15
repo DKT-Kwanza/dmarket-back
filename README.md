@@ -9,9 +9,7 @@
 
 [![](https://img.shields.io/badge/-dmarketmall.com-important?style=flat&logo=airplayvideo&logoColor=white&labelColor=black&color=%233145FF)](http://dmarketmall.com/)
 [![](https://img.shields.io/badge/back_release-v1.0.0-critical?style=flat&logo=github&logoColor=balck&labelColor=black&color=white)
-](https://github.com/DKT-Kwanza/dmarket-front/releases)
-
-## 👻 Member
+](https://github.com/DKT-Kwanza/dmarket-back/releases)
 
 ## 👻 Member
 
