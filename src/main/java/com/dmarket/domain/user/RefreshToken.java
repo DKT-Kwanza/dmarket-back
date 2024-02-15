@@ -1,29 +1,23 @@
 package com.dmarket.domain.user;
 
-import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.RedisHash;
 
-import java.time.LocalDateTime;
 
-@Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@RedisHash(value = "refreshToken", timeToLive = 240 * 60 * 60 * 1000)
 public class RefreshToken {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long refreshTokenId;
-
-    @Column(nullable = false)
-    private Long userId;
-
-    @Column(nullable = false)
+    @Id
+    private String refreshToken;
+    private String accessToken;
     private String userEmail;
 
-    @Column(nullable = false)
-    private String refreshToken;
-
-    @Column(nullable = false)
-    private LocalDateTime refreshTokenExpiredDate;
+    @Builder
+    public RefreshToken(String refreshToken, String accessToken, String userEmail) {
+        this.userEmail = userEmail;
+        this.refreshToken = refreshToken;
+        this.accessToken = accessToken;
+    }
 }
