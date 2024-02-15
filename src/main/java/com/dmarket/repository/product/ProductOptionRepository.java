@@ -23,4 +23,8 @@ public interface ProductOptionRepository extends JpaRepository<ProductOption, Lo
     void deleteByProductId(@Param("productId") Long productId);
 
     List<ProductOption> findOptionsByProductIdIn(List<Long> productIds);
+
+    @Query("SELECT CASE WHEN COUNT(o) > 0 THEN true ELSE false END FROM ProductOption o WHERE o.productId = :productId")
+    boolean existsByProductId(@Param("productId") Long productId);
+
 }

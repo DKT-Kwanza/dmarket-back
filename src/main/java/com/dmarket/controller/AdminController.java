@@ -156,7 +156,6 @@ public class AdminController {
             }
         }
         Page<InquiryResDto.InquiryListResDto> mappedInquiries = adminService.getAllInquiriesByType(inquiryType, pageNo);
-
         CMResDto<Page<InquiryResDto.InquiryListResDto>> response = CMResDto.successDataRes(mappedInquiries);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -311,7 +310,7 @@ public class AdminController {
     @DeleteMapping("/products/{productId}/{optionId}")
     public ResponseEntity<CMResDto<String>> deleteOption(@PathVariable(name = "productId") Long productId,
                                           @PathVariable(name = "optionId") Long optionId) {
-        adminService.deleteOptionByOptionId(optionId);
+        adminService.deleteOptionByOptionId(productId, optionId);
         return new ResponseEntity<>(CMResDto.successNoRes(), HttpStatus.OK);
     }
 

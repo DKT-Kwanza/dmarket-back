@@ -34,6 +34,7 @@ import com.dmarket.repository.order.OrderRepository;
 import com.dmarket.repository.order.RefundRepository;
 import com.dmarket.repository.order.ReturnRepository;
 import com.dmarket.repository.product.*;
+import com.dmarket.repository.user.CartRepository;
 import com.dmarket.repository.user.MileageRepository;
 import com.dmarket.repository.user.MileageReqRepository;
 import com.dmarket.repository.user.UserRepository;
@@ -83,15 +84,13 @@ public class AdminService {
     private final MileageReqRepository mileageReqRepository;
     private final UserRepository userRepository;
     private final WishlistRepository wishlistRepository;
-
+    private final CartRepository cartRepository;
     private final UserService userService;
     private final ProductService productService;
     private final JWTUtil jwtUtil;
     private final ApplicationEventPublisher publisher;
 
-
     private static final int PAGE_POST_COUNT = 10;
-
 
     /**
      * User: 사용자
@@ -118,7 +117,6 @@ public class AdminService {
                 .map(UserResDto.Search::new)
                 .collect(Collectors.toList());
     }
-
 
     /**
      * Notice: 알림
@@ -149,7 +147,6 @@ public class AdminService {
     public void deleteNoticeByNoticeId(Long noticeId) {
         noticeRepository.deleteByNoticeId(noticeId);
     }
-
 
     /**
      * MileageReq: 마일리지 충전 요청
@@ -184,14 +181,14 @@ public class AdminService {
             DecimalFormat df = new DecimalFormat("###,###");
             String mileageAmount = df.format(mileageReq.getMileageReqAmount());
 
-
             // 알림 전송
             publisher.publishEvent(SendNotificationEvent.of("mileage", user.getUserId(),
                     user.getUserName() + "님의 " + mileageAmount + "마일리지 충전 요청이 승인되었습니다.",
                     "/mydkt/mileageInfo"));
 
             // 사용자 마일리지 사용 내역에 추가
-            userService.addMileageHistory(user.getUserId(), user.getUserMileage(), mileageReq.getMileageReqAmount(), MileageContents.CHARGE);
+            userService.addMileageHistory(user.getUserId(), user.getUserMileage(), mileageReq.getMileageReqAmount(),
+                    MileageContents.CHARGE);
         } else {
             mileageReq.updateState(MileageReqState.REFUSAL);
             // 알림 전송
@@ -207,7 +204,6 @@ public class AdminService {
         return mileageReqRepository.findById(mileageReqId)
                 .orElseThrow(() -> new NotFoundException(REQUEST_NOT_FOUND));
     }
-
 
     /**
      * Faq: FAQ
@@ -246,7 +242,6 @@ public class AdminService {
 
         return faqId;
     }
-
 
     /**
      * Product: 상품
@@ -303,17 +298,16 @@ public class AdminService {
                 productReqDto.getProductPrice(),
                 productReqDto.getProductSalePrice(),
                 productReqDto.getProductDiscountRate(),
-                productReqDto.getProductDes()
-        );
+                productReqDto.getProductDes());
 
-//        productRepository.updateProductDetails(
-//                productReqDto.getProductId(),
-//                categoryId,
-//                productReqDto.getProductBrand(),
-//                productReqDto.getProductName(),
-//                productReqDto.getProductPrice(),
-//                productReqDto.getProductSalePrice(),
-//                productReqDto.getProductDes());
+        // productRepository.updateProductDetails(
+        // productReqDto.getProductId(),
+        // categoryId,
+        // productReqDto.getProductBrand(),
+        // productReqDto.getProductName(),
+        // productReqDto.getProductPrice(),
+        // productReqDto.getProductSalePrice(),
+        // productReqDto.getProductDes());
 
         // ProductOption 리스트 처리 전, 기존 옵션 삭제
         if (!productReqDto.getOptionList().isEmpty()) {
@@ -353,8 +347,8 @@ public class AdminService {
 
         // 싱품 정보 조회
         Product product = productService.findProductById(productId);
-//        Product product = productRepository.findById(productId)
-//                .orElseThrow(() -> new NotFoundException(PRODUCT_NOT_FOUND));
+        // Product product = productRepository.findById(productId)
+        // .orElseThrow(() -> new NotFoundException(PRODUCT_NOT_FOUND));
 
         // 상품의 카테고리 depth 1, depth2 조회 후 합치기
         Category category = categoryRepository.findByCategoryId(product.getCategoryId());
@@ -421,8 +415,8 @@ public class AdminService {
         }
     }
 
-    //상품 목록 검색 조회
-    public ProductResDto.ProductListAdminResDto getProductListBySearch(Long cateId, String query, int pageNo){
+    // 상품 목록 검색 조회
+    public ProductResDto.ProductListAdminResDto getProductListBySearch(Long cateId, String query, int pageNo) {
         pageNo = pageValidation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "productCreatedDate"));
         Page<Object[]> products = productRepository.findProductsByQuery(pageable, cateId, query);
@@ -432,7 +426,8 @@ public class AdminService {
         for (Object[] tuple : products.getContent()) {
             Product product = (Product) tuple[0];
             ProductOption productOption = (ProductOption) tuple[1];
-            List<String> imgs = productImgsRepository.findAllByProductId(product.getProductId()); //상품개수만큼 조회라서 성능저하될듯..
+            List<String> imgs = productImgsRepository.findAllByProductId(product.getProductId()); // 상품개수만큼 조회라서
+                                                                                                  // 성능저하될듯..
             result.add(new ProductCommonDto.ProductListDto(product, category, productOption, imgs));
         }
         return new ProductResDto.ProductListAdminResDto(products.getTotalPages(), result);
@@ -491,7 +486,6 @@ public class AdminService {
             throw new RuntimeException("상품 정보 조회 중 오류 발생", e);
         }
     }
-
 
     /**
      * QnaReply: 상품 QnA
@@ -603,8 +597,8 @@ public class AdminService {
             refundRepository.save(refund);
         }
         ReturnState state = ReturnState.fromLabel(returnState);
-        returnEntity.updateReturnState(state);
-
+        System.out.println("returnState = " + state);
+        
 
         // OrderDetailRepository를 통해 orderId를 가져옴.
         OrderDetail orderDetail = orderDetailRepository.findByOrderDetailId(returnEntity.getOrderDetailId());
@@ -615,14 +609,13 @@ public class AdminService {
                         "주문 아이디와 일치하는 사용자 아이디가 없음, order ID: " + orderDetail.getOrderId()));
         // 상품명 가져오기
         String productName = productRepository.findProductName(orderDetail.getProductId());
-
+        returnEntity.updateReturnState(state);
         // 반품 상태가 변경된 후 알림 전송
         publisher.publishEvent(SendNotificationEvent.of("return", userId,
                 productName + "(이)가 " + returnState + " 상태입니다.",
                 "/mydkt/orderInfo"));
 
     }
-
 
     /**
      * Inquiry: 문의
@@ -652,7 +645,6 @@ public class AdminService {
 
         inquiryRepository.deleteById(inquiryId);
     }
-
 
     /**
      * InquiryReply: 문의 답변
@@ -730,7 +722,7 @@ public class AdminService {
             default:
                 throw new NotFoundException(STATE_NOT_FOUND);
         }
-        //배송 상태 업데이트
+        // 배송 상태 업데이트
         OrderDetail orderDetail = orderDetailRepository.findById(detailId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "주문 상세 아이디와 일치하지 않음, detail ID: " + detailId));
@@ -769,11 +761,16 @@ public class AdminService {
 
     // 옵션 삭제
     @Transactional
-    public void deleteOptionByOptionId(Long optionId) {
+    public void deleteOptionByOptionId(Long productId, Long optionId) {
         productOptionRepository.deleteByOptionId(optionId);
+        cartRepository.deleteByOptionId(optionId);
+        
+        if (!productOptionRepository.existsByProductId(productId)) {
+            wishlistRepository.deleteByProductId(productId);
+        }
     }
 
-     //상품 목록 조회
+    // 상품 목록 조회
     public ProductResDto.ProductListAdminResDto getProductListByCategoryId(Long cateId, int pageNo) {
         pageNo = pageValidation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT, Sort.by(Sort.Direction.DESC, "productCreatedDate"));
@@ -814,7 +811,7 @@ public class AdminService {
     }
 
     // 관리자 권한 별 관리자 수 집계
-    private int adminCount(List<User> users, Role role) {
+    public int adminCount(List<User> users, Role role) {
         return (int) users.stream().filter(user -> user.getUserRole() == role).count();
     }
 
@@ -873,20 +870,22 @@ public class AdminService {
         pageNo = pageValidation(pageNo);
         Pageable pageable = PageRequest.of(pageNo, PAGE_POST_COUNT);
 
-//        return orderDetailRepository.findOrderCancelResDtosByOrderDetailState(pageable, OrderDetailState.ORDER_CANCEL)
-//                .stream()
-//                .map(row -> new OrderResDto.OrderCancelResDto(
-//                        (Long) row[0],
-//                        (Long) row[1],
-//                        (String) row[2],
-//                        (String) row[3],
-//                        (String) row[4],
-//                        (String) row[5],
-//                        (String) row[6],
-//                        (LocalDateTime) row[7],
-//                        (Integer) row[8],
-//                        (OrderDetailState) row[9]))
-//                .collect(Collectors.toList());
+        // return
+        // orderDetailRepository.findOrderCancelResDtosByOrderDetailState(pageable,
+        // OrderDetailState.ORDER_CANCEL)
+        // .stream()
+        // .map(row -> new OrderResDto.OrderCancelResDto(
+        // (Long) row[0],
+        // (Long) row[1],
+        // (String) row[2],
+        // (String) row[3],
+        // (String) row[4],
+        // (String) row[5],
+        // (String) row[6],
+        // (LocalDateTime) row[7],
+        // (Integer) row[8],
+        // (OrderDetailState) row[9]))
+        // .collect(Collectors.toList());
         return orderDetailRepository.findOrderCancelResDtosByOrderDetailState(pageable, OrderDetailState.ORDER_CANCEL);
     }
 
@@ -910,7 +909,6 @@ public class AdminService {
             throw new RuntimeException("주문 목록 조회 중 오류 발생", e);
         }
     }
-
 
     // 페이지 번호 유효성 검사 메소드
     public int pageValidation(int page) {

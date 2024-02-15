@@ -29,4 +29,6 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
     Long countByUserId(@Param("userId") Long userId);
 
     void deleteById(@Param("wishlistId") Long wishlistId);
+
+    void deleteByProductId(@Param("productId") Long productId);
 }

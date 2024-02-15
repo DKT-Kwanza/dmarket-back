@@ -82,9 +82,9 @@ public class User {
     }
 
     @Builder
-    public User(String userEmail, Integer userDktNum, String password, String userName, LocalDate userJoinDate, String userPhoneNum, Integer userPostalCode, String userAddress, String userAddressDetail) {
+    public User(String userEmail, Integer userDktNum, String userPassword, String userName, LocalDate userJoinDate, String userPhoneNum, Integer userPostalCode, String userAddress, String userAddressDetail) {
         this.userEmail = userEmail;
-        this.userPassword = password;
+        this.userPassword = userPassword;
 
         this.userDktNum = userDktNum;
         this.userName = userName;

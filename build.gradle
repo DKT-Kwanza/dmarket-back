@@ -4,6 +4,11 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.4'
 	id 'jacoco'
 	id 'org.sonarqube' version '4.4.1.3373'
+	id "org.asciidoctor.jvm.convert" version "3.3.2"
+}
+
+ext{
+    snippetsDir = file('build/generated-snippets') // (5)
 }
 
 group = 'com'
@@ -14,6 +19,7 @@ java {
 }
 
 configurations {
+	asciidoctorExt // (2)
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
@@ -41,6 +47,7 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
 	implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
 	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+	implementation 'com.auth0:java-jwt:3.18.1'
 	//implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
 	//implementation 'org.springframework.kafka:spring-kafka'
 	//implementation 'org.apache.kafka:kafka-streams'
@@ -49,18 +56,23 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 	annotationProcessor 'org.projectlombok:lombok'
+	
 
 	testImplementation 'org.mockito:mockito-core:3.12.4'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	//testImplementation 'org.springframework.kafka:spring-kafka-test'
+	asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor' // (3)
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc' // (4)
+	
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+	outputs.dir snippetsDir // (6)
 }
 jacoco {
-	toolVersion = "0.8.7"
+    toolVersion = "0.8.8"
 }
 
 test {
@@ -81,3 +93,22 @@ sonarqube {
 		property "sonar.encoding", "UTF-8"
 	}
 }
+asciidoctor { 
+    configurations 'asciidoctorExt' // (7)
+    baseDirFollowsSourceFile() // (8)
+    inputs.dir snippetsDir // (9)
+    dependsOn test // (10)
+}
+asciidoctor.doFirst {
+    delete file('src/main/resources/static/docs')  // (11)
+}
+task copyDocument(type: Copy) { // (12)
+    dependsOn asciidoctor
+    from file("build/docs/asciidoc")
+    into file("src/main/resources/static/docs")
+}
+
+build {
+    dependsOn copyDocument
+}
+
