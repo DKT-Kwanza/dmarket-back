@@ -17,8 +17,8 @@
 
 <table>
 <tr>
-<td align="center"><strong>BE(PM)</strong></td>
-<td align="center"><strong>BE(PL)</strong></td>
+<td align="center">BE<strong>(PM)</strong></td>
+<td align="center">BE<strong>(PL)</strong></td>
 <td align="center">FE</td>
 <td align="center">FE</td>
 <td align="center">BE</td>
