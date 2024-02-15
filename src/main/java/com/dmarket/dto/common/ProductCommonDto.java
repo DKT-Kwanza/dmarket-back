@@ -130,6 +130,6 @@ public class ProductCommonDto {
         private Integer productSalePrice;
         private Integer productDiscountRate;
         private Float productRating;
-        private Long productReviewCount;
+        private int productReviewCount;
     }
 }
