@@ -44,9 +44,6 @@ public class Product {
     @Column(nullable = true)
     private LocalDateTime productCreatedDate;
 
-    @Column(nullable = false, columnDefinition = "boolean default true")
-    private Boolean productSaleState;
-
 
     public void updateRating(Float newRating) {
         this.productRating = newRating;
@@ -73,6 +70,5 @@ public class Product {
         this.productDescription = productDescription;
         this.productRating = (float) 0;
         this.productCreatedDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
-        this.productSaleState = true;
     }
 }

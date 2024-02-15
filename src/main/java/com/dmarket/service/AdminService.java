@@ -595,7 +595,8 @@ public class AdminService {
             refundRepository.save(refund);
         }
         ReturnState state = ReturnState.fromLabel(returnState);
-        returnEntity.updateReturnState(state);
+        System.out.println("returnState = " + state);
+        
 
         // OrderDetailRepository를 통해 orderId를 가져옴.
         OrderDetail orderDetail = orderDetailRepository.findByOrderDetailId(returnEntity.getOrderDetailId());
@@ -606,7 +607,7 @@ public class AdminService {
                         "주문 아이디와 일치하는 사용자 아이디가 없음, order ID: " + orderDetail.getOrderId()));
         // 상품명 가져오기
         String productName = productRepository.findProductName(orderDetail.getProductId());
-
+        returnEntity.updateReturnState(state);
         // 반품 상태가 변경된 후 알림 전송
         publisher.publishEvent(SendNotificationEvent.of("return", userId,
                 productName + "(이)가 " + returnState + " 상태입니다.",

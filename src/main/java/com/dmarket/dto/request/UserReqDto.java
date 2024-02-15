@@ -26,7 +26,10 @@ public class UserReqDto {
     }
 
     @Data
+    @Setter
     @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class Join {
 
         @NotBlank
@@ -75,6 +78,7 @@ public class UserReqDto {
     }
 
     @Data
+    @AllArgsConstructor
     public static class Emails {
         private String userEmail;
         private String code;

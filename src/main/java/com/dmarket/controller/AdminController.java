@@ -154,7 +154,6 @@ public class AdminController {
             }
         }
         Page<InquiryResDto.InquiryListResDto> mappedInquiries = adminService.getAllInquiriesByType(inquiryType, pageNo);
-
         CMResDto<Page<InquiryResDto.InquiryListResDto>> response = CMResDto.successDataRes(mappedInquiries);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

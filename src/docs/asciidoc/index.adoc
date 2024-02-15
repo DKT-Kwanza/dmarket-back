@@ -11,8 +11,8 @@ ifndef::snippets[]
 :snippets: ./build/generated-snippets
 endif::[]
  
-=== Request Code
-include::http-request.adoc[]
- 
-=== Response Code
-include::http-response.adoc[]
+==== Request Code
+include::{snippets}/join/http-request.adoc[]
+
+==== Response Code
+include::{snippets}/join/http-response.adoc[]
