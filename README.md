@@ -13,17 +13,19 @@
 
 ## 👻 Member
 
+## 👻 Member
+
 <table>
 <tr>
-<td align="center"> 👑BE(PM)</td>
-<td align="center"> 👍BE(PL)</td>
-<td align="center"> FE</td>
-<td align="center"> FE</td>
-<td align="center"> BE</td>
-<td align="center"> BE</td>
-<td align="center"> BE</td>
-<td align="center"> BE</td>
-<td align="center"> BE</td>
+<td align="center"><strong>BE(PM)</strong></td>
+<td align="center"><strong>BE(PL)</strong></td>
+<td align="center">FE</td>
+<td align="center">FE</td>
+<td align="center">BE</td>
+<td align="center">BE</td>
+<td align="center">BE</td>
+<td align="center">BE</td>
+<td align="center">BE</td>
 
 </tr>
   <tr>
@@ -76,46 +78,46 @@
   <tr>
     <td align="center">
       <a href="https://github.com/gwon477" target="_blank">
-        Noah
+        Noah🦈
       </a>
     </td>
      <td align="center">
       <a href="https://github.com/gustjdw" target="_blank">
-       Jupiter
+       Jupiter🐢
       </a>
     </td> 
      <td align="center">
       <a href="https://github.com/kang-ye-jin" target="_blank">
-       Marie
+       Marie🎀
       </a>
        <td align="center">
       <a href="https://github.com/An-hyeonyoung" target="_blank">
-        Heiley
+        Heiley😺
       </a>
     </td>
      <td align="center">
       <a href="https://github.com/yoon520" target="_blank">
-       Reina
+       Reina😼
       </a>
     </td> 
      <td align="center">
       <a href="https://github.com/naminhyeok" target="_blank">
-       Kai
+       Kai🐣
       </a>
     </td>
      <td align="center">
       <a href="https://github.com/xxng1" target="_blank">
-       Scott
+       Scott🐊
       </a>
     </td>
     <td align="center">
       <a href="https://github.com/ohdeng02" target="_blank">
-       Evelyn
+       Evelyn🐳
       </a>
     </td>
     <td align="center">
       <a href="https://github.com/dbsrl1026" target="_blank">
-       Yun
+       Yun🐧
       </a>
     </td>
   </tr>
@@ -265,6 +267,12 @@ DmarKeT은 가장 저렴한 가격에 상품을 구입할 수 있는 기회를 �
 
 <img width="600px" src='https://github.com/xxng1/xxng1.github.io/assets/112960401/23a7f685-d7cc-4048-9558-95abbb0b3cc5'  alt="Ground Rules"/>
 
-## 🏆 Team Collaboration Tool
+## 🤝 Team Collaboration Tool
 
 <img width="600px" src='https://github.com/xxng1/xxng1.github.io/assets/112960401/61ed758c-9ceb-44a4-b076-33b09b41a530'  alt="Collaboration Tools"/>
+
+
+## 📄 라이선스
+이 프로젝트는 MIT 라이선스를 따릅니다. 자세한 내용은 [LICENSE](./LICENSE) 파일을 확인하세요.
+
+© 2024 DKT Shopping Mall. All Rights Reserved.
